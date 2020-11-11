@@ -368,7 +368,7 @@ body {
   padding: 2%;
   max-width: 40%
 }
-#life-label, #load-label1, #load-label2, #profile-label1, #profile-label2, #profile-label3 {
+#revenue-label, #load-label1, #load-label2, #profile-label1, #profile-label2, #profile-label3 {
   display: flex;
   flex-direction: row;
 }
@@ -508,7 +508,7 @@ body {
 }
 
 
-#cable-parameter-menu-label, #temp-rise-parameter-menu-label, #load-model-parameter-menu h6 ,#ess-profile-parameter-menu h6, #life-extension-block h6 {
+#cable-parameter-menu-label, #temp-rise-parameter-menu-label, #load-model-parameter-menu h6 ,#ess-profile-parameter-menu h6, #revenue-block h6 {
   text-align: center;
   font-weight: 500;
 }
@@ -519,7 +519,7 @@ body {
   padding: 2%;
 }
 
-#life1, #life2, #life3 , #load1, #load2, #profile1, #profile2, #profile3 {
+#revenue1, #revenue2, #revenue3 , #load1, #load2, #profile1, #profile2, #profile3 {
   width: 50%;
   margin-left: auto;
 }

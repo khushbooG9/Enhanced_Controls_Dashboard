@@ -74,6 +74,165 @@ def build_buttons_panel():
 
     )
 
+def build_top_panel():
+    """
+    Function to build top panel for 2 graph placeholders
+    TBD
+    """
+
+    return html.Div(
+        id="top-section-container",
+        className="row",
+        children=[
+            html.Div(
+                id="left-graph",
+                children = [
+                    build_left_graph(),
+                ]
+            ),
+            html.Div(
+                id="right-graph",
+                children= [
+                    build_right_graph(),
+                ]
+            ),
+        ],
+    )
+
+def left_graph():
+    #df, estimation, name = get_data(settings_dict, state_dict)
+
+    fig = make_subplots(rows=2, cols=1, shared_xaxes=True)
+
+    fig.append_trace(go.Scatter(
+
+        x = [i for i in range(10)],
+        y = [i for i in range(10)],
+        name= "placeholder",
+        ), row=1, col=1)
+
+    fig.append_trace(go.Scatter(
+        x= [i for i in range(10)],
+        y= [i for i in range(10)],
+        name = "placeholder",
+        ), row=2, col=1)
+    fig.update_yaxes(title_text="Placeholder 1", row=1, col=1,showline=True, linewidth=2, linecolor='#e67300', mirror=True)
+    fig.update_yaxes(title_text="Placeholder 1", row=2, col=1,showline=True, linewidth=2, linecolor='#e67300', mirror=True, title_standoff=2)
+    fig.update_xaxes(row=1, col=1,showline=True, linewidth=2, linecolor='#e67300', mirror=True)
+    fig.update_layout(width=500, height=350,paper_bgcolor = "#EFEDED",legend=dict(
+    orientation="h",
+    yanchor="bottom",
+    y=1.05,
+    xanchor="right",
+    x=1), 
+	)
+    return fig
+
+def build_left_graph():
+    """
+    function to build left graph
+    Reference: https://plotly.com/python/subplots/
+    """
+
+    return dcc.Graph(
+        id = "left-graph-fig", figure = left_graph(),
+    )
+
+def right_graph():
+    #df, estimation, name = get_data(settings_dict, state_dict)
+    fig = go.Figure()
+    fig.add_trace(go.Scatter(
+        x=[i for i in range(10)],
+        y=[i for i in range(10)],
+		name = "placeholder right graph",
+	)
+	)
+    fig.update_xaxes(showline=True, linewidth=2, linecolor='#e67300', mirror=True)
+    fig.update_yaxes(showline=True, linewidth=2, linecolor='#e67300', mirror=True)
+    fig.update_layout(paper_bgcolor = "#EFEDED", width=500, height=350,legend = dict(
+     orientation="h",
+	 yanchor="bottom",
+	 y=1.05,
+	 xanchor="right",
+	 x=1,
+	 ),
+	xaxis_title="x-axis",
+	yaxis_title="y-axis",
+	
+        )
+
+
+    return fig
+
+def build_right_graph():
+    """
+    Function to build right graph
+    Reference: https://plotly.com/python/line-charts/
+    """
+
+
+    return dcc.Graph(
+        id="right-graph-fig", figure = right_graph(),
+    )
+
+def revenue_block():
+	return html.Div(
+        id="revenue-block",
+        children = [
+            html.H6("Revenue"),
+            html.Br(),
+            html.Div(
+                id="revenue-label",
+                children = [
+                    html.Label("Day Ahead Estimate"),
+                    dcc.Input(id="revenue1", type='text'),
+                ]
+            ),
+
+            html.Br(),
+            html.Div(
+                id="revenue-label",
+                children = [
+                    html.Label("Actual, Not Adjusted"),
+                    dcc.Input(id="revenue2", type='text'),
+                ]
+            ),
+
+            html.Br(),
+            html.Div(
+                id="revenue-label",
+                children = [
+                    html.Label("Actual, Real Time Adjusted"),
+                    dcc.Input(id="revenue3", type='text'),
+                ]
+            ),
+
+        ]
+    )
+
+
+def build_bottom_panel():
+    """
+    Function to build top panel for 2 graph placeholders
+    TBD
+    """
+    return html.Div(
+        id="bottom-section-container",
+        className="row",
+        children=[
+            html.Div(
+                #id="left-graph",
+
+            ),
+            html.Div(
+                id="bottom-panel-container",
+                children= [
+                    revenue_block(),
+                ]
+            ),
+        ],
+    )
+
 def build_simulation_tab():
     """
     Function to put together the simulation  tab
@@ -84,7 +243,7 @@ def build_simulation_tab():
             build_buttons_panel(),
             html.Div(
                 id="graphs-container",
-                children = html.H2("Working on it"),
+                children = [build_top_panel(), build_bottom_panel()],
             ),
         ],
     ),
