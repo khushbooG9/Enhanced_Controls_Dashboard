@@ -332,9 +332,13 @@ class BatteryClass:
         model.con10 = pyo.Constraint(self.TIME, rule=self.con_rule_eq4)
 
 
+        # model.pbus_slack = pyo.Param(model.Buses, model.Scenarios, initialize=0)
+        # put the parameter as mutable so it does know you want to change it later
+        # model.con.deactivate() to deactivate the constraints
         model.obj = pyo.Objective(rule=self.obj_rule, sense=pyo.minimize)
 
         pyo.SolverFactory('ipopt').solve(model)  # solver being used
+
 
         # p_chg_val = [0] * len(self.TIME)
         # p_dis_val = [0] * len(self.TIME)
