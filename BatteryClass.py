@@ -35,6 +35,8 @@ import pyomo.environ as pyo
 import pandas as pd
 import json
 import matplotlib.pyplot as plt
+import pyutilib.subprocess.GlobalData
+pyutilib.subprocess.GlobalData.DEFINE_SIGNAL_HANDLERS_DEFAULT = False 
 
 class BatteryClass:
     """This agent manages the battery/inverter

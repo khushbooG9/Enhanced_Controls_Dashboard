@@ -188,7 +188,13 @@ body {
   line-height: 2;
 }
 
-#value-setter-panel-header, #value-setter-panel-header2 {
+.usecase-line-row {
+  display: flex;
+  flex-direction: row;
+}
+
+
+#usecase-header, #value-setter-panel-header2 {
   font-weight: bold;
   color: darkgray;
   line-height: 1;
@@ -196,23 +202,13 @@ body {
   border-bottom: 1px solid #4b5460;
 }
 
-#value-setter-panel-header > div, #value-setter-panel-header2 > div {
+#usecase-header > div, #value-setter-panel-header2 > div {
   text-align: center;
 }
 
-#value-setter-panel-e0, #value-setter-panel-ambient, #value-setter-panel-alpha0{
-  padding: 1rem 0;
-}
 
-#value-setter-panel-beta, #value-setter-panel-n0, #value-setter-panel-b, #value-setter-panel-pd{
-  padding: 1rem 0;
-}
 
-#value-setter-panel-pt, #value-setter-panel-d{
-  padding: 1rem 0;
-}
-
-#value-setter-panel-t0, #value-setter-panel-current{
+#demand-charge-reduction, #power-factor-correction, #arbitrage, #reserves-placement{
   padding: 1rem 0;
 }
 
@@ -347,6 +343,7 @@ body {
   flex: 3 1;
   max-width: calc(75%);
   width: 70%;
+
 }
 
 
@@ -366,7 +363,8 @@ body {
   display: inline-block;
   margin: 15px;
   padding: 2%;
-  max-width: 40%
+  max-width: 40%;
+  
 }
 #revenue-label, #load-label1, #load-label2, #profile-label1, #profile-label2, #profile-label3 {
   display: flex;
@@ -495,7 +493,7 @@ body {
 */
 
 
-.value_setter_line_row {
+.usecase_line_row {
   display: flex;
   flex-direction: row;
 }
@@ -600,6 +598,28 @@ __________________________________________________*/
   margin: 5px 2px;
 }
 
+.usecase-set-button {
+  border-radius: 4px;
+  
+  color: white; 
+  width: 140px;
+  background-color: #cc3300;
+  border: 2px solid #992600;
+  margin-right: 2px;
+  
+}
+
+.usecase-dropdown {
+  width: 100px;
+  border-radius: 4px;
+  margin-right: 60px;
+}
+
+.usecase-switch {
+  margin-left: auto;
+  align-items: center;
+  margin-right: 10%;
+}
 
 #button1-life,  #button1-temp, #button1-load, #button1-ess, #button4, #button5 {
   background-color: #cc3300;

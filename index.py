@@ -8,6 +8,7 @@ import plotly.graph_objects as go
 import dash_daq as daq
 import dash_table
 import pandas as pd 
+from BatteryClass import * 
 
 def build_banner():
     return html.Div(
@@ -30,6 +31,124 @@ def build_banner():
         ],
     )
 
+def data_upload_panel():
+
+    return  html.Div(
+    id = "configuration-select-menu-wrapper",
+    children = [
+    html.Div(
+        id="configuration-select-menu",
+        children = [
+                html.H6("Upload Data"),
+                html.Br(),
+                html.Br(),
+
+
+                html.Div(
+                    id = "dropdown-label",
+                    children = [
+                        html.Label("Upload Cable Data"),
+                        dcc.Upload(
+                            id="upload-cable-data",
+                            children = html.Div([
+                           'Drag and Drop or ',
+                            html.A('Select a File')
+                            ]) 
+                            ),
+                        html.Hr(),
+                        #html.Div(id='output-upload-cable-data'),
+                    ]
+                ),
+                html.Div(id='output-upload-cable-data'),
+                html.Br(),
+                html.Div(
+                    id = "dropdown-label",
+                    children = [
+                        html.Label("Upload ESS Data"),
+                        dcc.Upload(
+                            id="upload-ess-data",
+                            children = html.Div([
+                           'Drag and Drop or ',
+                            html.A('Select a File')
+                            ]) 
+                            ),
+                        html.Hr(),
+                        #html.Div(id='output-upload-ess-data'),
+                    ]
+                ),
+                html.Div(id='output-upload-ess-data'),
+
+                ]
+    ),
+    html.Br(),
+]
+
+)
+
+def build_usecase_line(line_num, label, value):
+    return html.Div(
+        id=line_num,
+        className="usecase-line-row",
+        children=[
+            html.Label(label, className="usecase-label"),
+            daq.BooleanSwitch(on=False, className="usecase-switch", color="#cc3300"),
+            dcc.Dropdown(
+                className = "usecase-dropdown",
+                options = [
+                    {'label':'1', 'value':1},
+                    {'label':'2', 'value':2},
+                    {'label':'3', 'value':3},
+                    {'label':'4', 'value':4}
+                ],
+                disabled=True,
+            ),
+            html.Button("Configure", className="usecase-set-button", disabled=True)        
+        ],
+
+    )
+
+def configuration_panel():
+    """
+    Function to get the system configuration panel
+    """
+    return  html.Div(
+    id = "configuration-select-menu-wrapper",
+    children = [
+    html.Div(
+        id = "configuration-select-menu",
+        children = [
+        html.H6("Usecase Configuration"),
+        html.Br(),
+        html.Br(),
+        html.Div(
+            id="usecase-header",
+            className="usecase-line-row",
+            children=[
+                html.Label("Usecase", className="usecase-label"),
+                html.Label("Select", className="usecase-switch"),
+                html.Label("Priority", className="usecase-dropdown"),
+                "Configure Usecase",#html.Div(col, className="value-setter")
+            ],
+        ),
+        build_usecase_line("demand-charge-reduction", "Demand Charge Reduction", "dcr"),
+        html.Br(),
+        build_usecase_line("power-factor-correction","Power Factor Correction","pfc"),
+        html.Br(),
+        build_usecase_line("arbitrage", "Arbitrage", "arb"),
+        html.Br(),
+        build_usecase_line("revserves-placement", "Reserves Placement", "rp"),
+        ]
+    ),
+    html.Br(),
+    html.Br(),
+    html.Div(
+        id = "dropdown-button",
+        children = [html.Button("Update", className="",  n_clicks=0),]
+        ),
+]
+
+)
+
 def build_settings_tab():
     """
     Function to put together the settings tab
@@ -38,7 +157,7 @@ def build_settings_tab():
     #system_configuration_panel(),
         html.Div(
             id="system-configuration-menu",
-            children = html.H2("No settings yet"),
+            children = [configuration_panel(), data_upload_panel()],
         )]
 
 def build_buttons_panel():
@@ -100,26 +219,51 @@ def build_top_panel():
     )
 
 def left_graph():
-    #df, estimation, name = get_data(settings_dict, state_dict)
-
+    battery_obj = BatteryClass('dict.json')  # make object
+    battery_obj.get_data()
+    
+    battery_obj.set_load_forecast()
+    battery_obj.DA_optimal_quantities()
     fig = make_subplots(rows=2, cols=1, shared_xaxes=True)
 
     fig.append_trace(go.Scatter(
 
-        x = [i for i in range(10)],
-        y = [i for i in range(10)],
-        name= "placeholder",
+        x = [i for i in range(len(battery_obj.grid_react_power_prediction))],
+        y = battery_obj.grid_react_power_prediction,
+        name= "Total Reactive Power Grid ",
+        ), row=1, col=1)
+    fig.add_trace(go.Scatter(
+
+        x = [i for i in range(len(battery_obj.grid_react_power_prediction))],
+        y = battery_obj.battery_react_power_prediction,
+        name= "Reactive Power Battery",
+        ), row=1, col=1)
+    fig.add_trace(go.Scatter(
+
+        x = [i for i in range(len(battery_obj.grid_react_power_prediction))],
+        y = battery_obj.load_up*battery_obj.load_pf,
+        name= "Predicted Reactive Power Load",
         ), row=1, col=1)
 
     fig.append_trace(go.Scatter(
-        x= [i for i in range(10)],
-        y= [i for i in range(10)],
-        name = "placeholder",
+        x= [i for i in range(len(battery_obj.grid_react_power_prediction))],
+        y= battery_obj.grid_power_factor,
+        name = "New Power Factor",
         ), row=2, col=1)
-    fig.update_yaxes(title_text="Placeholder 1", row=1, col=1,showline=True, linewidth=2, linecolor='#e67300', mirror=True)
-    fig.update_yaxes(title_text="Placeholder 1", row=2, col=1,showline=True, linewidth=2, linecolor='#e67300', mirror=True, title_standoff=2)
+
+    fig.add_trace(go.Scatter(
+
+        x = [i for i in range(len(battery_obj.grid_react_power_prediction))],
+        y = battery_obj.grid_original_power_factor,
+        name= "Old Power Factor", line = dict(dash="dash")
+        ), row=2, col=1)
+
+
+    fig.update_yaxes(title_text="kVar", row=1, col=1,showline=True, linewidth=2, linecolor='#e67300', mirror=True)
+    fig.update_yaxes(title_text="cosphi", row=2, col=1,showline=True, linewidth=2, linecolor='#e67300', mirror=True, title_standoff=2)
     fig.update_xaxes(row=1, col=1,showline=True, linewidth=2, linecolor='#e67300', mirror=True)
-    fig.update_layout(width=500, height=350,paper_bgcolor = "#EFEDED",legend=dict(
+    fig.update_xaxes(title_text="Hours", row=2, col=1,showline=True, linewidth=2, linecolor="#e67300", mirror=True)
+    fig.update_layout(title= "Grid Side Results" ,width=500, height=350,paper_bgcolor = "#EFEDED",legend=dict(
     orientation="h",
     yanchor="bottom",
     y=1.05,
@@ -139,14 +283,37 @@ def build_left_graph():
     )
 
 def right_graph():
-    #df, estimation, name = get_data(settings_dict, state_dict)
+    battery_obj = BatteryClass('dict.json')  # make object
+    battery_obj.get_data()
+    
+    battery_obj.set_load_forecast()
+    battery_obj.DA_optimal_quantities()
+
     fig = go.Figure()
     fig.add_trace(go.Scatter(
-        x=[i for i in range(10)],
-        y=[i for i in range(10)],
-		name = "placeholder right graph",
+        x=[i for i in range(len(battery_obj.battery_setpoints))],
+        y=[i for i in battery_obj.battery_setpoints],
+		name = 'Battery Power (Charge/Discharge)',
 	)
 	)
+    fig.add_trace(go.Scatter(
+        x=[i for i in range(len(battery_obj.battery_setpoints))],
+        y=[battery_obj.peak_load_prediction]*battery_obj.windowLength,
+        name = 'Peak Load',
+    )
+    )
+    fig.add_trace(go.Scatter(
+        x=[i for i in range(len(battery_obj.battery_setpoints))],
+        y=[i for i in battery_obj.grid_load_prediction],
+        name = 'Grid Load',
+    )
+    )
+    fig.add_trace(go.Scatter(
+        x=[i for i in range(len(battery_obj.battery_setpoints))],
+        y=[i for i in battery_obj.load_predict],
+        name = 'Load Prediction',
+    )
+    )
     fig.update_xaxes(showline=True, linewidth=2, linecolor='#e67300', mirror=True)
     fig.update_yaxes(showline=True, linewidth=2, linecolor='#e67300', mirror=True)
     fig.update_layout(paper_bgcolor = "#EFEDED", width=500, height=350,legend = dict(
@@ -156,8 +323,8 @@ def right_graph():
 	 xanchor="right",
 	 x=1,
 	 ),
-	xaxis_title="x-axis",
-	yaxis_title="y-axis",
+	xaxis_title="Hours",
+	yaxis_title="kW",
 	
         )
 
