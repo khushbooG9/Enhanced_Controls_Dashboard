@@ -47,33 +47,84 @@ def data_upload_panel():
                 html.Div(
                     id = "dropdown-label",
                     children = [
-                        html.Label("Upload Cable Data"),
-                        dcc.Upload(
-                            id="upload-cable-data",
+                        html.Div(
+                            children = [
+                            html.Label("Load Profile Data"),
+                            dcc.DatePickerRange(
+                                start_date_placeholder_text="Start Period",
+                                end_date_placeholder_text="End Period",
+                                
+                            ) 
+                            ]
+                        ),
+                        html.Div(
+                            children =[
+                            dcc.Upload(
+                            id="upload-load-profile-data",
                             children = html.Div([
                            'Drag and Drop or ',
                             html.A('Select a File')
                             ]) 
                             ),
+                            ]
+                        ),
                         html.Hr(),
                         #html.Div(id='output-upload-cable-data'),
                     ]
                 ),
-                html.Div(id='output-upload-cable-data'),
+                html.Div(id='output-upload-load-profile-data'),
                 html.Br(),
                 html.Div(
                     id = "dropdown-label",
                     children = [
-                        html.Label("Upload ESS Data"),
-                        dcc.Upload(
+                        html.Div(
+                            children = [
+                            html.Label("Energy Price Data"),
+                            dcc.DatePickerRange(
+                                start_date_placeholder_text="Start Period",
+                                end_date_placeholder_text="End Period",
+                                
+                            ) 
+                            ]
+                        ),
+                        html.Div(
+                            children = [
+                            dcc.Upload(
+                            id="upload-energy-price-data",
+                            children = html.Div([
+                           'Drag and Drop or ',
+                            html.A('Select a File')
+                            ]) 
+                            ),
+                            ]
+                        ),
+                        html.Hr(),
+                        #html.Div(id='output-upload-cable-data'),
+                    ]
+                ),
+                html.Div(id='output-upload-energy-price-data'),
+                html.Br(),
+                html.Div(
+                    id = "dropdown-label",
+                    children = [
+                        html.Div(
+                            children = [
+                            html.Label("ESS Data"),
+                            ]
+                        ),
+                        html.Div(
+                            children = [
+                            dcc.Upload(
                             id="upload-ess-data",
                             children = html.Div([
                            'Drag and Drop or ',
                             html.A('Select a File')
                             ]) 
                             ),
+                            ]
+                        ),
                         html.Hr(),
-                        #html.Div(id='output-upload-ess-data'),
+                        #html.Div(id='output-upload-cable-data'),
                     ]
                 ),
                 html.Div(id='output-upload-ess-data'),
@@ -102,8 +153,205 @@ def build_usecase_line(line_num, label, value):
                 ],
                 disabled=True,
             ),
-            html.Button("Configure", className="usecase-set-button", disabled=True)        
+            html.Button("Configure", className="usecase-set-button",id=value, disabled=False, n_clicks=0)        
         ],
+
+    )
+
+def usecase_dcr_popup():
+    """
+    Function to get the life mode pop-up
+    """
+    return html.Div(
+        id="markdown",
+        style = {"display":"none"},
+        className="modal",
+        children=(
+            html.Div(
+                id="markdown-container",
+                className="markdown-container",
+                children=[
+                    html.Div(
+                        className="close-container",
+                        children=html.Button(
+                            "Close",
+                            id="markdown-close",
+                            n_clicks=0,
+                            className="closeButton",
+                        ),
+                    ),
+                    html.Div(
+                        id="markdown-content",
+                        className="markdown-content",
+                        children = [
+                        html.Div(
+                            id = "markdown-panel",
+                            children = [ html.Div (
+                                id = "markdown-panel2",
+                                children = [
+                                html.H6("Configuration"),
+                                html.Br(),
+                                html.Br(),
+                                html.Div(
+                                        id="usecase-dcr-header",
+                                        className="usecase-line-row",
+                                        children=[
+                                            html.Label("Setting Name", className="usecase-dcr-label"),
+                                            html.Label("Setting Input", className="usecase-setting-input")
+                                        ],
+
+                                    ),
+                                html.Br(),
+                                html.Div(
+                                        id="peak-charge",
+                                        className="usecase-line-row",
+                                        children=[
+                                            html.Label("Peak Charge", className="usecase-dcr-label"),
+                                            daq.NumericInput(id="peak-charge-input", className="usecase-setting-input", size=200, min=0, max=1000, value=5)
+                                        ],
+
+                                    ),
+                                html.Br(),
+                                html.Div(
+                                        id="threshold",
+                                        className="usecase-line-row",
+                                        children=[
+                                            html.Label("Threshold", className="usecase-dcr-label"),
+                                            daq.NumericInput(id="threshold-input", className="usecase-setting-input", size=200, min=0, max=1000, value=5)
+                                        ],
+
+                                    ),
+                                html.Br(),
+                                html.Div(
+                                        id="uncertainity-budget",
+                                        className="usecase-line-row",
+                                        children=[
+                                            html.Label("Uncertainity Budget", className="usecase-dcr-label"),
+                                            daq.NumericInput(id="uncertainity-budget-input", className="usecase-setting-input", size=200, min=0, max=1000, value=5)
+                                        ],
+
+                                    ),
+                                html.Br(),
+                                html.Div(
+                                        id="control-type",
+                                        className="usecase-line-row",
+                                        children=[
+                                            html.Label("Control Type", className="usecase-dcr-label"),
+                                            daq.BooleanSwitch(on=False,id="control-type-input1" ,className="usecase-switch", color="#cc3300", label="Optimization"),
+                                            daq.BooleanSwitch(on=False,id="control-type-input2" ,className="usecase-switch", color="#cc3300", label="Rule-based"),
+                                            
+                                        ],
+
+                                    ),
+                                ]
+                                
+                            ),
+
+                            html.Button("Update", className="", id="usecase-dcr-set-btn", n_clicks=0),
+
+                             ],
+
+                            ),
+                        ]
+                    ),
+
+                ]
+            )
+        )
+
+    )
+
+def usecase_pfc_popup():
+    """
+    Function to get the life mode pop-up
+    """
+    return html.Div(
+        id="markdown2",
+        style = {"display":"none"},
+        className="modal",
+        children=(
+            html.Div(
+                id="markdown-container2",
+                className="markdown-container2",
+                children=[
+                    html.Div(
+                        className="close-container2",
+                        children=html.Button(
+                            "Close",
+                            id="markdown-close2",
+                            n_clicks=0,
+                            className="closeButton",
+                        ),
+                    ),
+                    html.Div(
+                        id="markdown-content2",
+                        className="markdown-conten2t",
+                        children = [
+                        
+                        html.Div(
+                            id = "markdown-panel2a",
+                            children = [ html.Div (
+                                id = "markdown-panel2b",
+                                      children = [
+                                html.H6("Configuration"),
+                                html.Br(),
+                                html.Br(),
+                                html.Div(
+                                        id="usecase-pfc-header",
+                                        className="usecase-line-row",
+                                        children=[
+                                            html.Label("Setting Name", className="usecase-pfc-label"),
+                                            html.Label("Setting Input", className="usecase-setting-input")
+                                        ],
+
+                                    ),
+                                html.Br(),
+                                html.Div(
+                                        id="load-power-factor",
+                                        className="usecase-line-row",
+                                        children=[
+                                            html.Label("Load Power Factor", className="usecase-pfc-label-label"),
+                                            daq.NumericInput(id="load-power-factor-input", className="usecase-setting-input", size=200, min=0, max=1000, value=5)
+                                        ],
+
+                                    ),
+                                html.Br(),
+                                html.Div(
+                                        id="power-factor-limit",
+                                        className="usecase-line-row",
+                                        children=[
+                                            html.Label("Power Factor Limit", className="usecase-dcr-label"),
+                                            daq.NumericInput(id="power-factor-limit-input", className="usecase-setting-input", size=200, min=0, max=1000, value=5)
+                                        ],
+
+                                    ),
+                                html.Br(),
+                                html.Div(
+                                        id="control-type2",
+                                        className="usecase-line-row",
+                                        children=[
+                                            html.Label("Control Type", className="usecase-dcr-label"),
+                                            daq.BooleanSwitch(on=False,id="control-type-input21" ,className="usecase-switch", color="#cc3300", label="Optimization"),
+                                            daq.BooleanSwitch(on=False,id="control-type-input22" ,className="usecase-switch", color="#cc3300", label="Rule-based"),
+                                            
+                                        ],
+
+                                    ),
+                                ]
+                                
+                            ),
+
+                            html.Button("Update", className="", id="usecase-pfc-set-btn", n_clicks=0),
+
+                             ],
+
+                            ),
+                        ]
+                    ),
+
+                ]
+            )
+        )
 
     )
 
@@ -460,6 +708,8 @@ def serve_layout():
             children=[
                 build_tabs(),
                 html.Div(id="app-content"),
+                usecase_dcr_popup(),
+                usecase_pfc_popup(),
                 
             ],
         ),
@@ -482,6 +732,36 @@ def render_tab_contents(tab_switch):
         return build_simulation_tab()
 
     return build_settings_tab()
+
+@app.callback(
+    Output("markdown", "style"),
+    [Input("dcr", "n_clicks"), Input("markdown-close", "n_clicks")],
+)
+def update_click_output1(button_click, close_click):
+    ctx = dash.callback_context
+
+    if ctx.triggered:
+        prop_id = ctx.triggered[0]["prop_id"].split(".")[0]
+        #print(prop_id)
+        if prop_id == "dcr" and button_click!=0:
+            return {"display": "block"}
+
+    return {"display": "none"}
+
+@app.callback(
+    Output("markdown2", "style"),
+    [Input("pfc", "n_clicks"), Input("markdown-close2", "n_clicks")],
+)
+def update_click_output1(button_click, close_click):
+    ctx = dash.callback_context
+
+    if ctx.triggered:
+        prop_id = ctx.triggered[0]["prop_id"].split(".")[0]
+        #print(prop_id)
+        if prop_id == "pfc" and button_click!=0:
+            return {"display": "block"}
+
+    return {"display": "none"}
 
 if __name__ == '__main__':
     app.run_server(debug=True)
