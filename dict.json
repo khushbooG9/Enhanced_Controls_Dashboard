@@ -5,11 +5,9 @@
   "rating": 5000.0,
   "charge": 6750.0,
   "efficiency": 1,
-  "StartTime": "1/10/2017 00:00:00",
-  "EndTime": "1/11/2017 00:00:00",
+  "StartTime": "2017-01-01 00:00:00",
+  "EndTime": "2017-01-31 00:00:00",
   "SimulationDays": 30,
-  "FacilityLoadDataPath": "data/load_data.csv",
-  "PriceDataPath": "data/price_data.csv",
   "rated_inverter_kVA": 1000.0,
   "rated_kW": 750.0,
   "resource": "battery",
@@ -26,5 +24,10 @@
   "load_pf": 0.7,
   "pf_penalty": 1e-9,
   "demand_charge_budget": 0.5,
-  "linearization_segments": 16
+  "linearization_segments": 16,
+  "peak_threshold": 210,
+  "arbitrage_price_threshold": 0.05,
+  "max_reserve_up_cap": 0.20,
+  "max_reserve_down_cap": 0.20,
+  "realtime_control_resolution": 1
 }

@@ -1,0 +1,4 @@
+{
+  "FacilityLoadDataPath": "data/load_data.csv",
+  "PriceDataPath": "data/price_data.csv"
+}

@@ -1,0 +1,26 @@
+{
+  "power_factor_correction": {
+    "rule_based": 0,
+    "optimization_based": 1,
+    "priority": 1
+  },
+  "demand_charge": {
+    "rule_based": 0,
+    "optimization_based": 1,
+    "priority": 2
+  },
+  "energy_arbitrage": {
+    "rule_based": 0,
+    "optimization_based": 0,
+    "priority": 3
+  },
+  "reserves_placement": {
+    "rule_based": 0,
+    "optimization_based": 0,
+    "priority": 4
+  },
+  "external_signal": {
+    "applied": 0,
+    "priority": -1
+  }
+}
