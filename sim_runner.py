@@ -93,6 +93,7 @@ if __name__ == "__main__":
     battery_obj = battery_class_new(use_case_library, gen_config, data_config)
 
     battery_obj.get_data()
+    battery_obj.set_load_forecast()
 
     print("Battery Object Loaded")
 
