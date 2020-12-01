@@ -31,7 +31,7 @@ class battery_class_new:
         # TODO: update attributes of class
         # initialize from Args:
 
-
+        self.use_case_dict = use_case_dict
         self.name = gen_dict["batteryName"]
 
         self.capacity = gen_dict["capacity"]
@@ -136,132 +136,87 @@ class battery_class_new:
             print("load data is not for the whole year")
 
 
-    def set_load_forecast(self):
+    def set_hourly_load_forecast(self, current_time, forecast_time):
         """ Set the f_DA attribute
 
         Args:
-            forecasted_price (float x 48): cleared price in $/kWh
+            Forecasted Load (float x 48): in kW, kVar
         """
-        self.load_predict = self.load_data[(self.load_data['Time'] >= self.StartTime) & (self.load_data['Time'] < self.EndTime)]['Value'].values
+        self.load_predict = self.load_data[(self.load_data['Time'] >= current_time) & (self.load_data['Time'] < forecast_time)]['Value'].values
         self.load_up = self.load_predict + self.load_predict*self.load_dev
         self.load_down = self.load_predict - self.load_predict*self.load_dev
         self.load_predict = self.load_predict + (self.load_dev*np.random.rand(len(self.load_predict))*self.load_up)-(self.load_dev*np.random.rand(len(self.load_predict))*self.load_down)
 
         self.grid_original_apparant_power = np.sqrt(self.load_predict**2 + (self.load_pf*self.load_predict)**2)
         self.grid_original_power_factor = (self.load_predict+1e-4)/(self.grid_original_apparant_power+1e-4)
-    # def DA_cleared_price(self, price):
-    #     """ Set the DA_cleared_price attribute
-    #
-    #     Args:
-    #         price (float): cleared price in $/kWh
-    #     """
-    #     # TODO: THis is not used, do we need it?
-    #     self.prev_clr_Quantity = list()
-    #     self.prev_clr_Price = list()
-    #     self.prev_clr_Price = deepcopy(price)
-    #     self.BindingObjFunc = bool(True)
-    #     for i in range(len(self.prev_clr_Price)):
-    #         self.prev_clr_Quantity.append(self.from_P_to_Q_battery(self.bid_da[i], self.prev_clr_Price[i]))
-    #     self.prev_clr_Price.pop(0)
-    #     self.prev_clr_Quantity.pop(0)
-    #     self.prev_clr_Price.append(0.0)
-    #     self.prev_clr_Quantity.append(0.0)
 
-    # def formulate_bid_da(self):
-    #     """ Formulate 4 points of P and Q bids for the DA market
-    #
-    #     Function calls "DA_optimal_quantities" to obtain the optimal quantities
-    #     for the DA market. With the quantities, the 4 point bids are formulated.
-    #
-    #     Before returning the BID the function resets "RT_state_maintaing_flag"
-    #     wich if RT_state_maintaing is TRUE the battery will be forced to keep its
-    #     state (i.e., charging or discharging).
-    #
-    #     Returns:
-    #         BID (float) (((1,2)X4) X windowLength): store last DA market bids
-    #     """
-    #     #        Quantity = self.DA_optimal_quantities()
-    #     Quantity = deepcopy(self.optimized_Quantity)
-    #
-    #     P = self.P
-    #     Q = self.Q
-    #     TIME = range(0, self.windowLength)
-    #     CurveSlope = [0] * len(TIME)
-    #     yIntercept = [-1] * len(TIME)
-    #     BID = [[[0.0, 0.0], [0.0, 0.0], [0.0, 0.0], [0.0, 0.0]] for i in TIME]
-    #     deltaf_DA = max(self.f_DA) - min(self.f_DA)
-    #
-    #     for t in TIME:
-    #         CurveSlope[t] = ((max(self.f_DA) - min(self.f_DA)) / (-self.Rd - self.Rc)) * (
-    #                     1 + self.ProfitMargin_slope / 100)  # Remains same in all hours of the window
-    #         yIntercept[t] = self.f_DA[t] - CurveSlope[t] * Quantity[t]  # Is different for each hour of the window
-    #
-    #         BID[t][0][Q] = -self.Rd
-    #         BID[t][1][Q] = Quantity[t]
-    #         BID[t][2][Q] = Quantity[t]
-    #         BID[t][3][Q] = self.Rc
-    #
-    #         BID[t][0][P] = -self.Rd * CurveSlope[t] + yIntercept[t] + (self.ProfitMargin_intercept / 100) * deltaf_DA
-    #         BID[t][1][P] = Quantity[t] * CurveSlope[t] + yIntercept[t] + (self.ProfitMargin_intercept / 100) * deltaf_DA
-    #         BID[t][2][P] = Quantity[t] * CurveSlope[t] + yIntercept[t] - (self.ProfitMargin_intercept / 100) * deltaf_DA
-    #         BID[t][3][P] = self.Rc * CurveSlope[t] + yIntercept[t] - (self.ProfitMargin_intercept / 100) * deltaf_DA
-    #
-    #     self.bid_da = deepcopy(BID)
-    #
-    #     self.RT_state_maintaing_flag = 0
-    #
-    #     return self.bid_da
 
     def obj_rule(self, m):
-        # return sum(self.f_DA[i] * (m.E_DA_out[i] - m.E_DA_in[i]) - self.batteryLifeDegFactor * (
-        #             m.E_DA_out[i] + m.E_DA_in[i]) - 0.001 * (m.E_DA_out[i] + m.E_DA_in[i]) ** 2 for i in
-        #            self.TIME)
-        return sum(m.eta_D[i] for i in self.TIME) \
-               + self.peak_price*m.p_peak \
-               + self.demand_charge_budget*m.beta_D + \
-               sum(m.theta[i] for i in self.TIME)
+        temp = 0
+        if self.use_case_dict["power_factor_correction"]["control_type"] == "opti-based":
+            temp = temp + sum(m.theta[i] for i in self.TIME)
+
+        if self.use_case_dict["demand_charge"]["control_type"] == "opti-based":
+            temp = temp + sum(m.eta_D[i] for i in self.TIME) + self.peak_price*m.p_peak + self.demand_charge_budget*m.beta_D
+
+        return temp
 
 
-    def con_rule_ine1(self, m, i):
-        return m.beta_D + m.eta_D[i] >= (self.load_up[i] - self.load_down[i])
+    def con_rule_ine1_demand_chg(self, m, i):
+        if self.use_case_dict["demand_charge"]["control_type"] == "opti-based":
+            return m.beta_D + m.eta_D[i] >= (self.load_up[i] - self.load_down[i])
+        else:
+            return m.beta_D + m.eta_D[i] == 0.0
 
-    def con_rule_ine2(self, m, i):
-        return m.p_total[i] + m.eta_D[i] <= m.p_peak
+    def con_rule_ine2_demand_chg(self, m, i):
+        if self.use_case_dict["demand_charge"]["control_type"] == "opti-based":
+            return m.p_total[i] + m.eta_D[i] <= m.p_peak
+        else:
+            return m.p_total[i] <= m.p_peak
 
-    def con_rule_ine3(self, m, i, k):
-            return m.p_batt[i]*self.cos_terms[k-1]+ m.q_batt[i]*self.sin_terms[k-1]<= self.rated_inverter_kVA
+    def con_rule_ine3_inverter(self, m, i, k):
+        if self.use_case_dict["power_factor_correction"]["control_type"] == "opti-based":
+            return m.p_batt[i]*self.cos_terms[k-1] + m.q_batt[i]*self.sin_terms[k-1] <= self.rated_inverter_kVA
+        else:
+            return m.q_batt[i] == 0.0
 
 
-    def con_rule_ine4(self, m, i, k):
-            return m.p_batt[i]*self.cos_terms[k-1]+ m.q_batt[i]*self.sin_terms[k-1] >= -self.rated_inverter_kVA
+    def con_rule_ine4_inverter(self, m, i, k):
+        if self.use_case_dict["power_factor_correction"]["control_type"] == "opti-based":
+            return m.p_batt[i]*self.cos_terms[k-1] + m.q_batt[i]*self.sin_terms[k-1] >= -self.rated_inverter_kVA
+        else:
+            return m.q_batt[i] == 0.0
 
-    def con_rule_ine5(self, m, i, k):
+    def con_rule_ine5_pcc(self, m, i, k):
+        if self.use_case_dict["power_factor_correction"]["control_type"] == "opti-based":
             return self.pf_limit*(m.p_total[i]*self.cos_terms[k-1] + m.q_total[i]*self.sin_terms[k-1])*self.pf_penalty\
                    <= m.theta[i]-m.p_total[i]*self.pf_penalty
+        else:
+            return m.q_batt[i] == 0.0
+    def con_rule_ine6_pcc(self, m, i, k):
+        if self.use_case_dict["power_factor_correction"]["control_type"] == "opti-based":
+            return self.pf_limit*(m.p_total[i]*self.cos_terms[k-1] + m.q_total[i]*self.sin_terms[k-1])*self.pf_penalty\
+                   >= m.p_total[i]*self.pf_penalty - m.theta[i]
+        else:
+            return m.q_batt[i] == 0.0
 
-    def con_rule_ine6(self, m, i, k):
-
-        return self.pf_limit*(m.p_total[i]*self.cos_terms[k-1]+ m.q_total[i]*self.sin_terms[k-1])*self.pf_penalty\
-               >= m.p_total[i]*self.pf_penalty - m.theta[i]
-
-
-
-    def con_rule_eq4(self, m, i):
+    def con_rule_eq4_q_balance(self, m, i):
         return m.q_total[i] == self.load_pf*m.p_total[i] + m.q_batt[i]
 
-    def con_rule_eq1(self, m, i):
-        return m.p_batt[i] == -self.bat_eta*m.p_chg[i] + (1/self.bat_eta)*(m.p_dis[i] + m.eta_D[i])
+    def con_rule_eq1_chg_dis(self, m, i):
+        if self.use_case_dict["demand_charge"]["control_type"] == "opti-based":
+            return m.p_batt[i] == -self.bat_eta*m.p_chg[i] + (1/self.bat_eta)*(m.p_dis[i] + m.eta_D[i])
+        else:
+            return m.p_batt[i] == -self.bat_eta*m.p_chg[i] + (1/self.bat_eta)*(m.p_dis[i])
 
-    def con_rule_eq2(self, m, i):
+    def con_rule_eq2_p_balance(self, m, i):
         return m.p_total[i] == -m.p_batt[i] + self.load_up[i]
 
-    def con_rule_eq3(self, m, i):
+    def con_rule_eq3_soc(self, m, i):
         if i == 0:
             return m.SoC[i] == self.SoC_init - m.p_batt[i]
         else:
             return m.SoC[i] == m.SoC[i-1] - m.p_batt[i]
-
-
 
 
 
@@ -271,46 +226,38 @@ class battery_class_new:
         Returns:
             Quantity (float) (1 x windowLength): Optimal quantity from optimization for all hours of the window specified by windowLength
         """
-        # if self.Cinit > self.Cmax:
-        #     self.Cinit = self.Cmax
-        # if self.Cinit < self.Cmin:
-        #     self.Cinit = self.Cmin
-
 
         model = pyo.ConcreteModel()
         model.p_dis = pyo.Var(self.TIME, bounds=(0, self.rated_kW))
         model.p_chg = pyo.Var(self.TIME, bounds=(0, self.rated_kW))
-        model.eta_D = pyo.Var(self.TIME, bounds=(0, None))
-        model.beta_D = pyo.Var(bounds = (0, None))
-
-        model.SoC = pyo.Var(self.TIME, bounds=(0, self.rated_kWh))
-        model.p_peak = pyo.Var(bounds=(0, None))
         model.p_batt = pyo.Var(self.TIME)
         model.q_batt = pyo.Var(self.TIME)
 
         model.p_total = pyo.Var(self.TIME, bounds=(0, None))
-        # model.p_total = pyo.Var(self.TIME)
         model.q_total = pyo.Var(self.TIME)
+
+        model.SoC = pyo.Var(self.TIME, bounds=(0, self.rated_kWh))
+        model.p_peak = pyo.Var(bounds=(0, None))
+
+        model.eta_D = pyo.Var(self.TIME, bounds=(0, None))
+        model.beta_D = pyo.Var(bounds = (0, None))
+
         model.theta = pyo.Var(self.TIME, bounds = (0, None))
 
+        model.con1 = pyo.Constraint(self.TIME, rule=self.con_rule_ine1_demand_chg)
+        model.con2 = pyo.Constraint(self.TIME, rule=self.con_rule_ine2_demand_chg)
+
+        model.con3 = pyo.Constraint(self.TIME, self.SEGMENTS, rule=self.con_rule_ine3_inverter)
+        model.con4 = pyo.Constraint(self.TIME, self.SEGMENTS, rule=self.con_rule_ine4_inverter)
+        model.con5 = pyo.Constraint(self.TIME, self.SEGMENTS, rule=self.con_rule_ine5_pcc)
+        model.con6 = pyo.Constraint(self.TIME, self.SEGMENTS, rule=self.con_rule_ine6_pcc)
+
+        model.con7 = pyo.Constraint(self.TIME, rule=self.con_rule_eq1_chg_dis)
+        model.con8 = pyo.Constraint(self.TIME, rule=self.con_rule_eq2_p_balance)
+        model.con9 = pyo.Constraint(self.TIME, rule=self.con_rule_eq3_soc)
+        model.con10 = pyo.Constraint(self.TIME, rule=self.con_rule_eq4_q_balance)
 
 
-        model.con1 = pyo.Constraint(self.TIME, rule=self.con_rule_ine1)
-        model.con2 = pyo.Constraint(self.TIME, rule=self.con_rule_ine2)
-        model.con3 = pyo.Constraint(self.TIME, self.SEGMENTS, rule=self.con_rule_ine3)
-        model.con4 = pyo.Constraint(self.TIME, self.SEGMENTS, rule=self.con_rule_ine4)
-        model.con5 = pyo.Constraint(self.TIME, self.SEGMENTS, rule=self.con_rule_ine5)
-        model.con6 = pyo.Constraint(self.TIME, self.SEGMENTS, rule=self.con_rule_ine6)
-
-        model.con7 = pyo.Constraint(self.TIME, rule=self.con_rule_eq1)
-        model.con8 = pyo.Constraint(self.TIME, rule=self.con_rule_eq2)
-        model.con9 = pyo.Constraint(self.TIME, rule=self.con_rule_eq3)
-        model.con10 = pyo.Constraint(self.TIME, rule=self.con_rule_eq4)
-
-
-        # model.pbus_slack = pyo.Param(model.Buses, model.Scenarios, initialize=0)
-        # put the parameter as mutable so it does know you want to change it later
-        # model.con.deactivate() to deactivate the constraints
         model.obj = pyo.Objective(rule=self.obj_rule, sense=pyo.minimize)
 
         pyo.SolverFactory('ipopt').solve(model)  # solver being used

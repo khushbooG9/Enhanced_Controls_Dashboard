@@ -377,7 +377,7 @@ if __name__ == "__main__":
 
     Makes a single battery agent and run DA 
     """
-    battery_obj = BatteryClass('dict.json')  # make object
+    battery_obj = BatteryClass('old_dict.json')  # make object
     battery_obj.get_data()
     print(battery_obj.load_data['Value'].values)
     battery_obj.set_load_forecast()

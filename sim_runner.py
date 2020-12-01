@@ -63,6 +63,8 @@ def construct_use_case_library(gen_config, control_config):
 
     return use_case_config
 
+
+
 if __name__ == "__main__":
 
     with open("dict.json", 'r', encoding='utf-8') as lp:
@@ -92,14 +94,46 @@ if __name__ == "__main__":
 
     battery_obj = battery_class_new(use_case_library, gen_config, data_config)
 
-    battery_obj.get_data()
-    battery_obj.set_load_forecast()
-
     print("Battery Object Loaded")
 
-    print("Formulating the Optimization Problem")
+    battery_obj.get_data()
+    ts = 0
+
+    while ts < simulation_duration:
+        print('current time -> ' + str(current_time))
+
+        # Hourly Optimization Routine
+        if ts % 60 == 0:
+            print("Performing Day-Ahead Optimization")
+            current_time = current_time + timedelta(hours=+1)
+
+            interval = timedelta(days=+1)
+            forecast_time = current_time + interval
+
+            battery_obj.set_hourly_load_forecast(current_time, forecast_time)
 
 
+            print("Solving the Day-Ahead Optimization Problem")
+
+            battery_obj.DA_optimal_quantities()
+
+            print("Battery-setpoints (kW) -> "+str(battery_obj.battery_setpoints))
+            print("Battery-SoC (kWh)-> "+str(battery_obj.SoC_prediction))
+            print("Battery-PeakLoad (kW) -> "+str(battery_obj.peak_load_prediction))
+            print("Battery-GridLoad (kW) -> "+str(battery_obj.grid_load_prediction))
+            print("Battery-GridReact (kVar) -> "+str(battery_obj.grid_react_power_prediction))
+            print("Battery-BattReact (kVar) -> "+str(battery_obj.battery_react_power_prediction))
+
+        # RealTime Control Routine
+        else:
+            print("Performing Real-Time Control")
+            # set second by second forecast for next hour
+            # use control rules
+            # check SoC
+            # modify the rules
+        ts += 1
+    # print("Battery- -> "+str(battery_obj.grid_power_factor))
+    # print(battery_obj.grid_original_power_factor)
 
 
 
