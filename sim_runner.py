@@ -100,10 +100,10 @@ if __name__ == "__main__":
     ts = 0
 
     while ts < simulation_duration:
-        print('current time -> ' + str(current_time))
 
         # Hourly Optimization Routine
         if ts % 60 == 0:
+            print('current time -> ' + str(current_time))
             print("Performing Day-Ahead Optimization")
             current_time = current_time + timedelta(hours=+1)
 
@@ -125,8 +125,8 @@ if __name__ == "__main__":
             print("Battery-BattReact (kVar) -> "+str(battery_obj.battery_react_power_prediction))
 
         # RealTime Control Routine
-        else:
-            print("Performing Real-Time Control")
+        # else:
+            # print("Performing Real-Time Control")
             # set second by second forecast for next hour
             # use control rules
             # check SoC
