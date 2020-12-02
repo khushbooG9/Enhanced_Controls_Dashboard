@@ -136,15 +136,16 @@ def data_upload_panel():
 
 )
 
-def build_usecase_line(line_num, label, value):
+def build_usecase_line(line_num, label, switch_value, dd_value,value):
     return html.Div(
         id=line_num,
         className="usecase-line-row",
         children=[
             html.Label(label, className="usecase-label"),
-            daq.BooleanSwitch(on=False, className="usecase-switch", color="#cc3300"),
+            daq.BooleanSwitch(on=False, className="usecase-switch", color="#cc3300", id=switch_value),
             dcc.Dropdown(
                 className = "usecase-dropdown",
+                id = dd_value,
                 options = [
                     {'label':'1', 'value':1},
                     {'label':'2', 'value':2},
@@ -153,7 +154,7 @@ def build_usecase_line(line_num, label, value):
                 ],
                 disabled=True,
             ),
-            html.Button("Configure", className="usecase-set-button",id=value, disabled=False, n_clicks=0)        
+            html.Button("Configure", className="usecase-set-button",id=value, disabled=True, n_clicks=0)        
         ],
 
     )
@@ -378,13 +379,13 @@ def configuration_panel():
                 "Configure Usecase",#html.Div(col, className="value-setter")
             ],
         ),
-        build_usecase_line("demand-charge-reduction", "Demand Charge Reduction", "dcr"),
+        build_usecase_line("demand-charge-reduction", "Demand Charge Reduction","switch_dcr" ,"dd_dcr","dcr"),
         html.Br(),
-        build_usecase_line("power-factor-correction","Power Factor Correction","pfc"),
+        build_usecase_line("power-factor-correction","Power Factor Correction","switch_pfc","dd_pfc","pfc"),
         html.Br(),
-        build_usecase_line("arbitrage", "Arbitrage", "arb"),
+        build_usecase_line("arbitrage", "Arbitrage","switch_arb","dd_arb", "arb"),
         html.Br(),
-        build_usecase_line("revserves-placement", "Reserves Placement", "rp"),
+        build_usecase_line("revserves-placement", "Reserves Placement","switch_rp","dd_rp", "rp"),
         ]
     ),
     html.Br(),
@@ -762,6 +763,32 @@ def update_click_output1(button_click, close_click):
             return {"display": "block"}
 
     return {"display": "none"}
+
+@app.callback(
+	output = [Output("dd_dcr","disabled"), Output("dd_pfc","disabled"), Output("dd_arb", "disabled"), Output("dd_rp", "disabled"), \
+	Output("dcr","disabled"), Output("pfc", "disabled"), Output("arb","disabled"), Output("rp","disabled")],
+	inputs = [Input("switch_dcr","on"), Input("switch_pfc", "on"), Output("switch_arb","on"), Output("switch_rp","on")],
+)
+def make_usecase_active(s1,s2,s3,s4):
+	print(s1)
+	if s1==True:
+		d1a, d1b = False, False
+	else:
+		d1a, d1b = True, True
+	if s2==True:
+		d2a, d2b = False, False
+	else:
+		d2a, d2b = True, True
+	if s3==True:
+		d3a, d3b = False, False
+	else:
+		d3a, d3b = True, True
+	if s4==True:
+		d4a, d4b = False, False
+	else:
+		d4a, d4b = True, True
+	return [d1a, d2a, d3a, d4a, d1b, d2b, d3b, d4b]
+
 
 if __name__ == '__main__':
     app.run_server(debug=True)
