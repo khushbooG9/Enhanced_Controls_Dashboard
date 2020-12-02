@@ -194,7 +194,7 @@ body {
 }
 
 
-#usecase-header, #value-setter-panel-header2 {
+#usecase-header, #value-setter-panel-header2, #usecase-dcr-header, #usecase-pfc-header {
   font-weight: bold;
   color: darkgray;
   line-height: 1;
@@ -203,7 +203,7 @@ body {
   border-bottom: 1px solid #4b5460;
 }
 
-#usecase-header > div, #value-setter-panel-header2 > div {
+#usecase-header > div, #value-setter-panel-header2 > div, #usecase-dcr-header > div, #usecase-pfc-header > div {
   text-align: center;
 }
 
@@ -305,7 +305,7 @@ body {
   
 }
 
-#configuration-select-menu h6, #markdown-panel h6, #markdown-panel2b h6 {
+#configuration-select-menu h6, #markdown-panelb h6, #markdown-panel2b h6 {
   text-align: center;
   font-weight: 500;
 }
@@ -384,20 +384,22 @@ body {
 }
 
 #markdown5 {
-  width: 100%;
+  width: 90%;
 }
 
 #markdown-container, #markdown-container2, #markdown-container3, #markdown-container4, #markdown-container5 {
-  width: auto;
+  width: 40%;
   background-color: #EFEDED;
-  margin: 10%;
-
+  position: fixed;
+  top:50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
 }
 
 .markdown-content, .markdown-content2, .markdown-content3, .markdown-content4, .markdown-content5 {
   display: flex;
   direction: row;
-  
+  border-left: white solid 0.8rem;
   border-right: white solid 0.8rem;
   border-bottom: white solid 0.8rem;
 }
@@ -413,41 +415,44 @@ body {
   margin: 10% auto;
   padding: 10px 15px;
 }
-#markdown-panel, #markdown-panel2a, #markdown-panel3a, #markdown-panel4a {
+#markdown-panela, #markdown-panel2a, #markdown-panel3a, #markdown-panel4a {
   display: flex;
   flex-direction: row;
+  width: 90%;
   flex-wrap: wrap;
   justify-content: center;
   align-items: center;
-  border-left: white solid 0.8rem;
+  
+  margin: auto;
 }
 
-#markdown-panel button, #markdown-panel2a button, #markdown-panel3a button, #markdown-panel4a button, #dropdown-button button {
+#markdown-panela button, #markdown-panel2a button, #markdown-panel3a button, #markdown-panel4a button, #dropdown-button button {
   border-radius: 4px;
   display: inline-block;
   color: white; 
   width: 90%;
-  margin: 15px;
+  margin: 15px auto;
   background-color: #cc3300;
   border: 2px solid #992600;
 }
 
 
-#markdown-panel button:hover, #markdown-panel2a button:hover, #markdown-panel3a button:hover, #markdown-panel4a button:hover, #dropdown-button button:hover {
+#markdown-panela button:hover, #markdown-panel2a button:hover, #markdown-panel3a button:hover, #markdown-panel4a button:hover, #dropdown-button button:hover {
   box-shadow: 0 12px 16px 0 rgba(0,0,0,0.24), 0 17px 50px 0 rgba(0,0,0,0.19);
 }
 
-#markdown-panel2, #markdown-panel2b,  #markdown-panel3b,  #markdown-panel4b {
+#markdown-panelb, #markdown-panel2b,  #markdown-panel3b,  #markdown-panel4b {
   box-sizing: content-box;
   display: flex;
+  width: 90%;
   flex-direction: row;
   background-color:  #ffcc99;
   justify-content: space-evenly;
   align-items: flex-start;
   border: 2px solid #e67300;
   display: inline-block;
-  margin: 15px ;
-  padding: 1px;
+  margin: 15px auto;
+  padding: 2rem;
 }
 
 /*#markdown-panel2a {
@@ -554,7 +559,7 @@ __________________________________________________*/
 /* Modal Content/Box */
 
 
-.close-container {
+.close-container, .close-container2 {
   width: 100%;
   margin: 0;
   padding-bottom: 40px;
@@ -621,6 +626,22 @@ __________________________________________________*/
   align-items: center;
   margin-right: 10%;
 }
+
+.usecase-setting-input {
+
+  margin-left: auto;
+}
+
+#control-type-input1, #control-type-input21 {
+  
+  align-items: center;
+  margin-right: -40%;
+}
+
+#control-type-input2, #control-type-input22 {
+  margin-right: 2px;
+}
+
 
 #button1-life,  #button1-temp, #button1-load, #button1-ess, #button4, #button5 {
   background-color: #cc3300;

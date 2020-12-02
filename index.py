@@ -186,9 +186,9 @@ def usecase_dcr_popup():
                         className="markdown-content",
                         children = [
                         html.Div(
-                            id = "markdown-panel",
+                            id = "markdown-panela",
                             children = [ html.Div (
-                                id = "markdown-panel2",
+                                id = "markdown-panelb",
                                 children = [
                                 html.H6("Configuration"),
                                 html.Br(),
@@ -286,7 +286,7 @@ def usecase_pfc_popup():
                     ),
                     html.Div(
                         id="markdown-content2",
-                        className="markdown-conten2t",
+                        className="markdown-content2",
                         children = [
                         
                         html.Div(
@@ -311,7 +311,7 @@ def usecase_pfc_popup():
                                         id="load-power-factor",
                                         className="usecase-line-row",
                                         children=[
-                                            html.Label("Load Power Factor", className="usecase-pfc-label-label"),
+                                            html.Label("Load Power Factor", className="usecase-pfc-label"),
                                             daq.NumericInput(id="load-power-factor-input", className="usecase-setting-input", size=200, min=0, max=1000, value=5)
                                         ],
 
@@ -321,7 +321,7 @@ def usecase_pfc_popup():
                                         id="power-factor-limit",
                                         className="usecase-line-row",
                                         children=[
-                                            html.Label("Power Factor Limit", className="usecase-dcr-label"),
+                                            html.Label("Power Factor Limit", className="usecase-pfc-label"),
                                             daq.NumericInput(id="power-factor-limit-input", className="usecase-setting-input", size=200, min=0, max=1000, value=5)
                                         ],
 
@@ -331,7 +331,7 @@ def usecase_pfc_popup():
                                         id="control-type2",
                                         className="usecase-line-row",
                                         children=[
-                                            html.Label("Control Type", className="usecase-dcr-label"),
+                                            html.Label("Control Type", className="usecase-pfc-label"),
                                             daq.BooleanSwitch(on=False,id="control-type-input21" ,className="usecase-switch", color="#cc3300", label="Optimization"),
                                             daq.BooleanSwitch(on=False,id="control-type-input22" ,className="usecase-switch", color="#cc3300", label="Rule-based"),
                                             
