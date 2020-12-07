@@ -145,7 +145,7 @@ body {
 
 #buttons_panel.row {
   display: flex;
-  flex-direction: row;
+  flex-direction: column;
   justify-content: space-evenly;
   align-items: center;
 }
@@ -585,22 +585,20 @@ __________________________________________________*/
 –––––––––––––––––––––––––––––––––––––––––––––––––– */
 
 #buttons-panel {
-  display: block;
-  float: left;
-  flex-direction: row;
+  display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: flex-start;
   border-right: white solid 0.8rem;
   border-bottom: white solid 0.8rem;
   flex: 1 1;
   padding: 2rem;
-  max-width: 100%;
+  max-width: 25%;
 }
 
 #button1, #button2, #button3, #button4, #button5 ,#button1-life, #button1-temp, #button1-load, #button1-ess {
   border-radius: 4px;
   display: inline-block;
-  float: left;
   color: white; 
   width: 90%;
   margin: 5px 2px;
