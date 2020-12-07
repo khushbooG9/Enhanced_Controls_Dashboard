@@ -54,6 +54,7 @@ class battery_class_new:
         self.load_data_resolution = gen_dict["load_data_resolution"]
         self.peak_price = gen_dict["peak_price"]
         self.load_pf = gen_dict["load_pf"]
+        self.reserve_SoC = gen_dict["reserve_SoC"]*gen_dict["bat_capacity_kWh"]
 
         self.TIME = range(0, self.windowLength)
         self.SoC_init = gen_dict["SoC_init"]*gen_dict["bat_capacity_kWh"]
@@ -61,6 +62,8 @@ class battery_class_new:
         # demand charge reduction Variables
         self.demand_charge_budget = int(gen_dict["demand_charge_budget"]*self.windowLength)
 
+        self.real_time_control_resolution = gen_dict["real_time_control_resolution"]   # seconds
+        self.hrs_to_secs = self.real_time_control_resolution*(1/3600)   # to convert hourly day-ahead results quantities to real-time control time steps
 
         # Power Factor Correction Variables
         self.lin_segments = int(gen_dict["linearization_segments"])
@@ -78,7 +81,7 @@ class battery_class_new:
         self.price_data = None
 
 
-        self.battery_setpoints = [[]] * self.windowLength
+        self.battery_setpoints_prediction = [[]] * self.windowLength
         self.SoC_prediction = [[]] * self.windowLength
         self.peak_load_prediction = None
         self.grid_load_prediction = [[]] * self.windowLength
@@ -92,10 +95,75 @@ class battery_class_new:
         self.grid_power_factor = [[]] * self.windowLength
 
         self.grid_original_apparant_power = [[]] * self.windowLength
-        self.grid_original_power_factor =  [[]] * self.windowLength
+        self.grid_original_power_factor = [[]] * self.windowLength
 
+        self.battery_setpoints_actual = []
+        self.SoC_actual = []
+        self.peak_load_actual = []
+        self.grid_load_actual = []
+        self.grid_react_power_actual = []
+        self.battery_react_power_actual = []
+        self.actual_load = []
 
+    def change_setpoint(self, old_setpoint, mismatch):
+        new_battery_setpoint = min(self.rated_kW, max(-self.rated_kW, old_setpoint - mismatch))
 
+        return new_battery_setpoint
+
+    def check_SoC(self, new_battery_setpoint, current_SoC):
+        SoC_temp = current_SoC - new_battery_setpoint * self.hrs_to_secs
+        check_SoC = 0
+        if SoC_temp < self.reserve_SoC:
+            check_SoC = 1
+            print("Battery min SoC will violate with this setpoints -- adjusting the power w.r.t. allowable SoC")
+            delta_P = (self.reserve_SoC - current_SoC) / self.real_time_control_resolution
+            new_battery_setpoint = delta_P
+            SoC_temp = self.reserve_SoC
+
+        elif SoC_temp > (self.rated_kWh - self.reserve_SoC):
+            check_SoC = 1
+            print("Battery max SoC will violate with this setpoints -- adjusting the power w.r.t. allowable SoC")
+            delta_P = (self.rated_kWh - self.reserve_SoC - current_SoC) / self.real_time_control_resolution
+            new_battery_setpoint = delta_P
+            SoC_temp = self.rated_kWh - self.reserve_SoC
+        else:
+            print("New Setpoints satisfy SoC requirement")
+
+        if check_SoC == 1:
+            SoC_temp = current_SoC - new_battery_setpoint * self.real_time_control_resolution
+
+        return SoC_temp, new_battery_setpoint
+
+    def rtc_demand_charge_reduction(self, i, active_power_mismatch, set_point_prediction, current_SoC, actual_load):
+        if i == 0:  # highest priority
+            print("Demand Charge is the highest priority")
+            if active_power_mismatch > 0.0:
+                print("positive Mismatch Found --> battery should discharge")
+                # adjust battery power setpoint and see whether the adjusted power is even physically possible
+                new_battery_setpoint = self.change_setpoint(set_point_prediction,active_power_mismatch)
+                # check SoC
+                new_SoC, new_battery_setpoint = self.check_SoC(new_battery_setpoint, current_SoC)
+                # new grid load
+                new_grid_load = actual_load - new_battery_setpoint
+
+                # check grid loading
+
+                if new_grid_load > self.peak_load_prediction:
+                    print(
+                        "new grid load has become higher than peak load --> either mismatch is too big or SoC limits have reached")
+                else:
+                    print("adjusted battery power and kept the peak load as planned")
+
+            else:
+                print(
+                    "negative_mismatch Found --> power should come from grid because charging the power would also increase grid power")
+                temp_battery_active_power_setpoint = 0.0
+                new_grid_load = actual_load - temp_battery_active_power_setpoint
+        else:
+            # it is not the highest priority so see if something can be done
+            print("Demand Charge is the priority number " + str(i + 1))
+
+        return new_SoC, new_battery_setpoint, new_grid_load
     def set_price_forecast(self):
         """ Set the f_DA attribute
 
@@ -150,6 +218,9 @@ class battery_class_new:
         self.grid_original_apparant_power = np.sqrt(self.load_predict**2 + (self.load_pf*self.load_predict)**2)
         self.grid_original_power_factor = (self.load_predict+1e-4)/(self.grid_original_apparant_power+1e-4)
 
+
+    def set_load_actual(self, load_val):
+        self.actual_load.append(load_val + (self.load_dev*np.random.randn(1)[0]*load_val*0.01)-(self.load_dev*np.random.randn(1)[0]*load_val*0.01))
 
     def obj_rule(self, m):
         temp = 0
@@ -236,7 +307,8 @@ class battery_class_new:
         model.p_total = pyo.Var(self.TIME, bounds=(0, None))
         model.q_total = pyo.Var(self.TIME)
 
-        model.SoC = pyo.Var(self.TIME, bounds=(0, self.rated_kWh))
+        model.SoC = pyo.Var(self.TIME, bounds=(self.reserve_SoC, self.rated_kWh-self.reserve_SoC))
+
         model.p_peak = pyo.Var(bounds=(0, None))
 
         model.eta_D = pyo.Var(self.TIME, bounds=(0, None))
@@ -272,7 +344,7 @@ class battery_class_new:
         #         self.battery_react_power_prediction = [[]] * self.windowLength
         #     battery_obj.grid_power_factor
         try:
-            self.battery_setpoints = [[]] * self.windowLength
+            self.battery_setpoints_prediction = [[]] * self.windowLength
             self.SoC_prediction = [[]] * self.windowLength
             self.grid_load_prediction = [[]] * self.windowLength
             # TOL = 0.00001  # Tolerance for checking bid
@@ -282,7 +354,7 @@ class battery_class_new:
                 # if pyo.value(model.E_DA_out[t]) > TOL:
                 #     p_dis_val[t] = pyo.value(model.p_dis[t])
                 self.SoC_prediction[t] = pyo.value(model.SoC[t])
-                self.battery_setpoints[t] = pyo.value(model.p_batt[t])
+                self.battery_setpoints_prediction[t] = pyo.value(model.p_batt[t])
                 self.grid_load_prediction[t] = pyo.value(model.p_total[t])
                 self.grid_react_power_prediction[t] = pyo.value(model.q_total[t])
                 self.battery_react_power_prediction[t] = pyo.value(model.q_batt[t])
@@ -292,6 +364,8 @@ class battery_class_new:
         except:
             print('Optimization Failed')
         # return p_batt_val, p_chg_val, p_dis_val, soc_val, p_peak_val, p_total_val
+
+        # def rt_control_demand_charge(self):
 
 
 if __name__ == "__main__":

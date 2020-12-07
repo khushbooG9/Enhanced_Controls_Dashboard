@@ -80,6 +80,9 @@ class BatteryClass:
         self.pf_limit = battery_dict["pf_limit"]
         self.load_pf = battery_dict["load_pf"]
         self.pf_penalty = battery_dict["pf_penalty"]
+        self.reserve_SoC = battery_dict["reserve_SoC"]*battery_dict["bat_capacity_kWh"]
+
+
 
         self.TIME = range(0, self.windowLength)
         self.demand_charge_budget = int(battery_dict["demand_charge_budget"]*self.windowLength)
@@ -97,7 +100,6 @@ class BatteryClass:
         self.load_up = None
         self.load_down = None
         self.price_data = None
-
 
 
         #self.p_chg_value = [[]] * self.windowLength
@@ -173,68 +175,6 @@ class BatteryClass:
 
         self.grid_original_apparant_power = np.sqrt(self.load_predict**2 + (self.load_pf*self.load_predict)**2)
         self.grid_original_power_factor = (self.load_predict+1e-4)/(self.grid_original_apparant_power+1e-4)
-    # def DA_cleared_price(self, price):
-    #     """ Set the DA_cleared_price attribute
-    #
-    #     Args:
-    #         price (float): cleared price in $/kWh
-    #     """
-    #     # TODO: THis is not used, do we need it?
-    #     self.prev_clr_Quantity = list()
-    #     self.prev_clr_Price = list()
-    #     self.prev_clr_Price = deepcopy(price)
-    #     self.BindingObjFunc = bool(True)
-    #     for i in range(len(self.prev_clr_Price)):
-    #         self.prev_clr_Quantity.append(self.from_P_to_Q_battery(self.bid_da[i], self.prev_clr_Price[i]))
-    #     self.prev_clr_Price.pop(0)
-    #     self.prev_clr_Quantity.pop(0)
-    #     self.prev_clr_Price.append(0.0)
-    #     self.prev_clr_Quantity.append(0.0)
-
-    # def formulate_bid_da(self):
-    #     """ Formulate 4 points of P and Q bids for the DA market
-    #
-    #     Function calls "DA_optimal_quantities" to obtain the optimal quantities
-    #     for the DA market. With the quantities, the 4 point bids are formulated.
-    #
-    #     Before returning the BID the function resets "RT_state_maintaing_flag"
-    #     wich if RT_state_maintaing is TRUE the battery will be forced to keep its
-    #     state (i.e., charging or discharging).
-    #
-    #     Returns:
-    #         BID (float) (((1,2)X4) X windowLength): store last DA market bids
-    #     """
-    #     #        Quantity = self.DA_optimal_quantities()
-    #     Quantity = deepcopy(self.optimized_Quantity)
-    #
-    #     P = self.P
-    #     Q = self.Q
-    #     TIME = range(0, self.windowLength)
-    #     CurveSlope = [0] * len(TIME)
-    #     yIntercept = [-1] * len(TIME)
-    #     BID = [[[0.0, 0.0], [0.0, 0.0], [0.0, 0.0], [0.0, 0.0]] for i in TIME]
-    #     deltaf_DA = max(self.f_DA) - min(self.f_DA)
-    #
-    #     for t in TIME:
-    #         CurveSlope[t] = ((max(self.f_DA) - min(self.f_DA)) / (-self.Rd - self.Rc)) * (
-    #                     1 + self.ProfitMargin_slope / 100)  # Remains same in all hours of the window
-    #         yIntercept[t] = self.f_DA[t] - CurveSlope[t] * Quantity[t]  # Is different for each hour of the window
-    #
-    #         BID[t][0][Q] = -self.Rd
-    #         BID[t][1][Q] = Quantity[t]
-    #         BID[t][2][Q] = Quantity[t]
-    #         BID[t][3][Q] = self.Rc
-    #
-    #         BID[t][0][P] = -self.Rd * CurveSlope[t] + yIntercept[t] + (self.ProfitMargin_intercept / 100) * deltaf_DA
-    #         BID[t][1][P] = Quantity[t] * CurveSlope[t] + yIntercept[t] + (self.ProfitMargin_intercept / 100) * deltaf_DA
-    #         BID[t][2][P] = Quantity[t] * CurveSlope[t] + yIntercept[t] - (self.ProfitMargin_intercept / 100) * deltaf_DA
-    #         BID[t][3][P] = self.Rc * CurveSlope[t] + yIntercept[t] - (self.ProfitMargin_intercept / 100) * deltaf_DA
-    #
-    #     self.bid_da = deepcopy(BID)
-    #
-    #     self.RT_state_maintaing_flag = 0
-    #
-    #     return self.bid_da
 
     def obj_rule(self, m):
         # return sum(self.f_DA[i] * (m.E_DA_out[i] - m.E_DA_in[i]) - self.batteryLifeDegFactor * (
@@ -253,7 +193,7 @@ class BatteryClass:
         return m.p_total[i] + m.eta_D[i] <= m.p_peak
 
     def con_rule_ine3(self, m, i, k):
-            return m.p_batt[i]*self.cos_terms[k-1]+ m.q_batt[i]*self.sin_terms[k-1]<= self.rated_inverter_kVA
+            return m.p_batt[i]*self.cos_terms[k-1]+ m.q_batt[i]*self.sin_terms[k-1] <= self.rated_inverter_kVA
 
 
     def con_rule_ine4(self, m, i, k):
@@ -265,13 +205,12 @@ class BatteryClass:
 
     def con_rule_ine6(self, m, i, k):
 
-        return self.pf_limit*(m.p_total[i]*self.cos_terms[k-1]+ m.q_total[i]*self.sin_terms[k-1])*self.pf_penalty\
+        return self.pf_limit*(m.p_total[i]*self.cos_terms[k-1] + m.q_total[i]*self.sin_terms[k-1])*self.pf_penalty\
                >= m.p_total[i]*self.pf_penalty - m.theta[i]
 
 
-
     def con_rule_eq4(self, m, i):
-        return m.q_total[i] == self.load_pf*m.p_total[i] + m.q_batt[i]
+        return m.q_total[i] == m.q_batt[i] + self.load_pf*m.p_total[i]
 
     def con_rule_eq1(self, m, i):
         return m.p_batt[i] == -self.bat_eta*m.p_chg[i] + (1/self.bat_eta)*(m.p_dis[i] + m.eta_D[i])
@@ -305,17 +244,16 @@ class BatteryClass:
         model.p_dis = pyo.Var(self.TIME, bounds=(0, self.rated_kW))
         model.p_chg = pyo.Var(self.TIME, bounds=(0, self.rated_kW))
         model.eta_D = pyo.Var(self.TIME, bounds=(0, None))
-        model.beta_D = pyo.Var(bounds = (0, None))
+        model.beta_D = pyo.Var(bounds=(0, None))
 
-        model.SoC = pyo.Var(self.TIME, bounds=(0, self.rated_kWh))
+        model.SoC = pyo.Var(self.TIME, bounds=(self.reserve_SoC, self.rated_kWh))
         model.p_peak = pyo.Var(bounds=(0, None))
         model.p_batt = pyo.Var(self.TIME)
         model.q_batt = pyo.Var(self.TIME)
 
         model.p_total = pyo.Var(self.TIME, bounds=(0, None))
-        # model.p_total = pyo.Var(self.TIME)
         model.q_total = pyo.Var(self.TIME)
-        model.theta = pyo.Var(self.TIME, bounds = (0, None))
+        model.theta = pyo.Var(self.TIME, bounds=(0, None))
 
 
 
@@ -374,9 +312,11 @@ class BatteryClass:
 
 if __name__ == "__main__":
     """Testing
-
+    
+    
     Makes a single battery agent and run DA 
     """
+    save_results = False
     battery_obj = BatteryClass('old_dict.json')  # make object
     battery_obj.get_data()
     print(battery_obj.load_data['Value'].values)
@@ -388,9 +328,24 @@ if __name__ == "__main__":
     print(battery_obj.battery_setpoints)
     print(battery_obj.SoC_prediction)
     print(battery_obj.peak_load_prediction)
-    print(battery_obj.grid_load_prediction)
     print(battery_obj.grid_react_power_prediction)
     print(battery_obj.battery_react_power_prediction)
+    print(battery_obj.load_up)
+
+    if save_results:
+        df_to_save = pd.DataFrame({
+            'battery_setpoints': battery_obj.battery_setpoints,
+            'SoC_prediction': battery_obj.SoC_prediction,
+            'peak_load_prediction': battery_obj.peak_load_prediction,
+            'grid_load_prediction': battery_obj.grid_load_prediction,
+            'total_load_prediction': battery_obj.load_up,
+            'net_grid_react_power_prediction': battery_obj.grid_react_power_prediction,
+            'inject_grid_react_power_prediction': np.array(battery_obj.grid_load_prediction)*battery_obj.load_pf,
+            'battery_react_power_prediction': battery_obj.battery_react_power_prediction,
+            'grid_power_factor_prediction': battery_obj.grid_power_factor,
+            'grid_power_factor_unadj_prediction': battery_obj.grid_original_power_factor
+        })
+        df_to_save.to_csv("day_ahead_data.csv")
     # ===================== plots to check optimization results ===============
     fig, ax = plt.subplots()
     ax.plot(battery_obj.battery_setpoints, label='Battery Power (Charge/Discharge)')
@@ -398,7 +353,7 @@ if __name__ == "__main__":
     ax.plot(battery_obj.grid_load_prediction, label='Grid Load')
     # ax.plot(battery_obj.load_down, label='Load Lower Bound')
     # ax.plot(battery_obj.load_up, label='Load Upper Bound')
-    ax.plot(battery_obj.load_predict, label='Load Prediction')
+    ax.plot(battery_obj.load_up, label='Load Prediction')
 
     ax.set_ylabel('kW')
     ax.set_xlabel('Hours')
@@ -428,52 +383,5 @@ if __name__ == "__main__":
 
     plt.show()
 
-    # ===================== plots to check inputs =============================
-    # fig, ax = plt.subplots()
-    # ax.plot(battery_obj.load_up,label='load up')
-    # ax.plot(battery_obj.load_down,label='load down')
-    # ax.plot(battery_obj.load_predict,label='load predict')
-    # ax.set_ylabel('kW')
-    # ax.set_xlabel('Hours')
-    # ax.set_title('Load Prediction')
-    # ax.legend()
-    # ax.grid(True)
-    # plt.show()
-    # B_obj1.set_price_forecast(price_DA.tolist())
-    # quantity = B_obj1.DA_optimal_quantities()
-    # print("--- %s seconds ---" % (time.time() - start_time))
-    # print(quantity)
-#    B = B_obj1.RT_fix_four_points_range(BID,0.2920860000000012,5.0)
-#    A = B_obj1.RT_fix_four_points_range(B,0.2920860000000012,0.2920860000000012)
-#    B_obj2 = BatteryDSOT(agent,glm,'test')# make object
-#
-#    for i in range(5):
-#        B_obj1.set_price_forecast(price_DA)
-#        B_obj2.set_price_forecast(price_DA)
-#
-#        BIDS = B_obj1.formulate_bid_da()
-#        B_obj2.formulate_bid_da()
-#
-#        BIDS8 = B_obj1.bid_da
-#
-#        Quantity = B_obj1.optimized_Quantity
-
-#    rtbid = B_obj1.formulate_bid_rt()
-#    price_forecast = B_obj.f_DA
-#    BIDS_of_agent = B_obj.bid_da
-#    #B_obj.Cinit = B_obj.batteryCapacity * 0.5#B_obj.set_battery_SOC()
-#    BID = [[-5.0,6.0],[0.0,5.0],[0.0,4.0],[5.0,3.0]]
-#    fixed = B_obj.RT_fix_four_points_range(BID,0.0,10.0)
-#    print(fixed)
-#    fixed = B_obj.RT_fix_four_points_range(BID,-float('inf'),0.0)
-#    print(fixed)
-#    fixed = B_obj.RT_fix_four_points_range(BID,0.0,float('inf'))
-#    print(fixed)
-#    fixed = B_obj.RT_fix_four_points_range(BID,0.5,0.5)
-#    print(fixed)
-#    getQ = B_obj.from_P_to_Q_battery(BID,10)
-#    print(getQ)
-#    getQ = B_obj.from_P_to_Q_battery(fixed,10)
-#    print(getQ)
 
 

@@ -100,10 +100,11 @@ if __name__ == "__main__":
     ts = 0
 
     while ts < simulation_duration:
+        print('current time -> ' + str(current_time))
 
         # Hourly Optimization Routine
         if ts % 60 == 0:
-            print('current time -> ' + str(current_time))
+            # print('current time -> ' + str(current_time))
             print("Performing Day-Ahead Optimization")
             current_time = current_time + timedelta(hours=+1)
 

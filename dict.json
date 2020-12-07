@@ -14,7 +14,7 @@
   "inv_eta": 1,
   "bat_eta": 1,
   "bat_capacity_kWh": 1500.0,
-  "SoC_init": 0.5,
+  "SoC_init": 0.8,
   "windowLength": 24,
   "price_dev": 0.05,
   "load_dev": 0.05,
@@ -29,5 +29,6 @@
   "arbitrage_price_threshold": 0.05,
   "max_reserve_up_cap": 0.20,
   "max_reserve_down_cap": 0.20,
-  "realtime_control_resolution": 1
+  "real_time_control_resolution": 1,
+  "reserve_SoC": 0.20
 }
