@@ -115,7 +115,7 @@ class BatteryClass:
         self.grid_apparent_power = [[]] * self.windowLength
         self.apparent_power_battery = [[]] * self.windowLength
 
-        self.grid_power_factor = [[]] * self.windowLength
+        self.grid_power_factor_prediction = [[]] * self.windowLength
 
         self.grid_original_apparant_power = [[]] * self.windowLength
         self.grid_original_power_factor =  [[]] * self.windowLength
@@ -219,6 +219,10 @@ class BatteryClass:
         return m.p_total[i] == -m.p_batt[i] + self.load_up[i]
 
     def con_rule_eq3(self, m, i):
+        if self.SoC_init < self.reserve_SoC:
+            self.SoC_init = self.reserve_SoC
+        elif self.SoC_init > (self.rated_kWh-self.reserve_SoC):
+            self.SoC_init = (self.rated_kWh-self.reserve_SoC)
         if i == 0:
             return m.SoC[i] == self.SoC_init - m.p_batt[i]
         else:
@@ -246,7 +250,7 @@ class BatteryClass:
         model.eta_D = pyo.Var(self.TIME, bounds=(0, None))
         model.beta_D = pyo.Var(bounds=(0, None))
 
-        model.SoC = pyo.Var(self.TIME, bounds=(self.reserve_SoC, self.rated_kWh))
+        model.SoC = pyo.Var(self.TIME, bounds=(self.reserve_SoC, self.rated_kWh-self.reserve_SoC))
         model.p_peak = pyo.Var(bounds=(0, None))
         model.p_batt = pyo.Var(self.TIME)
         model.q_batt = pyo.Var(self.TIME)
@@ -316,7 +320,7 @@ if __name__ == "__main__":
     
     Makes a single battery agent and run DA 
     """
-    save_results = False
+    save_results = True
     battery_obj = BatteryClass('old_dict.json')  # make object
     battery_obj.get_data()
     print(battery_obj.load_data['Value'].values)

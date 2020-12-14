@@ -65,11 +65,28 @@ def construct_use_case_library(gen_config, control_config):
 
     return use_case_config
 
+def store_dict_to_json(ts, variables, id):
+    with open("results_folder\\" + str(ts) + '_' + id + '.json', 'w') as fp:
+        json.dump(variables, fp)
 
+
+def clean_dict(dict, id):
+    if id == "da":
+        dict = {'Time': [], 'battery_setpoints_da': [], 'SoC_da': [], 'grid_load_da': [],
+                        'peak_load_da': [],
+                        'react_grid_da': [], 'react_batt_da': [], 'grid_pf_da': [], 'total_load_predict_da': []}
+    elif id == "rt":
+        dict = {'Time': [], 'battery_setpoints_rt': [], 'SoC_rt': [], 'grid_load_rt': [],
+                        'peak_load_rt': [],
+                        'react_grid_rt': [], 'react_batt_rt': [], 'grid_pf_rt': [], 'total_load_actual_rt': []}
+
+
+    return dict
 
 
 if __name__ == "__main__":
 
+    pre_file = 'results_folder\\'
     with open("dict.json", 'r', encoding='utf-8') as lp:
         gen_config = json.load(lp)
 
@@ -83,7 +100,7 @@ if __name__ == "__main__":
     start_time = gen_config['StartTime']
     end_time = gen_config['EndTime']
     simulation_duration = int((datetime.strptime(end_time, time_format) -
-                               datetime.strptime(start_time, time_format)).total_seconds())
+                               datetime.strptime(start_time, time_format)).total_seconds())+1
     current_time = datetime.strptime(start_time, time_format)
 
     print('simulation start time -> ' + start_time)
@@ -114,13 +131,18 @@ if __name__ == "__main__":
     new_SoC = 0.0
     new_battery_reactive_power = 0.0
     x_val = []
+
+    # creating dictionaries which will save results
+    da_variables = {'Time': [], 'battery_setpoints_da': [], 'SoC_da': [], 'grid_load_da': [], 'peak_load_da': [], 'react_grid_da': [], 'react_batt_da': [], 'grid_pf_da': [], 'total_load_predict_da': []}
+    rt_variables = {'Time': [], 'battery_setpoints_rt': [], 'SoC_rt': [], 'grid_load_rt': [], 'peak_load_rt': [], 'react_grid_rt': [], 'react_batt_rt': [], 'grid_pf_rt': [], 'total_load_actual_rt': []}
+
     # fig, ax = plt.subplots()
 
     while ts < simulation_duration:
         print('current time -> ' + str(current_time))
         # battery_obj.SoC_actual.append(battery_obj.SoC_init)
         # Hourly Optimization Routine
-        if ts % 60 == 0:
+        if (ts % (60*60)) == 0:
             # print('current time -> ' + str(current_time))
             print("Performing Day-Ahead Optimization")
 
@@ -132,17 +154,48 @@ if __name__ == "__main__":
 
             print("Solving the Day-Ahead Optimization Problem")
 
+            if ts > 0:
+                battery_obj.set_SoC(battery_obj.SoC_actual[ts-1])
+
             battery_obj.DA_optimal_quantities()
 
-            print("Battery-setpoints (kW) -> "+str(battery_obj.battery_setpoints_prediction))
+            print("Battery-Setpoints (kW) -> "+str(battery_obj.battery_setpoints_prediction))
             print("Battery-SoC (kWh)-> "+str(battery_obj.SoC_prediction))
-            print("Battery-PeakLoad (kW) -> "+str(battery_obj.peak_load_prediction))
-            print("Battery-GridLoad (kW) -> "+str(battery_obj.grid_load_prediction))
-            print("Battery-GridReact (kVar) -> "+str(battery_obj.grid_react_power_prediction))
-            print("Battery-BattReact (kVar) -> "+str(battery_obj.battery_react_power_prediction))
+            print("PeakLoad (kW) -> "+str(battery_obj.peak_load_prediction))
+            print("GridLoad (kW) -> "+str(battery_obj.grid_load_prediction))
+            print("GridReact (kVar) -> "+str(battery_obj.grid_react_power_prediction))
+            print("BattReact (kVar) -> "+str(battery_obj.battery_react_power_prediction))
 
-            #
-            # new_battery_setpoint = battery_obj.battery_setpoints_prediction[0]
+            if ts > 0:
+                rt_variables['Time'].append(x_val)
+                # rt_variables['ts'].append(ts)
+                rt_variables['battery_setpoints_rt'].append(battery_obj.battery_setpoints_actual[ts - 60*60:ts])
+                rt_variables['SoC_rt'].append(battery_obj.SoC_actual[ts-60*60:ts])
+                rt_variables['grid_load_rt'].append(battery_obj.grid_load_actual[ts-60*60:ts])
+                rt_variables['peak_load_rt'].append([max(battery_obj.grid_load_actual[ts-60*60:ts])] * 60*60)
+                rt_variables['react_grid_rt'].append(battery_obj.grid_react_power_actual[ts-60*60:ts])
+                rt_variables['react_batt_rt'].append(battery_obj.battery_react_power_actual[ts-60*60:ts])
+                rt_variables['grid_pf_rt'].append(battery_obj.grid_power_factor_actual[ts-60*60:ts])
+                rt_variables['total_load_actual_rt'].append(battery_obj.actual_load[ts-60*60:ts])
+                x_val = []
+
+            if ((ts % battery_obj.reporting_frequency) == 0) and (ts > 1):
+                store_dict_to_json(ts, da_variables, 'da')
+                store_dict_to_json(ts, rt_variables, 'rt')
+                da_variables = clean_dict(da_variables, 'da')
+                rt_variables = clean_dict(rt_variables, 'rt')
+
+            da_variables['Time'].append(ts)
+            da_variables['battery_setpoints_da'].append([battery_obj.battery_setpoints_prediction[0]]*60*60)
+            da_variables['SoC_da'].append([battery_obj.SoC_prediction[0]]*60*60)
+            da_variables['grid_load_da'].append([battery_obj.grid_load_prediction[0]]*60*60)
+            da_variables['peak_load_da'].append([battery_obj.peak_load_prediction]*60*60)
+            da_variables['react_grid_da'].append([battery_obj.grid_react_power_prediction[0]]*60*60)
+            da_variables['react_batt_da'].append([battery_obj.battery_react_power_prediction[0]]*60*60)
+            da_variables['grid_pf_da'].append([battery_obj.grid_power_factor_prediction[0]]*60*60)
+            da_variables['total_load_predict_da'].append([battery_obj.load_up[0]]*60*60)
+
+
 
         # RealTime Control Routine
         # get updated load profile
@@ -150,18 +203,12 @@ if __name__ == "__main__":
         print(str(current_time) + "-->" + " Actual load: " + str(battery_obj.actual_load[ts]))
 
         # get mismatch from the prediction
-        active_power_mismatch = battery_obj.load_up[0] - battery_obj.actual_load[ts]
-        print(str(current_time) + "-->" + " Act-Power Mismatch: "  + str(active_power_mismatch))
+        active_power_mismatch = battery_obj.actual_load[ts] - battery_obj.load_up[0]
+        print(str(current_time) + "-->" + " Act-Power Mismatch: " + str(active_power_mismatch))
         reactive_power_mismatch = battery_obj.load_pf*active_power_mismatch
         print(str(current_time) + "-->" + " React-Power Mismatch: " + str(reactive_power_mismatch))
 
         # check if external signal has been imposed
-
-
-
-
-
-
 
         # check service priority
 
@@ -209,6 +256,8 @@ if __name__ == "__main__":
         battery_obj.grid_load_actual.append(new_grid_load)
         battery_obj.battery_react_power_actual.append(new_battery_reactive_power)
         battery_obj.grid_react_power_actual.append(battery_obj.load_pf*new_grid_load + new_battery_reactive_power)
+        battery_obj.grid_apparent_power_actual.append(battery_obj.get_apparent_power(new_grid_load, battery_obj.grid_react_power_actual[ts]))
+        battery_obj.grid_power_factor_actual.append(battery_obj.get_power_factor(new_grid_load, battery_obj.grid_apparent_power_actual[ts]))
         SoC_temp = new_SoC
         print(str(current_time) + "-->" + " Current Active Power Battery Setpoint: " + str(battery_obj.battery_setpoints_actual[ts]))
         print(str(current_time) + "-->" + " Current Battery SoC: " + str(battery_obj.SoC_actual[ts]))
@@ -216,7 +265,8 @@ if __name__ == "__main__":
         print(str(current_time) + "-->" + " Current Reactive Power from Battery: " + str(battery_obj.battery_react_power_actual[ts]))
         print(str(current_time) + "-->" + " Current Reactive Power from Grid: " + str(battery_obj.grid_react_power_actual[ts]))
         print(str(current_time) + "-->" + " Total Reactive Power from Load: " + str(battery_obj.load_pf*new_grid_load))
-        # x_val.append(ts)
+
+        x_val.append(ts)
         # animate(battery_obj.battery_setpoints_actual[ts])
         # p = ax.plot(x_val[0:ts+1], battery_obj.battery_setpoints_actual[0:ts+1], label='Battery Power (Charge/Discharge)', color='b')
         # # ax.plot([battery_obj.peak_load_prediction] * battery_obj.windowLength, label='Peak load')
@@ -230,9 +280,17 @@ if __name__ == "__main__":
 
         current_time = current_time + timedelta(seconds=+1)
 
+
+
         ts += 1
+
+
+
+
     # print("Battery- -> "+str(battery_obj.grid_power_factor))
     # print(battery_obj.grid_original_power_factor)
+
+
 
 
 

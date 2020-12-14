@@ -6,7 +6,7 @@
   "charge": 6750.0,
   "efficiency": 1,
   "StartTime": "2017-01-01 00:00:00",
-  "EndTime": "2017-01-31 00:00:00",
+  "EndTime": "2017-01-03 00:00:00",
   "SimulationDays": 30,
   "rated_inverter_kVA": 1000.0,
   "rated_kW": 750.0,
@@ -30,5 +30,6 @@
   "max_reserve_up_cap": 0.20,
   "max_reserve_down_cap": 0.20,
   "real_time_control_resolution": 1,
-  "reserve_SoC": 0.20
+  "reserve_SoC": 0.20,
+  "reporting_frequency": 86400
 }

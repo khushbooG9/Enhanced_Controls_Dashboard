@@ -72,7 +72,7 @@ class battery_class_new:
         self.sin_terms = np.sin((np.array(self.SEGMENTS) * np.pi * (1 / self.lin_segments)))
         self.pf_penalty = gen_dict["pf_penalty"]
         self.pf_limit = gen_dict["pf_limit"]
-
+        self.reporting_frequency = gen_dict["reporting_frequency"]
 
         self.load_data = None
         self.load_predict = None
@@ -89,10 +89,10 @@ class battery_class_new:
         self.grid_react_power_prediction = [[]] * self.windowLength
         self.battery_react_power_prediction = [[]] * self.windowLength
 
-        self.grid_apparent_power = [[]] * self.windowLength
+        self.grid_apparent_power_prediction = [[]] * self.windowLength
         self.apparent_power_battery = [[]] * self.windowLength
 
-        self.grid_power_factor = [[]] * self.windowLength
+        self.grid_power_factor_prediction = [[]] * self.windowLength
 
         self.grid_original_apparant_power = [[]] * self.windowLength
         self.grid_original_power_factor = [[]] * self.windowLength
@@ -104,9 +104,11 @@ class battery_class_new:
         self.grid_react_power_actual = []
         self.battery_react_power_actual = []
         self.actual_load = []
+        self.grid_apparent_power_actual = []
+        self.grid_power_factor_actual = []
 
     def change_setpoint(self, old_setpoint, mismatch):
-        new_battery_setpoint = min(self.rated_kW, max(-self.rated_kW, old_setpoint - mismatch))
+        new_battery_setpoint = min(self.rated_kW, max(-self.rated_kW, old_setpoint + mismatch))
 
         return new_battery_setpoint
 
@@ -156,9 +158,10 @@ class battery_class_new:
 
             else:
                 print(
-                    "negative_mismatch Found --> power should come from grid because charging the power would also increase grid power")
-                temp_battery_active_power_setpoint = 0.0
-                new_grid_load = actual_load - temp_battery_active_power_setpoint
+                    "negative_mismatch Found --> actual load is less than predicted, so keep the setpoints as is")
+                new_grid_load = actual_load + active_power_mismatch - set_point_prediction
+                new_battery_setpoint = set_point_prediction
+                new_SoC = current_SoC
         else:
             # it is not the highest priority so see if something can be done
             print("Demand Charge is the priority number " + str(i + 1))
@@ -214,14 +217,42 @@ class battery_class_new:
         self.load_up = self.load_predict + self.load_predict*self.load_dev
         self.load_down = self.load_predict - self.load_predict*self.load_dev
         self.load_predict = self.load_predict + (self.load_dev*np.random.rand(len(self.load_predict))*self.load_up)-(self.load_dev*np.random.rand(len(self.load_predict))*self.load_down)
-
+        # because we know the forecast at the current time step
+        # self.load_up[0] = self.load_predict[0]
+        # self.load_down[0] = self.load_predict[0]
         self.grid_original_apparant_power = np.sqrt(self.load_predict**2 + (self.load_pf*self.load_predict)**2)
         self.grid_original_power_factor = (self.load_predict+1e-4)/(self.grid_original_apparant_power+1e-4)
 
 
     def set_load_actual(self, load_val):
-        self.actual_load.append(load_val + (self.load_dev*np.random.randn(1)[0]*load_val*0.01)-(self.load_dev*np.random.randn(1)[0]*load_val*0.01))
+        self.actual_load.append(load_val + (self.load_dev*np.random.randn(1)[0]*load_val*0.05)-(self.load_dev*np.random.randn(1)[0]*load_val*0.05))
 
+        # temp = deepcopy(DA_SW_prices)
+        # temp = np.array(temp)
+        # if self.fristRun:
+        #     self.fristRun = False
+        #     self.retail_price_forecast = (np.roll(temp, -1)).tolist()
+        # else:
+        #     deltaP = np.array(self.retail_price_forecast) - temp
+        #     a = 0.2
+        #     k = np.flip((np.arange(1, 49, 1)))
+        #     alpha = a / (k ** 0.5)
+        #     temp = np.array(self.retail_price_forecast) - alpha * deltaP
+        #
+        #     temp = (np.roll(temp, -1)).tolist()
+        #
+        #     self.retail_price_forecast = deepcopy(temp)
+
+    def set_SoC(self, latest_SoC):
+        self.SoC_init = latest_SoC
+
+    def get_apparent_power(self, p, q):
+        apparent_power = np.sqrt(p**2 + q**2)
+        return apparent_power
+
+    def get_power_factor(self, p,s):
+        pf = (abs(p)+1e-6)/(s+1e-6)
+        return pf
     def obj_rule(self, m):
         temp = 0
         if self.use_case_dict["power_factor_correction"]["control_type"] == "opti-based":
@@ -284,6 +315,11 @@ class battery_class_new:
         return m.p_total[i] == -m.p_batt[i] + self.load_up[i]
 
     def con_rule_eq3_soc(self, m, i):
+        if self.SoC_init < self.reserve_SoC:
+            self.SoC_init = self.reserve_SoC
+        elif self.SoC_init > (self.rated_kWh-self.reserve_SoC):
+            self.SoC_init = (self.rated_kWh-self.reserve_SoC)
+
         if i == 0:
             return m.SoC[i] == self.SoC_init - m.p_batt[i]
         else:
@@ -358,8 +394,10 @@ class battery_class_new:
                 self.grid_load_prediction[t] = pyo.value(model.p_total[t])
                 self.grid_react_power_prediction[t] = pyo.value(model.q_total[t])
                 self.battery_react_power_prediction[t] = pyo.value(model.q_batt[t])
-                self.grid_apparent_power[t] = np.sqrt(self.grid_react_power_prediction[t]**2 + self.grid_load_prediction[t]**2)
-                self.grid_power_factor[t] = (self.grid_load_prediction[t]+1e-6)/(self.grid_apparent_power[t]+1e-6)
+                #self.grid_apparent_power[t] = np.sqrt(self.grid_react_power_prediction[t]**2 + self.grid_load_prediction[t]**2)
+                #self.grid_power_factor[t] = (self.grid_load_prediction[t]+1e-6)/(self.grid_apparent_power[t]+1e-6)
+                self.grid_apparent_power_prediction[t] = self.get_apparent_power(self.grid_load_prediction[t], self.grid_react_power_prediction[t])
+                self.grid_power_factor_prediction[t] = self.get_power_factor(self.grid_load_prediction[t], self.grid_apparent_power_prediction[t])
             self.peak_load_prediction = pyo.value(model.p_peak)
         except:
             print('Optimization Failed')
