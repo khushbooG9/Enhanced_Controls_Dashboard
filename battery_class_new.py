@@ -142,7 +142,7 @@ class battery_class_new:
             if active_power_mismatch > 0.0:
                 print("positive Mismatch Found --> battery should discharge")
                 # adjust battery power setpoint and see whether the adjusted power is even physically possible
-                new_battery_setpoint = self.change_setpoint(set_point_prediction,active_power_mismatch)
+                new_battery_setpoint = self.change_setpoint(set_point_prediction, active_power_mismatch)
                 # check SoC
                 new_SoC, new_battery_setpoint = self.check_SoC(new_battery_setpoint, current_SoC)
                 # new grid load
@@ -161,7 +161,7 @@ class battery_class_new:
                     "negative_mismatch Found --> actual load is less than predicted, so keep the setpoints as is")
                 new_grid_load = actual_load + active_power_mismatch - set_point_prediction
                 new_battery_setpoint = set_point_prediction
-                new_SoC = current_SoC
+                new_SoC, new_battery_setpoint = self.check_SoC(new_battery_setpoint, current_SoC)
         else:
             # it is not the highest priority so see if something can be done
             print("Demand Charge is the priority number " + str(i + 1))
@@ -225,7 +225,7 @@ class battery_class_new:
 
 
     def set_load_actual(self, load_val):
-        self.actual_load.append(load_val + (self.load_dev*np.random.randn(1)[0]*load_val*0.05)-(self.load_dev*np.random.randn(1)[0]*load_val*0.05))
+        self.actual_load.append(load_val + (self.load_dev*np.random.randn(1)[0]*load_val*0.01)-(self.load_dev*np.random.randn(1)[0]*load_val*0.05))
 
         # temp = deepcopy(DA_SW_prices)
         # temp = np.array(temp)

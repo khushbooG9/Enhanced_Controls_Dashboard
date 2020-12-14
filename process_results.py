@@ -27,7 +27,7 @@ def plot_side_by_side(plot_1_variables_da, plot_1_variables_rt, da_data, rt_data
 
     for j in range(no_of_files):
 
-        x = rt_data['ts'][j]
+        x = rt_data['Time'][j]
         x_array = np.array(x)
         x_array_flat = np.reshape(x_array, -1)
 
@@ -72,18 +72,18 @@ def plot_single(plot_1_variables_da, plot_1_variables_rt, da_data, rt_data, no_o
             y = rt_data[plot_1_variables_rt[i]][j]
             y_array = np.array(y)
             y_array_flat = np.reshape(y_array, -1)
-            if plot_1_variables_da[i] == 'peak_load_da':
-                ax.plot(x_array_flat, y_array_flat, label=str(plot_1_variables_da[i]), linewidth=3.0)
+            if plot_1_variables_rt[i] == 'peak_load_rt':
+                ax.plot(x_array_flat, y_array_flat, label=str(plot_1_variables_rt[i]), linewidth=3.0)
             else:
-                ax.plot(x_array_flat, y_array_flat, label=str(plot_1_variables_da[i]), linewidth=2.0)
+                ax.plot(x_array_flat, y_array_flat, label=str(plot_1_variables_rt[i]), linewidth=2.0)
 
             y = da_data[plot_1_variables_da[i]][j]
             y_array = np.array(y)
             y_array_flat = np.reshape(y_array, -1)
-            if plot_1_variables_da[i] == 'peak_load_rt':
-                ax.plot(x_array_flat, y_array_flat[x_array_flat-(time_lag*j)], label=str(plot_1_variables_rt[i]), linestyle='--', linewidth=3.0)
+            if plot_1_variables_da[i] == 'peak_load_da':
+                ax.plot(x_array_flat, y_array_flat[x_array_flat-(time_lag*j)], label=str(plot_1_variables_da[i]), linestyle='--', linewidth=3.0)
             else:
-                ax.plot(x_array_flat,  y_array_flat[x_array_flat-(time_lag*j)], label=str(plot_1_variables_rt[i]), linestyle='--', linewidth=2.0)
+                ax.plot(x_array_flat,  y_array_flat[x_array_flat-(time_lag*j)], label=str(plot_1_variables_da[i]), linestyle='--', linewidth=2.0)
 
     ax.set_ylabel('kW')
     ax.set_xlabel('Seconds')
@@ -126,40 +126,18 @@ def plot_continous(plot_1_variables_da, plot_1_variables_rt, da_data, rt_data, n
             y_array = np.array(y)
             y_array_flat = np.reshape(y_array, -1)
             df_rt.loc[x_array_flat, plot_1_variables_rt[i]] = y_array_flat
-            # if j > 0:
-            #     df_rt[plot_1_variables_rt[i]].append(pd.Series(y_array_flat), ignore_index=True)
-            # else:
-            #     df_rt[plot_1_variables_rt[i]] = y_array_flat
+
 
             y_da = da_data[plot_1_variables_da[i]][j]
             y_da_array = np.array(y_da)
             y_da_array_flat = np.reshape(y_da_array, -1)
             df_da.loc[x_array_flat, plot_1_variables_da[i]] = y_da_array_flat
 
-            # if j > 0:
-            #     df_da[plot_1_variables_da[i]].append(pd.Series(y_da_array_flat), ignore_index=True)
-            # else:
-            #     df_da[plot_1_variables_da[i]] = y_da_array_flat
 
-
-
-    # fig, ax = plt.subplots()
-    #
-    # if plot_1_variables_da[i] == 'peak_load_rt':
-    #     ax.plot(x_array_flat, y_array_flat[x_array_flat - (time_lag * j)], label=str(plot_1_variables_rt[i]),
-    #             linestyle='--', linewidth=3.0)
-    # else:
-    #     ax.plot(x_array_flat, y_array_flat[x_array_flat - (time_lag * j)], label=str(plot_1_variables_rt[i]),
-    #             linestyle='--', linewidth=2.0)
-
-    # if plot_1_variables_da[i] == 'peak_load_da':
-    #     ax.plot(x_array_flat, y_array_flat, label=str(plot_1_variables_da[i]), linewidth=3.0)
-    # else:
-    #     ax.plot(x_array_flat, y_array_flat, label=str(plot_1_variables_da[i]), linewidth=2.0)
 
     df_da.plot(x='Time', y=plot_1_variables_da[1:], kind='line', title='Day-Ahead Dispatch', grid=True)
     df_rt.plot(x='Time', y=plot_1_variables_rt[1:], kind='line', title='Real-Time Dispatch', grid=True)
-    plt.show()
+    # plt.show()
 
 
     # ax.set_ylabel('kW')
@@ -199,15 +177,33 @@ for i in range(0, len(ts)):
 # ===================== plots to check optimization results ===============
 # fig, ax = plt.subplots()
 
-plot_1_variables_da = ['Time', 'battery_setpoints_da', 'grid_load_da', 'total_load_predict_da', 'peak_load_da']
-plot_1_variables_rt = ['Time', 'battery_setpoints_rt', 'grid_load_rt', 'total_load_actual_rt', 'peak_load_rt']
+# plot_1_variables_da = ['Time', 'battery_setpoints_da', 'grid_load_da', 'total_load_predict_da', 'peak_load_da']
+# plot_1_variables_rt = ['Time', 'battery_setpoints_rt', 'grid_load_rt', 'total_load_actual_rt', 'peak_load_rt']
+# plot_continous(plot_1_variables_da, plot_1_variables_rt, da_data, rt_data, len(ts))
+
+# plot_continous(plot_2_variables_da, plot_2_variables_rt, da_data, rt_data, len(ts))
 
 
-# plot_side_by_side(plot_1_variables_da, plot_1_variables_rt, da_data, rt_data, len(ts))
 #
-# plot_single(plot_1_variables_da, plot_1_variables_rt, da_data, rt_data, len(ts))
+#
+# plot_2_variables_da = ['Time', 'SoC_da']
+# plot_2_variables_rt = ['Time', 'SoC_rt']
+#
+# plot_3_variables_comp = ['Time','battery_setpoints_da', 'battery_setpoints_rt']
+# plot_4_variables_comp = ['Time','grid_load_da', 'grid_load_rt']
 
-plot_continous(plot_1_variables_da, plot_1_variables_rt, da_data, rt_data, len(ts))
+
+#
+plot_1_variables_da = ['battery_setpoints_da', 'grid_load_da', 'total_load_predict_da', 'peak_load_da']
+plot_1_variables_rt = ['battery_setpoints_rt', 'grid_load_rt', 'total_load_actual_rt', 'peak_load_rt']
+plot_side_by_side(plot_1_variables_da, plot_1_variables_rt, da_data, rt_data, len(ts))
+
+plot_single(plot_1_variables_da, plot_1_variables_rt, da_data, rt_data, len(ts))
+
+# plot_continous(plot_1_variables_da, plot_1_variables_rt, da_data, rt_data, len(ts))
+#
+# plot_continous(plot_2_variables_da, plot_2_variables_rt, da_data, rt_data, len(ts))
+#
 
 plt.show()
 
