@@ -1,0 +1,32 @@
+{
+  "power_factor_correction": {
+    "control_type": "",
+    "power_factor_limit": [],
+    "power_factor_penalty": [],
+    "service_sensitivity": [],
+    "priority": []
+  },
+  "demand_charge": {
+    "control_type": "",
+    "peak_threshold": [],
+    "peak_price": [],
+    "service_sensitivity": [],
+    "priority": []
+  },
+  "energy_arbitrage": {
+    "control_type": "",
+    "price_threshold": [],
+    "service_sensitivity": [],
+    "priority": []
+  },
+  "reserves_placement": {
+    "control_type": "",
+    "cap_up_threshold": [],
+    "cap_down_threshold": [],
+    "service_sensitivity": [],
+    "priority": []
+  },
+  "external_signal": {
+    "enabled": ""
+  }
+}
