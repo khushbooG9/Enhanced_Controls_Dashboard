@@ -203,6 +203,8 @@ if __name__ == "__main__":
         print(str(current_time) + "-->" + " Actual load: " + str(battery_obj.actual_load[ts]))
 
         # get mismatch from the prediction
+        if ts==0:
+            print("Actual Load", battery_obj.actual_load)
         active_power_mismatch = battery_obj.actual_load[ts] - battery_obj.load_up[0]
         print(str(current_time) + "-->" + " Act-Power Mismatch: " + str(active_power_mismatch))
         reactive_power_mismatch = battery_obj.load_pf*active_power_mismatch

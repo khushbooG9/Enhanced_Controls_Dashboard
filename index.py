@@ -859,6 +859,7 @@ def make_usecase_active(s1,s2,s3,s4):
     inputs = [Input("graph-update", "n_intervals")]
 )
 def update_live_graph(ts):
+    print("seconds", ts)
     if ts==0:
         gen_config = init_gen_config()
         control_config = init_control_config()
@@ -892,7 +893,7 @@ def update_live_graph(ts):
             battery_obj.set_hourly_load_forecast(current_time, day_ahead_forecast_horizon)
             battery_obj.DA_optimal_quantities()
         battery_obj.set_load_actual(battery_obj.load_predict[0])
-        active_power_mismatch = battery_obj.load_up[0] - battery_obj.actual_load[ts]
+        active_power_mismatch = battery_obj.actual_load[ts] - battery_obj.load_up[0]
         reactive_power_mismatch = battery_obj.load_pf*active_power_mismatch
 
         for i in range(len(services_list)-1):
@@ -925,9 +926,9 @@ def update_live_graph(ts):
         battery_obj.grid_load_actual.append(new_grid_load)
         battery_obj.battery_react_power_actual.append(new_battery_reactive_power)
         battery_obj.grid_react_power_actual.append(battery_obj.load_pf*new_grid_load + new_battery_reactive_power)
-        SoC_temp = new_SoC
-        battery_obj.grid_apparent_power_actual.append(np.sqrt(battery_obj.grid_react_power_actual[ts]**2 + battery_obj.grid_load_actual[ts]**2))
+        battery_obj.grid_apparent_power_actual.append(battery_obj.get_apparent_power(new_grid_load, battery_obj.grid_react_power_actual[ts]))
         battery_obj.grid_power_factor_actual.append(battery_obj.get_power_factor(new_grid_load, battery_obj.grid_apparent_power_actual[ts]))
+        SoC_temp = new_SoC
         print(str(current_time) + "-->" + " Current Active Power Battery Setpoint: " + str(battery_obj.battery_setpoints_actual[ts]))
         print(str(current_time) + "-->" + " Current Battery SoC: " + str(battery_obj.SoC_actual[ts]))
 
@@ -957,7 +958,7 @@ def update_live_graph(ts):
     
         )
 
-        
+        data = {}
     
         # bobj = jsonpickle.encode(battery_obj, unpicklable=True)
         with open('battery_obj.pkl','wb') as f:
@@ -967,7 +968,7 @@ def update_live_graph(ts):
         data["simulation_duration"] = simulation_duration
         data["services_list"] = services_list
         data["priority_list"] = priority_list
-        data["current_time"] = current_time
+        data["current_time"] = current_time.strftime("%Y-%m-%d %H:%M:%S")
 
         print("IFFFFF 00000", data)
 
@@ -984,15 +985,23 @@ def update_live_graph(ts):
         with open('battery_obj.pkl','rb') as f:
             battery_obj = dill.load(f)
 
+        current_time = datetime.strptime(data["current_time"], "%Y-%m-%d %H:%M:%S")
+
         if ts< data["simulation_duration"]:
 
             if ts%3600==0:
                 next_day_hourly_interval = timedelta(days=+1)
-                day_ahead_forecast_horizon = data["current_time"] + next_day_hourly_interval
-                battery_obj.set_hourly_load_forecast(data["current_time"], day_ahead_forecast_horizon)
+                day_ahead_forecast_horizon = current_time + next_day_hourly_interval
+                battery_obj.set_hourly_load_forecast(current_time, day_ahead_forecast_horizon)
+                    
+                battery_obj.set_SoC(battery_obj.SoC_actual[ts-1])
+
                 battery_obj.DA_optimal_quantities()
             battery_obj.set_load_actual(battery_obj.load_predict[0])
-            active_power_mismatch = battery_obj.load_up[0] - battery_obj.actual_load[ts]
+            print("Battery obj actual load **********", battery_obj.actual_load, ts)
+            print("Battery obj actualload[ts] *********", battery_obj.actual_load[ts])
+            print("Battery obj load up **********", battery_obj.load_up[0])
+            active_power_mismatch = battery_obj.actual_load[ts] - battery_obj.load_up[0]
             reactive_power_mismatch = battery_obj.load_pf*active_power_mismatch
 
             for i in range(len(data["services_list"])-1):
@@ -1020,21 +1029,21 @@ def update_live_graph(ts):
                 elif service_priority == "reserves_placement":
                     pass 
             print("----------- Real-Time Control Done --------")
-            battery_obj.SoC_actual.append(SoC_temp)
+            battery_obj.SoC_actual.append(data["SoC_temp"])
             battery_obj.battery_setpoints_actual.append(new_battery_setpoint)
             battery_obj.grid_load_actual.append(new_grid_load)
             battery_obj.battery_react_power_actual.append(new_battery_reactive_power)
             battery_obj.grid_react_power_actual.append(battery_obj.load_pf*new_grid_load + new_battery_reactive_power)
-            SoC_temp = new_SoC
-            battery_obj.grid_apparent_power_actual.append(np.sqrt(battery_obj.grid_react_power_actual[ts]**2 + battery_obj.grid_load_actual[ts]**2))
+            battery_obj.grid_apparent_power_actual.append(battery_obj.get_apparent_power(new_grid_load, battery_obj.grid_react_power_actual[ts]))
             battery_obj.grid_power_factor_actual.append(battery_obj.get_power_factor(new_grid_load, battery_obj.grid_apparent_power_actual[ts]))
+            SoC_temp = new_SoC
             print(str(data["current_time"]) + "-->" + " Current Active Power Battery Setpoint: " + str(battery_obj.battery_setpoints_actual[ts]))
             print(str(data["current_time"]) + "-->" + " Current Battery SoC: " + str(battery_obj.SoC_actual[ts]))
 
             print(str(data["current_time"]) + "-->" + " Current Reactive Power from Battery: " + str(battery_obj.battery_react_power_actual[ts]))
             print(str(data["current_time"]) + "-->" + " Current Reactive Power from Grid: " + str(battery_obj.grid_react_power_actual[ts]))
             print(str(data["current_time"]) + "-->" + " Total Reactive Power from Load: " + str(battery_obj.load_pf*new_grid_load))
-            data["current_time"] = data["current_time"] + timedelta(seconds=+1)
+            current_time = current_time + timedelta(seconds=+1)
 
 
             fig = go.Figure()
@@ -1060,12 +1069,13 @@ def update_live_graph(ts):
 
             
             data["SoC_temp"] = SoC_temp
-            data["simulation_duration"] = simulation_duration
-            data["services_list"] = services_list
-            data["priority_list"] = priority_list
-            data["current_time"] = current_time
+            # data["simulation_duration"] = simulation_duration
+            # data["services_list"] = services_list
+            # data["priority_list"] = priority_list
+            data["current_time"] = current_time.strftime("%Y-%m-%d %H:%M:%S") 
 
-            
+            with open('battery_obj.pkl','wb') as f:
+                dill.dump(battery_obj, f)
 
             with open('data.json','w') as f:
                 json.dump(data, f)
