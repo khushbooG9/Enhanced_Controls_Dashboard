@@ -66,7 +66,7 @@ def construct_use_case_library(gen_config, control_config):
     return use_case_config
 
 def store_dict_to_json(ts, variables, id):
-    with open("results_folder\\" + str(ts) + '_' + id + '.json', 'w') as fp:
+    with open("results_data\\" + str(ts) + '_' + id + '.json', 'w') as fp:
         json.dump(variables, fp)
 
 
@@ -86,7 +86,7 @@ def clean_dict(dict, id):
 
 if __name__ == "__main__":
 
-    pre_file = 'results_folder\\'
+    pre_file = 'results_data\\'
     with open("dict.json", 'r', encoding='utf-8') as lp:
         gen_config = json.load(lp)
 
@@ -125,9 +125,18 @@ if __name__ == "__main__":
     ts = 0
     SoC_temp = battery_obj.SoC_init
     new_battery_setpoint = 0.0
-
+    batt_temp = 0.0
+    load_temp = 0.0
+    load_react_temp = 0.0
+    grid_act_power_temp = 0.0
+    grid_react_power_temp = 0.0
+    batt_react_power_temp = 0.0
+    battery_react_power_ratio = 0.0
+    grid_react_power_ratio = 0.0
+    battery_active_power_ratio = 0.0
     # if things go haywire then we have some initialized values
     new_grid_load = 0.0
+    new_grid_reactive_power = 0.0
     new_SoC = 0.0
     new_battery_reactive_power = 0.0
     x_val = []
@@ -149,7 +158,7 @@ if __name__ == "__main__":
             next_day_hourly_interval = timedelta(days=+1)
             day_ahead_forecast_horizon = current_time + next_day_hourly_interval
 
-            battery_obj.set_hourly_load_forecast(current_time, day_ahead_forecast_horizon)
+            battery_obj.set_hourly_load_forecast(current_time, day_ahead_forecast_horizon, ts)
 
 
             print("Solving the Day-Ahead Optimization Problem")
@@ -165,6 +174,21 @@ if __name__ == "__main__":
             print("GridLoad (kW) -> "+str(battery_obj.grid_load_prediction))
             print("GridReact (kVar) -> "+str(battery_obj.grid_react_power_prediction))
             print("BattReact (kVar) -> "+str(battery_obj.battery_react_power_prediction))
+            batt_temp = battery_obj.battery_setpoints_prediction[0]
+            load_temp = battery_obj.load_predict[0]
+            load_react_temp = battery_obj.load_up[0]*battery_obj.load_pf
+            grid_act_power_temp = battery_obj.grid_load_prediction[0]
+            grid_react_power_temp = battery_obj.grid_react_power_prediction[0]
+            batt_react_power_temp = battery_obj.battery_react_power_prediction[0]
+
+            battery_react_power_ratio = (battery_obj.battery_react_power_prediction[0] / (
+                        battery_obj.grid_react_power_prediction[0] + battery_obj.battery_react_power_prediction[0]))
+            grid_react_power_ratio = 1 - battery_react_power_ratio
+
+            # battery_active_power_ratio = (battery_obj.battery_setpoints_prediction[0] / (
+            #             battery_obj.battery_setpoints_prediction[0] + battery_obj.grid_load_prediction[0]))
+            battery_active_power_ratio = (battery_obj.grid_load_prediction[0] / battery_obj.peak_load_prediction)
+
 
             if ts > 0:
                 rt_variables['Time'].append(x_val)
@@ -196,16 +220,16 @@ if __name__ == "__main__":
             da_variables['total_load_predict_da'].append([battery_obj.load_up[0]]*60*60)
 
 
-
         # RealTime Control Routine
         # get updated load profile
-        battery_obj.set_load_actual(battery_obj.load_predict[0])
-        print(str(current_time) + "-->" + " Actual load: " + str(battery_obj.actual_load[ts]))
+        battery_obj.set_load_actual(load_temp, (battery_obj.load_predict[1]-battery_obj.load_predict[0])*battery_obj.hrs_to_secs )
+        print(str(current_time) + "-->" + " Actual active power load: " + str(battery_obj.actual_load[ts]))
+        print(str(current_time) + "-->" + " Actual reactive power load: " + str(battery_obj.actual_reactive_load[ts]))
 
         # get mismatch from the prediction
-        active_power_mismatch = battery_obj.actual_load[ts] - battery_obj.load_up[0]
+        active_power_mismatch = battery_obj.actual_load[ts] - load_temp
         print(str(current_time) + "-->" + " Act-Power Mismatch: " + str(active_power_mismatch))
-        reactive_power_mismatch = battery_obj.load_pf*active_power_mismatch
+        reactive_power_mismatch = battery_obj.actual_reactive_load[ts] - load_react_temp
         print(str(current_time) + "-->" + " React-Power Mismatch: " + str(reactive_power_mismatch))
 
         # check if external signal has been imposed
@@ -213,41 +237,54 @@ if __name__ == "__main__":
         # check service priority
 
         # iterate through priority
+        #TODO: more robust method of prioritizing the list
         for i in range(0, len(services_list)-1):
-            service_priority = services_list[priority_list.index(i + 1)]
-            if service_priority == "demand_charge":
-                # check demand charge reduction in real-time
-                new_SoC, new_battery_setpoint, new_grid_load = battery_obj.rtc_demand_charge_reduction\
-                    (i, active_power_mismatch, battery_obj.battery_setpoints_prediction[0], SoC_temp, battery_obj.actual_load[ts])
+            try:
+                service_priority = services_list[priority_list.index(i + 1)]
 
-            elif service_priority == "power_factor_correction":
-                if i == 0: # highest priority
-                    print("Power Factor Correction is the highest priority")
+                if service_priority == "demand_charge":
+                    # check demand charge reduction in real-time
+                    # new_SoC, new_battery_setpoint, new_grid_load = battery_obj.rtc_demand_charge_reduction\
+                    #     (i, active_power_mismatch, battery_obj.battery_setpoints_prediction[0], SoC_temp, battery_obj.actual_load[ts])
+                    new_SoC, new_battery_setpoint, new_grid_load = battery_obj.rtc_demand_charge_reduction \
+                        (i, active_power_mismatch, batt_temp, SoC_temp, battery_obj.actual_load[ts], batt_react_power_temp, battery_active_power_ratio)
 
-                else:
-                    # this means that actually load power is lower than expected, hence the reactive power drawn is also less
-                    # ratio of the battery from the total reactive mismatch
-                    battery_ratio = (1 - battery_obj.battery_react_power_prediction[0] / (battery_obj.grid_react_power_prediction[0]+battery_obj.battery_react_power_prediction[0]))
-
-                    new_battery_reactive_power = battery_obj.battery_react_power_prediction[0] + battery_ratio*reactive_power_mismatch
+                elif service_priority == "power_factor_correction":
 
 
-                    print("Power Factor Correction is the priority number " + str(i+1))
+                        new_battery_reactive_power = batt_react_power_temp + battery_react_power_ratio*reactive_power_mismatch
+                        new_grid_reactive_power = grid_react_power_temp + grid_react_power_ratio*reactive_power_mismatch
+                        apparant_temp = battery_obj.get_apparent_power(grid_act_power_temp, new_grid_reactive_power)
+                        pf_temp = battery_obj.get_power_factor(grid_act_power_temp, apparant_temp)
 
-            elif service_priority == "energy_arbitrage":
-                if i == 0: # highest priority
-                    print("Energy Arbitrage is the highest priority")
+                        if i == 0:  # highest priority
+                            print("Power Factor Correction is the highest priority")
 
-                else:
-                    print("Energy Arbitrage is the priority number " + str(i+1))
+                            if abs(pf_temp) - battery_obj.pf_limit < 0.05:
+                                print("power factor is below the limit -- do something about it as it is the highest priority")
+                                new_battery_reactive_power = (np.sqrt((grid_act_power_temp**2)*(1/(battery_obj.grid_power_factor_prediction[0]**2)) - ((grid_act_power_temp*battery_obj.grid_power_factor_prediction[0])**2)))
+                            else:
+                                print("power factor is within the tolerance of limit of " + str(battery_obj.pf_limit))
+                    # else:
+                    #     # this means that actually load power is lower than expected, hence the reactive power drawn is also less
+                    #     # ratio of the battery from the total reactive mismatch
+                    #     print("Power Factor Correction is the priority number " + str(i+1))
 
-            elif service_priority == "reserves_placement":
-                if i == 0: # highest priority
-                    print("Reserve Placement is the highest priority")
-
-                else:
-                    print("Reserve Placement is the priority number" + str(i+1))
-
+                # elif service_priority == "energy_arbitrage":
+                #     if i == 0: # highest priority
+                #         # print("Energy Arbitrage is the highest priority")
+                #
+                #     else:
+                #         # print("Energy Arbitrage is the priority number " + str(i+1))
+                #
+                # elif service_priority == "reserves_placement":
+                #     if i == 0: # highest priority
+                #         # print("Reserve Placement is the highest priority")
+                #
+                #     else:
+                #         # print("Reserve Placement is the priority number" + str(i+1))
+            except:
+                pass
 
 
         print("----------- Real-Time Control Done --------")
@@ -255,10 +292,16 @@ if __name__ == "__main__":
         battery_obj.battery_setpoints_actual.append(new_battery_setpoint)
         battery_obj.grid_load_actual.append(new_grid_load)
         battery_obj.battery_react_power_actual.append(new_battery_reactive_power)
-        battery_obj.grid_react_power_actual.append(battery_obj.load_pf*new_grid_load + new_battery_reactive_power)
+        battery_obj.grid_react_power_actual.append(new_grid_reactive_power)
         battery_obj.grid_apparent_power_actual.append(battery_obj.get_apparent_power(new_grid_load, battery_obj.grid_react_power_actual[ts]))
         battery_obj.grid_power_factor_actual.append(battery_obj.get_power_factor(new_grid_load, battery_obj.grid_apparent_power_actual[ts]))
         SoC_temp = new_SoC
+        batt_temp = new_battery_setpoint
+        load_temp = battery_obj.actual_load[ts]
+        load_react_temp = battery_obj.actual_reactive_load[ts]
+        grid_act_power_temp = new_grid_load
+        grid_react_power_temp = new_grid_reactive_power
+        batt_react_power_temp = new_battery_reactive_power
         print(str(current_time) + "-->" + " Current Active Power Battery Setpoint: " + str(battery_obj.battery_setpoints_actual[ts]))
         print(str(current_time) + "-->" + " Current Battery SoC: " + str(battery_obj.SoC_actual[ts]))
 

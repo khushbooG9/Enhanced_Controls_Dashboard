@@ -7,6 +7,7 @@ import pandas as pd
 import numpy as np
 import json
 import matplotlib.pyplot as plt
+from collections import defaultdict
 
 
 import json
@@ -16,9 +17,30 @@ def mergeDict(dict1, dict2):
    dict3 = {**dict1, **dict2}
    for key, value in dict3.items():
        if key in dict1 and key in dict2:
-               dict3[key] = [value , dict1[key]]
+            # dict3[key].append([dict1[key]]) value.append(dict1[key])
+            dict3[key] = [value , dict1[key]]
 
    return dict3
+
+#
+# d1 = {1: 2, 3: 4}
+# d2 = {1: 6, 3: 7}
+
+def mergeDicts(dict_list):
+    # ds = [d1, d2]
+    # d = {}
+    # for k in d1.keys():
+    #     d[k] = tuple(d[k] for d in ds)
+    # return d
+    dd = defaultdict(list)
+
+
+    # for d in (d1, d2):
+    for d in dict_list:
+        for key, value in d.items():
+            dd[key].append(value)
+
+    return dd
 
 
 def plot_side_by_side(plot_1_variables_da, plot_1_variables_rt, da_data, rt_data, no_of_files):
@@ -94,7 +116,7 @@ def plot_single(plot_1_variables_da, plot_1_variables_rt, da_data, rt_data, no_o
     ax.grid(True)
 
 
-def plot_continous(plot_1_variables_da, plot_1_variables_rt, da_data, rt_data, no_of_files):
+def plot_continous(plot_1_variables_da, plot_1_variables_rt, da_data, rt_data, no_of_files, fig_name):
 
     time_lag = 24 * 60 * 60
 
@@ -136,7 +158,11 @@ def plot_continous(plot_1_variables_da, plot_1_variables_rt, da_data, rt_data, n
 
 
     df_da.plot(x='Time', y=plot_1_variables_da[1:], kind='line', title='Day-Ahead Dispatch', grid=True)
+    plt.savefig(fig_name + '_' + str(plot_1_variables_da[1]) +'_DA_results.png')
+
     df_rt.plot(x='Time', y=plot_1_variables_rt[1:], kind='line', title='Real-Time Dispatch', grid=True)
+    plt.savefig(fig_name + '_' + str(plot_1_variables_rt[1]) +'RT_Dispatch.png')
+
     # plt.show()
 
 
@@ -149,56 +175,94 @@ def plot_continous(plot_1_variables_da, plot_1_variables_rt, da_data, rt_data, n
     # ax.grid(True)
 
 
-folder = "results_folder"
+folder = "results_data"
 posfile_da = "_da"
 posfile_rt = "_rt"
-ts = ["86400", "172800"]
+
+folder_name = 'results_pictures\\'
+case_name = 'sensitivity'
+fig_name = folder_name + case_name
+# no_of_data_files = 5
+
+# ts = ["86400", "172800", "259200", "345600", "432000", "518400"]
+ts = ["86400", "172800", "259200"]
+no_of_data_files = len(ts)
+
+# ts = ["86400"]
 da_data = {}
 rt_data = {}
+# for i in range(0, len(ts)):
+#
+#     da_name = folder + "\\" + str(ts[i]) + posfile_da + ".json"
+#     rt_name = folder + "\\" + str(ts[i]) + posfile_rt + ".json"
+#
+#     dict_da = open(da_name).read()
+#     if i > 0:
+#         da_data = mergeDictNew(da_data, json.loads(dict_da))
+#
+#     else:
+#         da_data = json.loads(dict_da)
+#
+#     dict_rt = open(rt_name).read()
+#     if i > 0:
+#         rt_data = mergeDictNew(rt_data, json.loads(dict_rt))
+#     else:
+#         rt_data = json.loads(dict_rt)
+dict_da_data = []
+dict_rt_data = []
 for i in range(0, len(ts)):
 
     da_name = folder + "\\" + str(ts[i]) + posfile_da + ".json"
     rt_name = folder + "\\" + str(ts[i]) + posfile_rt + ".json"
 
     dict_da = open(da_name).read()
-    if i > 0:
-        da_data = mergeDict(json.loads(dict_da), da_data)
-
-    else:
-        da_data = json.loads(dict_da)
+    dict_da_data.append(json.loads(dict_da))
 
     dict_rt = open(rt_name).read()
-    if i > 0:
-        rt_data = mergeDict(json.loads(dict_rt), rt_data)
-    else:
-        rt_data = json.loads(dict_rt)
+    dict_rt_data.append(json.loads(dict_rt))
 
+
+da_data = mergeDicts(dict_da_data)
+rt_data = mergeDicts(dict_rt_data)
 
 # ===================== plots to check optimization results ===============
 # fig, ax = plt.subplots()
 
-# plot_1_variables_da = ['Time', 'battery_setpoints_da', 'grid_load_da', 'total_load_predict_da', 'peak_load_da']
-# plot_1_variables_rt = ['Time', 'battery_setpoints_rt', 'grid_load_rt', 'total_load_actual_rt', 'peak_load_rt']
-# plot_continous(plot_1_variables_da, plot_1_variables_rt, da_data, rt_data, len(ts))
+# {'Time': [], 'battery_setpoints_rt': [], 'SoC_rt': [], 'grid_load_rt': [], 'peak_load_rt': [],
+#                 'react_grid_rt': [], 'react_batt_rt': [], 'grid_pf_rt': [], 'total_load_actual_rt': []}
 
-# plot_continous(plot_2_variables_da, plot_2_variables_rt, da_data, rt_data, len(ts))
+plot_1_variables_da = ['Time', 'battery_setpoints_da', 'grid_load_da', 'total_load_predict_da', 'peak_load_da']
+plot_1_variables_rt = ['Time', 'battery_setpoints_rt', 'grid_load_rt', 'total_load_actual_rt', 'peak_load_rt']
+
+plot_continous(plot_1_variables_da, plot_1_variables_rt, da_data, rt_data, no_of_data_files, fig_name)
+
 
 
 #
-#
-# plot_2_variables_da = ['Time', 'SoC_da']
-# plot_2_variables_rt = ['Time', 'SoC_rt']
+plot_2_variables_da = ['Time', 'SoC_da']
+plot_2_variables_rt = ['Time', 'SoC_rt']
+plot_continous(plot_2_variables_da, plot_2_variables_rt, da_data, rt_data, no_of_data_files, fig_name)
+
+plot_3_variables_da = ['Time', 'react_grid_da',  'react_batt_da']
+plot_3_variables_rt =  ['Time', 'react_grid_rt',  'react_batt_rt']
+plot_continous(plot_3_variables_da, plot_3_variables_rt, da_data, rt_data, no_of_data_files, fig_name)
+
+plot_4_variables_da = ['Time', 'grid_pf_da']
+plot_4_variables_rt =  ['Time', 'grid_pf_rt']
+plot_continous(plot_4_variables_da, plot_4_variables_rt, da_data, rt_data, no_of_data_files, fig_name)
+
+
 #
 # plot_3_variables_comp = ['Time','battery_setpoints_da', 'battery_setpoints_rt']
 # plot_4_variables_comp = ['Time','grid_load_da', 'grid_load_rt']
 
 
 #
-plot_1_variables_da = ['battery_setpoints_da', 'grid_load_da', 'total_load_predict_da', 'peak_load_da']
-plot_1_variables_rt = ['battery_setpoints_rt', 'grid_load_rt', 'total_load_actual_rt', 'peak_load_rt']
-plot_side_by_side(plot_1_variables_da, plot_1_variables_rt, da_data, rt_data, len(ts))
-
-plot_single(plot_1_variables_da, plot_1_variables_rt, da_data, rt_data, len(ts))
+# plot_1_variables_da = ['battery_setpoints_da', 'grid_load_da', 'total_load_predict_da', 'peak_load_da']
+# plot_1_variables_rt = ['battery_setpoints_rt', 'grid_load_rt', 'total_load_actual_rt', 'peak_load_rt']
+# plot_side_by_side(plot_1_variables_da, plot_1_variables_rt, da_data, rt_data, len(ts))
+#
+# plot_single(plot_1_variables_da, plot_1_variables_rt, da_data, rt_data, len(ts))
 
 # plot_continous(plot_1_variables_da, plot_1_variables_rt, da_data, rt_data, len(ts))
 #
@@ -207,23 +271,3 @@ plot_single(plot_1_variables_da, plot_1_variables_rt, da_data, rt_data, len(ts))
 
 plt.show()
 
-# fig, ax = plt.subplots(2,1, sharex=True)
-# ax[0].plot(battery_obj.grid_react_power_prediction, label='Total Reactive Power Grid ')
-# ax[0].plot(battery_obj.battery_react_power_prediction, label='Reactive Power Battery')
-# ax[0].plot(battery_obj.load_up*battery_obj.load_pf, label='Predicted Reactive Power Load')
-#
-# ax[0].set_ylabel('kVar')
-# ax[0].set_title('Reactive Power')
-# ax[0].legend()
-# ax[0].set_title('Grid Side Results')
-# ax[0].grid(True)
-#
-# ax[1].plot(battery_obj.grid_power_factor, label='New Power Factor')
-# ax[1].plot(battery_obj.grid_original_power_factor, label='Old Power Factor', dashes=[4,4])
-# ax[1].set_xlabel('Hours')
-# ax[1].set_ylabel('cosphi')
-# ax[1].legend()
-# ax[1].grid(True)
-# ax[1].set_ylim([0, 1.02])
-#
-# plt.show()
