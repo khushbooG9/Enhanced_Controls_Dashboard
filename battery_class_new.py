@@ -132,23 +132,23 @@ class battery_class_new:
         data["peak_price"] = self.peak_price
         data["load_pf"] = self.load_pf
         data["reserve_SoC"] = self.reserve_SoC
-        data["TIME"] = self.TIME
+        data["TIME"] = list(self.TIME)
         data["SoC_init"] = self.SoC_init
         data["demand_charge_budget"] = self.demand_charge_budget
         data["real_time_control_resolution"] = self.real_time_control_resolution
         data["hrs_to_secs"] = self.hrs_to_secs
         data["lin_segments"] = self.lin_segments
-        data["SEGMENTS"] = self.SEGMENTS
+        data["SEGMENTS"] = list(self.SEGMENTS)
         data["cos_terms"] = self.cos_terms
         data["sin_terms"] = self.sin_terms
         data["pf_penalty"] = self.pf_penalty
         data["pf_limit"] = self.pf_limit
         data["reporting_frequency"] = self.reporting_frequency
-        data["load_data"] = self.load_data
+        data["load_data"] = self.load_data.to_json()
         data["load_predict"] = self.load_predict
         data["load_up"] = self.load_up
         data["load_down"] = self.load_down
-        data["price_data"] = self.price_data
+        data["price_data"] = self.price_data.to_json()
         data["battery_setpoints_prediction"] = self.battery_setpoints_prediction
         data["SoC_prediction"] = self.SoC_prediction
         data["peak_load_prediction"] = self.peak_load_prediction
@@ -216,11 +216,11 @@ class battery_class_new:
         self.pf_limit = data["pf_limit"]
         self.reporting_frequency = data["reporting_frequency"]
 
-        self.load_data = data["load_data"]
+        self.load_data = pd.read_json(data["load_data"])
         self.load_predict = data["load_predict"]
         self.load_up = data["load_up"]
         self.load_down = data["load_down"]
-        self.price_data = data["price_data"]
+        self.price_data = pd.read_json(data["price_data"])
 
 
         self.battery_setpoints_prediction = data["battery_setpoints_prediction"]
@@ -432,6 +432,8 @@ class battery_class_new:
         Args:
             Forecasted Load (float x 48): in kW, kVar
         """
+        # print("load data time", self.load_data['Time'])
+        # print("current_time", current_time)
         self.load_predict = self.load_data[(self.load_data['Time'] >= current_time) & (self.load_data['Time'] < forecast_time)]['Value'].values
         self.load_up = self.load_predict + self.load_predict*self.load_dev
         self.load_down = self.load_predict - self.load_predict*self.load_dev

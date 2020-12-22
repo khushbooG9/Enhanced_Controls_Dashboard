@@ -741,22 +741,22 @@ def build_tabs():
         ],
     )
 
-X = deque(maxlen = 20) 
-X.append(1) 
+# X = deque(maxlen = 20) 
+# X.append(1) 
   
-Y = deque(maxlen = 20) 
-Y.append(1)
+# Y = deque(maxlen = 20) 
+# Y.append(1)
 
-def dict_to_binary(the_dict):
-    str = dill.dumps(the_dict)
-    binary = ' '.join(format(ord(letter), 'b') for letter in str)
-    return binary
+# def dict_to_binary(the_dict):
+#     str = dill.dumps(the_dict)
+#     binary = ' '.join(format(ord(letter), 'b') for letter in str)
+#     return binary
 
 
-def binary_to_dict(the_binary):
-    jsn = ''.join(chr(int(x, 2)) for x in the_binary.split())
-    d = dill.loads(jsn)  
-    return d
+# def binary_to_dict(the_binary):
+#     jsn = ''.join(chr(int(x, 2)) for x in the_binary.split())
+#     d = dill.loads(jsn)  
+#     return d
 
 
 def serve_layout():
@@ -768,8 +768,8 @@ def serve_layout():
     dcc.Store(id="gen-config-store", storage_type = "session", data = init_gen_config()),
     dcc.Store(id="control-config-store", storage_type = "session", data = init_control_config()),
     dcc.Store(id="data-config-store", storage_type = "session", data = init_data_config()),
-    dcc.Store(id="data-store", storage_type="session", data = {}),
-    dcc.Store(id="liveplot-store", storage_type="session", data = {}),
+    dcc.Store(id="data-store", storage_type="local", data = {}),
+    dcc.Store(id="liveplot-store", storage_type="local", data = {}),
     html.Div(
             id="app-container",
             children=[
@@ -863,8 +863,27 @@ def make_usecase_active(s1,s2,s3,s4):
 def update_live_graph(ts, data1, live1):
     
     if ts==0:
-        print("SECOND IS", ts)
-        return [{}, {}, {}]
+        fig = go.Figure()
+        fig.add_trace(go.Scatter(
+            x = [i for i in range(24)],
+            y = list(range(24)),
+            name = "SoC"
+            )
+        )
+        fig.update_xaxes(showline=True, linewidth=2, linecolor='#e67300', mirror=True)
+        fig.update_yaxes(showline=True, linewidth=2, linecolor='#e67300', mirror=True)
+        fig.update_layout(paper_bgcolor = "#EFEDED", width=500, height=350,legend = dict(
+         orientation="h",
+         yanchor="bottom",
+         y=1.05,
+         xanchor="right",
+         x=1,
+         ),
+         xaxis_title="Hours",
+         yaxis_title="kW",
+    
+        )
+        return [fig, {}, {}]
     elif ts==1:
         print("SECOND IS", ts)
         gen_config = init_gen_config()
@@ -953,8 +972,8 @@ def update_live_graph(ts, data1, live1):
         print("_______FIG____________")
         fig = go.Figure()
         fig.add_trace(go.Scatter(
-            x = [i for i in range(len(battery_obj.SoC_prediction))],
-            y = battery_obj.SoC_prediction,
+            x = [i for i in range(24)],
+            y = [i for i in battery_obj.SoC_prediction],
             name = "SoC"
             )
         )
@@ -983,8 +1002,8 @@ def update_live_graph(ts, data1, live1):
 
         print("SENT DATA", data)
 
-        live = jsonpickle.encode(battery_obj, unpicklable=True)
-        live = json.dumps(live, indent=4)
+        # live = jsonpickle.encode(battery_obj, unpicklable=True)
+        live = battery_obj.todict()
 
         print("SENT LIVE")
 
@@ -992,13 +1011,9 @@ def update_live_graph(ts, data1, live1):
 
     elif ts>1:
         print("SECOND IS", ts)
+        print("RECIEVED Data", data1)
         print("RECIEVED LIVE")
-        obj = jsonpickle.decode(live1)
-      
-        print("check decoded obj" )
-        obj = json.loads(obj)
-
-        print("THhe obj dic is ", obj)
+       
         gen_config = init_gen_config()
         control_config = init_control_config()
         data_config = init_data_config()
@@ -1007,19 +1022,19 @@ def update_live_graph(ts, data1, live1):
         battery_obj = battery_class_new(use_case_library, gen_config, data_config)
         
         print("GOT battery_obj ts>1")
-        battery_obj.copydata(obj)
+        battery_obj.fromdict(live1)
 
         print("copydata successful ", ts)
-        current_time = datetime.strptime(data["current_time"], "%Y-%m-%d %H:%M:%S")
+        current_time = datetime.strptime(data1["current_time"], "%Y-%m-%d %H:%M:%S")
 
-        if ts <= data["simulation_duration"]:
+        if ts <= data1["simulation_duration"]:
 
             if (ts-1)%3600==0:
                 next_day_hourly_interval = timedelta(days=+1)
                 day_ahead_forecast_horizon = current_time + next_day_hourly_interval
                 battery_obj.set_hourly_load_forecast(current_time, day_ahead_forecast_horizon)
                     
-                battery_obj.set_SoC(battery_obj.SoC_actual[ts-2])
+                battery_obj.set_SoC(battery_obj.SoC_actual[ts])
 
                 battery_obj.DA_optimal_quantities()
             battery_obj.set_load_actual(battery_obj.load_predict[0])
@@ -1029,12 +1044,13 @@ def update_live_graph(ts, data1, live1):
             active_power_mismatch = battery_obj.actual_load[ts-1] - battery_obj.load_up[0]
             reactive_power_mismatch = battery_obj.load_pf*active_power_mismatch
 
-            for i in range(len(data["services_list"])-1):
-                service_priority = data["services_list"][data["priority_list"].index(i + 1)]
+            for i in range(len(data1["services_list"])-1):
+                service_priority = data1["services_list"][data1["priority_list"].index(i + 1)]
                 if service_priority == "demand_charge":
                     # check demand charge reduction in real-time
                     new_SoC, new_battery_setpoint, new_grid_load = battery_obj.rtc_demand_charge_reduction\
-                    (i, active_power_mismatch, battery_obj.battery_setpoints_prediction[0], data["SoC_temp"], battery_obj.actual_load[ts-1])
+                    (i, active_power_mismatch, battery_obj.battery_setpoints_prediction[0], data1["SoC_temp"], battery_obj.actual_load[ts-1])
+
 
                 elif service_priority == "power_factor_correction":
                     if i == 0: # highest priority
@@ -1054,7 +1070,7 @@ def update_live_graph(ts, data1, live1):
                 elif service_priority == "reserves_placement":
                     pass 
             print("----------- Real-Time Control Done --------")
-            battery_obj.SoC_actual.append(data["SoC_temp"])
+            battery_obj.SoC_actual.append(data1["SoC_temp"])
             battery_obj.battery_setpoints_actual.append(new_battery_setpoint)
             battery_obj.grid_load_actual.append(new_grid_load)
             battery_obj.battery_react_power_actual.append(new_battery_reactive_power)
@@ -1062,19 +1078,29 @@ def update_live_graph(ts, data1, live1):
             battery_obj.grid_apparent_power_actual.append(battery_obj.get_apparent_power(new_grid_load, battery_obj.grid_react_power_actual[ts-1]))
             battery_obj.grid_power_factor_actual.append(battery_obj.get_power_factor(new_grid_load, battery_obj.grid_apparent_power_actual[ts-1]))
             SoC_temp = new_SoC
-            print(str(data["current_time"]) + "-->" + " Current Active Power Battery Setpoint: " + str(battery_obj.battery_setpoints_actual[ts-1]))
-            print(str(data["current_time"]) + "-->" + " Current Battery SoC: " + str(battery_obj.SoC_actual[ts-1]))
 
-            print(str(data["current_time"]) + "-->" + " Current Reactive Power from Battery: " + str(battery_obj.battery_react_power_actual[ts-1]))
-            print(str(data["current_time"]) + "-->" + " Current Reactive Power from Grid: " + str(battery_obj.grid_react_power_actual[ts-1]))
-            print(str(data["current_time"]) + "-->" + " Total Reactive Power from Load: " + str(battery_obj.load_pf*new_grid_load))
+#             print(str(data["current_time"]) + "-->" + " Current Active Power Battery Setpoint: " + str(battery_obj.battery_setpoints_actual[ts-1]))
+#             print(str(data["current_time"]) + "-->" + " Current Battery SoC: " + str(battery_obj.SoC_actual[ts-1]))
+
+#             print(str(data["current_time"]) + "-->" + " Current Reactive Power from Battery: " + str(battery_obj.battery_react_power_actual[ts-1]))
+#             print(str(data["current_time"]) + "-->" + " Current Reactive Power from Grid: " + str(battery_obj.grid_react_power_actual[ts-1]))
+#             print(str(data["current_time"]) + "-->" + " Total Reactive Power from Load: " + str(battery_obj.load_pf*new_grid_load))
+
+            print(str(data1["current_time"]) + "-->" + " Current Active Power Battery Setpoint: " + str(battery_obj.battery_setpoints_actual[ts-1]))
+            print(str(data1["current_time"]) + "-->" + " Current Battery SoC: " + str(battery_obj.SoC_actual[ts-1]))
+
+            print(str(data1["current_time"]) + "-->" + " Current Reactive Power from Battery: " + str(battery_obj.battery_react_power_actual[ts-1]))
+            print(str(data1["current_time"]) + "-->" + " Current Reactive Power from Grid: " + str(battery_obj.grid_react_power_actual[ts-1]))
+            print(str(data1["current_time"]) + "-->" + " Total Reactive Power from Load: " + str(battery_obj.load_pf*new_grid_load))
+            print("SOC Prediction :", battery_obj.SoC_prediction, ts)
+
             current_time = current_time + timedelta(seconds=+1)
 
 
             fig = go.Figure()
             fig.add_trace(go.Scatter(
-            x = [i for i in range(len(battery_obj.SoC_prediction))],
-            y = battery_obj.SoC_prediction,
+            x = [i for i in range(24)],
+            y = [i for i in battery_obj.SoC_prediction],
             name = "SoC"
             )
             )
@@ -1094,13 +1120,12 @@ def update_live_graph(ts, data1, live1):
 
             data = {}
             data["SoC_temp"] = SoC_temp
-            data["simulation_duration"] = simulation_duration
-            data["services_list"] = services_list
-            data["priority_list"] = priority_list
+            data["simulation_duration"] = data1["simulation_duration"]
+            data["services_list"] = data1["services_list"]
+            data["priority_list"] = data1["priority_list"]
             data["current_time"] = current_time.strftime("%Y-%m-%d %H:%M:%S") 
 
-            live = jsonpickle.encode(battery_obj, unpicklable=True)
-            live = json.dumps(live, indent=4)
+            live = battery_obj.todict()
 
             
             return [ fig, data, live]
