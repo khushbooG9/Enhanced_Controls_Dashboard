@@ -8,7 +8,15 @@ import plotly.graph_objects as go
 import dash_daq as daq
 import dash_table
 import pandas as pd 
+from battery_class_new import * 
+from sim_runner_no_dashboard import * 
 from BatteryClass import * 
+from collections import deque
+import random 
+import json 
+import jsonpickle
+from json import JSONEncoder
+import dill 
 
 def build_banner():
     return html.Div(
@@ -30,6 +38,34 @@ def build_banner():
             ),
         ],
     )
+
+def init_usecase():
+    with open("dict.json", 'r', encoding='utf-8') as lp:
+        gen_config = json.load(lp)
+
+    with open("control_fields.json", 'r', encoding='utf-8') as lp:
+        control_config = json.load(lp)
+
+    use_case_library = construct_use_case_library(gen_config, control_config)
+
+    return use_case_library 
+
+def init_gen_config():
+    with open("dict.json", 'r', encoding='utf-8') as lp:
+        gen_config = json.load(lp)
+    return gen_config
+
+def init_control_config():
+    with open("control_fields.json", 'r', encoding='utf-8') as lp:
+        control_config = json.load(lp)
+    return control_config
+
+def init_data_config():
+    with open("data_paths.json", 'r', encoding='utf-8') as lp:
+        data_config = json.load(lp)
+    return data_config
+
+
 
 def data_upload_panel():
 
@@ -420,7 +456,7 @@ def build_buttons_panel():
           html.Div(
               id="card-1",
               children=[
-                  
+                  html.Button( className="", id="button1",children="Arbitrage",n_clicks=0),
                   html.Button( className="", id="button1", children="Peak Shaving", n_clicks=0),
                   html.Button( className="", id="button1", children="Demand Shaping", n_clicks=0),
                   html.Button( className="", id="button1", children="System Capacity", n_clicks=0),
@@ -430,7 +466,13 @@ def build_buttons_panel():
                   html.Button( className="", id="button1", children="Co-optimize", n_clicks=0),
               ],
           ),
-         
+          html.Div(
+              id="card-2",
+              children=[
+                  html.Button("Data Input", className="", id="button2"),
+                 
+              ],
+          ),
           
       ],
 
@@ -512,7 +554,7 @@ def left_graph():
     y=1.05,
     xanchor="right",
     x=1), 
-	)
+    )
     return fig
 
 def build_left_graph():
@@ -536,9 +578,9 @@ def right_graph():
     fig.add_trace(go.Scatter(
         x=[i for i in range(len(battery_obj.battery_setpoints))],
         y=[i for i in battery_obj.battery_setpoints],
-		name = 'Battery Power (Charge/Discharge)',
-	)
-	)
+        name = 'Battery Power (Charge/Discharge)',
+    )
+    )
     fig.add_trace(go.Scatter(
         x=[i for i in range(len(battery_obj.battery_setpoints))],
         y=[battery_obj.peak_load_prediction]*battery_obj.windowLength,
@@ -561,14 +603,14 @@ def right_graph():
     fig.update_yaxes(showline=True, linewidth=2, linecolor='#e67300', mirror=True)
     fig.update_layout(paper_bgcolor = "#EFEDED", width=500, height=350,legend = dict(
      orientation="h",
-	 yanchor="bottom",
-	 y=1.05,
-	 xanchor="right",
-	 x=1,
-	 ),
-	xaxis_title="Hours",
-	yaxis_title="kW",
-	
+     yanchor="bottom",
+     y=1.05,
+     xanchor="right",
+     x=1,
+     ),
+    xaxis_title="Hours",
+    yaxis_title="kW",
+    
         )
 
 
@@ -581,12 +623,19 @@ def build_right_graph():
     """
 
 
-    return dcc.Graph(
-        id="right-graph-fig", figure = right_graph(),
+    return  html.Div(
+       [ dcc.Graph(id="right-graph-fig",  animate=True),
+         dcc.Interval(
+            id='graph-update',
+            interval = 1000,
+            n_intervals = 0
+         ),
+
+       ]
     )
 
 def revenue_block():
-	return html.Div(
+    return html.Div(
         id="revenue-block",
         children = [
             html.H6("Revenue"),
@@ -650,13 +699,7 @@ def build_simulation_tab():
     return  ( html.Div(
         id="simulation-container",
         children = [
-            html.Div(
-                id = "buttons-container",
-                children = [
-                    build_buttons_panel(),
-                ]
-            ),
-            
+            build_buttons_panel(),
             html.Div(
                 id="graphs-container",
                 children = [build_top_panel(), build_bottom_panel()],
@@ -698,12 +741,34 @@ def build_tabs():
         ],
     )
 
+X = deque(maxlen = 20) 
+X.append(1) 
+  
+Y = deque(maxlen = 20) 
+Y.append(1)
+
+def dict_to_binary(the_dict):
+    str = dill.dumps(the_dict)
+    binary = ' '.join(format(ord(letter), 'b') for letter in str)
+    return binary
+
+
+def binary_to_dict(the_binary):
+    jsn = ''.join(chr(int(x, 2)) for x in the_binary.split())
+    d = dill.loads(jsn)  
+    return d
+
 
 def serve_layout():
     return html.Div(
     id="big-app-container",
     children = [
     build_banner(),
+    dcc.Store(id="usecase-store",storage_type = "session", data = init_usecase() ),
+    dcc.Store(id="gen-config-store", storage_type = "session", data = init_gen_config()),
+    dcc.Store(id="control-config-store", storage_type = "session", data = init_control_config()),
+    dcc.Store(id="data-config-store", storage_type = "session", data = init_data_config()),
+    dcc.Store(id="liveplot-store", storage_type="session", data = {}),
     html.Div(
             id="app-container",
             children=[
@@ -765,30 +830,288 @@ def update_click_output1(button_click, close_click):
     return {"display": "none"}
 
 @app.callback(
-	output = [Output("dd_dcr","disabled"), Output("dd_pfc","disabled"), Output("dd_arb", "disabled"), Output("dd_rp", "disabled"), \
-	Output("dcr","disabled"), Output("pfc", "disabled"), Output("arb","disabled"), Output("rp","disabled")],
-	inputs = [Input("switch_dcr","on"), Input("switch_pfc", "on"), Output("switch_arb","on"), Output("switch_rp","on")],
+    output = [Output("dd_dcr","disabled"), Output("dd_pfc","disabled"), Output("dd_arb", "disabled"), Output("dd_rp", "disabled"), \
+    Output("dcr","disabled"), Output("pfc", "disabled"), Output("arb","disabled"), Output("rp","disabled")],
+    inputs = [Input("switch_dcr","on"), Input("switch_pfc", "on"), Output("switch_arb","on"), Output("switch_rp","on")],
 )
 def make_usecase_active(s1,s2,s3,s4):
-	print(s1)
-	if s1==True:
-		d1a, d1b = False, False
-	else:
-		d1a, d1b = True, True
-	if s2==True:
-		d2a, d2b = False, False
-	else:
-		d2a, d2b = True, True
-	if s3==True:
-		d3a, d3b = False, False
-	else:
-		d3a, d3b = True, True
-	if s4==True:
-		d4a, d4b = False, False
-	else:
-		d4a, d4b = True, True
-	return [d1a, d2a, d3a, d4a, d1b, d2b, d3b, d4b]
+    print(s1)
+    if s1==True:
+        d1a, d1b = False, False
+    else:
+        d1a, d1b = True, True
+    if s2==True:
+        d2a, d2b = False, False
+    else:
+        d2a, d2b = True, True
+    if s3==True:
+        d3a, d3b = False, False
+    else:
+        d3a, d3b = True, True
+    if s4==True:
+        d4a, d4b = False, False
+    else:
+        d4a, d4b = True, True
+    return [d1a, d2a, d3a, d4a, d1b, d2b, d3b, d4b]
+
+@app.callback(
+    output = [Output("right-graph-fig", "figure")],
+    inputs = [Input("graph-update", "n_intervals")]
+)
+def update_live_graph(ts):
+    print("seconds", ts)
+    if ts==0:
+        gen_config = init_gen_config()
+        control_config = init_control_config()
+        data_config = init_data_config()
+        time_format = '%Y-%m-%d %H:%M:%S'
+        start_time = gen_config['StartTime']
+        end_time = gen_config['EndTime']
+        simulation_duration = int((datetime.strptime(end_time, time_format) - datetime.strptime(start_time, time_format)).total_seconds())
+        current_time = datetime.strptime(start_time, time_format)
+        use_case_library = construct_use_case_library(gen_config, control_config)
+        services_list = list(use_case_library.keys())
+        priority_list = []
+        for key, value in use_case_library.items():
+            priority_list.append(use_case_library[key]["priority"])
+
+        battery_obj = battery_class_new(use_case_library, gen_config, data_config)
+
+        battery_obj.get_data()
+        SoC_temp = battery_obj.SoC_init
+        new_battery_setpoint = 0.0
+
+        # if things go haywire then we have some initialized values
+        new_grid_load = 0.0
+        new_SoC = 0.0
+        new_battery_reactive_power = 0.0
+        x_val = []
+
+        if ts%3600==0:
+            next_day_hourly_interval = timedelta(days=+1)
+            day_ahead_forecast_horizon = current_time + next_day_hourly_interval
+            battery_obj.set_hourly_load_forecast(current_time, day_ahead_forecast_horizon)
+            battery_obj.DA_optimal_quantities()
+        battery_obj.set_load_actual(battery_obj.load_predict[0])
+        active_power_mismatch = battery_obj.actual_load[ts] - battery_obj.load_up[0]
+        reactive_power_mismatch = battery_obj.load_pf*active_power_mismatch
+
+        for i in range(len(services_list)-1):
+            service_priority = services_list[priority_list.index(i + 1)]
+            if service_priority == "demand_charge":
+                # check demand charge reduction in real-time
+                new_SoC, new_battery_setpoint, new_grid_load = battery_obj.rtc_demand_charge_reduction\
+                    (i, active_power_mismatch, battery_obj.battery_setpoints_prediction[0], SoC_temp, battery_obj.actual_load[ts])
+
+            elif service_priority == "power_factor_correction":
+                if i == 0: # highest priority
+                    pass
+
+                else:
+                    # this means that actually load power is lower than expected, hence the reactive power drawn is also less
+                    # ratio of the battery from the total reactive mismatch
+                    battery_ratio = (1 - battery_obj.battery_react_power_prediction[0] / (battery_obj.grid_react_power_prediction[0]+battery_obj.battery_react_power_prediction[0]))
+
+                    new_battery_reactive_power = battery_obj.battery_react_power_prediction[0] + battery_ratio*reactive_power_mismatch
+
+
+            elif service_priority == "energy_arbitrage":
+                pass 
+
+            elif service_priority == "reserves_placement":
+                pass 
+        print("----------- Real-Time Control Done --------")
+        battery_obj.SoC_actual.append(SoC_temp)
+        battery_obj.battery_setpoints_actual.append(new_battery_setpoint)
+        battery_obj.grid_load_actual.append(new_grid_load)
+        battery_obj.battery_react_power_actual.append(new_battery_reactive_power)
+        battery_obj.grid_react_power_actual.append(battery_obj.load_pf*new_grid_load + new_battery_reactive_power)
+        battery_obj.grid_apparent_power_actual.append(battery_obj.get_apparent_power(new_grid_load, battery_obj.grid_react_power_actual[ts]))
+        battery_obj.grid_power_factor_actual.append(battery_obj.get_power_factor(new_grid_load, battery_obj.grid_apparent_power_actual[ts]))
+        SoC_temp = new_SoC
+        print(str(current_time) + "-->" + " Current Active Power Battery Setpoint: " + str(battery_obj.battery_setpoints_actual[ts]))
+        print(str(current_time) + "-->" + " Current Battery SoC: " + str(battery_obj.SoC_actual[ts]))
+
+        print(str(current_time) + "-->" + " Current Reactive Power from Battery: " + str(battery_obj.battery_react_power_actual[ts]))
+        print(str(current_time) + "-->" + " Current Reactive Power from Grid: " + str(battery_obj.grid_react_power_actual[ts]))
+        print(str(current_time) + "-->" + " Total Reactive Power from Load: " + str(battery_obj.load_pf*new_grid_load))
+        current_time = current_time + timedelta(seconds=+1)
+
+        fig = go.Figure()
+        fig.add_trace(go.Scatter(
+            x = [i for i in range(len(battery_obj.SoC_prediction))],
+            y = battery_obj.SoC_prediction,
+            name = "SoC"
+            )
+        )
+        fig.update_xaxes(showline=True, linewidth=2, linecolor='#e67300', mirror=True)
+        fig.update_yaxes(showline=True, linewidth=2, linecolor='#e67300', mirror=True)
+        fig.update_layout(paper_bgcolor = "#EFEDED", width=500, height=350,legend = dict(
+         orientation="h",
+         yanchor="bottom",
+         y=1.05,
+         xanchor="right",
+         x=1,
+         ),
+         xaxis_title="Hours",
+         yaxis_title="kW",
+    
+        )
+
+        data = {}
+    
+        # bobj = jsonpickle.encode(battery_obj, unpicklable=True)
+        with open('battery_obj.pkl','wb') as f:
+            dill.dump(battery_obj, f)
+        #data["battery_obj"] = 
+        data["SoC_temp"] = SoC_temp
+        data["simulation_duration"] = simulation_duration
+        data["services_list"] = services_list
+        data["priority_list"] = priority_list
+        data["current_time"] = current_time.strftime("%Y-%m-%d %H:%M:%S")
+
+        print("IFFFFF 00000", data)
+
+        with open('data.json','w') as f:
+            json.dump(data, f)
+
+        return [  fig]
+
+    else:
+        with open('data.json','r') as f:
+            data = json.load(f)
+        print(data)
+        
+        with open('battery_obj.pkl','rb') as f:
+            battery_obj = dill.load(f)
+
+        current_time = datetime.strptime(data["current_time"], "%Y-%m-%d %H:%M:%S")
+
+        if ts< data["simulation_duration"]:
+
+            if ts%3600==0:
+                next_day_hourly_interval = timedelta(days=+1)
+                day_ahead_forecast_horizon = current_time + next_day_hourly_interval
+                battery_obj.set_hourly_load_forecast(current_time, day_ahead_forecast_horizon)
+                    
+                battery_obj.set_SoC(battery_obj.SoC_actual[ts-1])
+
+                battery_obj.DA_optimal_quantities()
+            battery_obj.set_load_actual(battery_obj.load_predict[0])
+            print("Battery obj actual load **********", battery_obj.actual_load, ts)
+            print("Battery obj actualload[ts] *********", battery_obj.actual_load[ts])
+            print("Battery obj load up **********", battery_obj.load_up[0])
+            active_power_mismatch = battery_obj.actual_load[ts] - battery_obj.load_up[0]
+            reactive_power_mismatch = battery_obj.load_pf*active_power_mismatch
+
+            for i in range(len(data["services_list"])-1):
+                service_priority = data["services_list"][data["priority_list"].index(i + 1)]
+                if service_priority == "demand_charge":
+                    # check demand charge reduction in real-time
+                    new_SoC, new_battery_setpoint, new_grid_load = battery_obj.rtc_demand_charge_reduction\
+                    (i, active_power_mismatch, battery_obj.battery_setpoints_prediction[0], data["SoC_temp"], battery_obj.actual_load[ts])
+
+                elif service_priority == "power_factor_correction":
+                    if i == 0: # highest priority
+                        pass
+
+                    else:
+                        # this means that actually load power is lower than expected, hence the reactive power drawn is also less
+                        # ratio of the battery from the total reactive mismatch
+                        battery_ratio = (1 - battery_obj.battery_react_power_prediction[0] / (battery_obj.grid_react_power_prediction[0]+battery_obj.battery_react_power_prediction[0]))
+
+                        new_battery_reactive_power = battery_obj.battery_react_power_prediction[0] + battery_ratio*reactive_power_mismatch
+
+
+                elif service_priority == "energy_arbitrage":
+                    pass 
+
+                elif service_priority == "reserves_placement":
+                    pass 
+            print("----------- Real-Time Control Done --------")
+            battery_obj.SoC_actual.append(data["SoC_temp"])
+            battery_obj.battery_setpoints_actual.append(new_battery_setpoint)
+            battery_obj.grid_load_actual.append(new_grid_load)
+            battery_obj.battery_react_power_actual.append(new_battery_reactive_power)
+            battery_obj.grid_react_power_actual.append(battery_obj.load_pf*new_grid_load + new_battery_reactive_power)
+            battery_obj.grid_apparent_power_actual.append(battery_obj.get_apparent_power(new_grid_load, battery_obj.grid_react_power_actual[ts]))
+            battery_obj.grid_power_factor_actual.append(battery_obj.get_power_factor(new_grid_load, battery_obj.grid_apparent_power_actual[ts]))
+            SoC_temp = new_SoC
+            print(str(data["current_time"]) + "-->" + " Current Active Power Battery Setpoint: " + str(battery_obj.battery_setpoints_actual[ts]))
+            print(str(data["current_time"]) + "-->" + " Current Battery SoC: " + str(battery_obj.SoC_actual[ts]))
+
+            print(str(data["current_time"]) + "-->" + " Current Reactive Power from Battery: " + str(battery_obj.battery_react_power_actual[ts]))
+            print(str(data["current_time"]) + "-->" + " Current Reactive Power from Grid: " + str(battery_obj.grid_react_power_actual[ts]))
+            print(str(data["current_time"]) + "-->" + " Total Reactive Power from Load: " + str(battery_obj.load_pf*new_grid_load))
+            current_time = current_time + timedelta(seconds=+1)
+
+
+            fig = go.Figure()
+            fig.add_trace(go.Scatter(
+            x = [i for i in range(len(battery_obj.SoC_prediction))],
+            y = battery_obj.SoC_prediction,
+            name = "SoC"
+            )
+            )
+            fig.update_xaxes(showline=True, linewidth=2, linecolor='#e67300', mirror=True)
+            fig.update_yaxes(showline=True, linewidth=2, linecolor='#e67300', mirror=True)
+            fig.update_layout(paper_bgcolor = "#EFEDED", width=500, height=350,legend = dict(
+            orientation="h",
+            yanchor="bottom",
+            y=1.05,
+            xanchor="right",
+            x=1,
+            ),
+            xaxis_title="Hours",
+            yaxis_title="kW",
+     
+            )
+
+            
+            data["SoC_temp"] = SoC_temp
+            # data["simulation_duration"] = simulation_duration
+            # data["services_list"] = services_list
+            # data["priority_list"] = priority_list
+            data["current_time"] = current_time.strftime("%Y-%m-%d %H:%M:%S") 
+
+            with open('battery_obj.pkl','wb') as f:
+                dill.dump(battery_obj, f)
+
+            with open('data.json','w') as f:
+                json.dump(data, f)
+            return [ fig]
+
+        
+
+    X.append(X[-1]+1) 
+    Y.append(Y[-1]+Y[-1] * random.uniform(-0.1,0.1)) 
+    fig = go.Figure()
+    fig.add_trace(go.Scatter(
+        x=list(X),
+        y=list(Y),
+        name = 'Battery Power (Charge/Discharge)',
+    )
+    )
+    
+  
+    fig.update_xaxes(range=[min(X), max(X)],showline=True, linewidth=2, linecolor='#e67300', mirror=True)
+    fig.update_yaxes(range = [min(Y), max(Y)],showline=True, linewidth=2, linecolor='#e67300', mirror=True)
+    fig.update_layout(paper_bgcolor = "#EFEDED", width=500, height=350,legend = dict(
+     orientation="h",
+     yanchor="bottom",
+     y=1.05,
+     xanchor="right",
+     x=1,
+     ),
+    xaxis_title="Hours",
+    yaxis_title="kW",
+    
+        )
+
+
+    return [ fig]
+        
 
 
 if __name__ == '__main__':
-    app.run_server(debug=True)
+    app.run_server(debug=False)

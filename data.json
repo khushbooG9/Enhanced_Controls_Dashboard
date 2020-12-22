@@ -1,1 +1,1 @@
-{"SoC_temp": 1199.0885620564222, "simulation_duration": 172800, "services_list": ["power_factor_correction", "demand_charge", "energy_arbitrage", "reserves_placement", "external_signal"], "priority_list": [2, 1, 3, 4, -1], "current_time": "2017-01-01 00:01:20"}
+{"SoC_temp": 1199.9886070257053, "simulation_duration": 172800, "services_list": ["power_factor_correction", "demand_charge", "energy_arbitrage", "reserves_placement", "external_signal"], "priority_list": [2, 1, 3, 4, -1], "current_time": "2017-01-01 00:00:01"}

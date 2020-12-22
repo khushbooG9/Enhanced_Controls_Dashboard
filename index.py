@@ -768,6 +768,7 @@ def serve_layout():
     dcc.Store(id="gen-config-store", storage_type = "session", data = init_gen_config()),
     dcc.Store(id="control-config-store", storage_type = "session", data = init_control_config()),
     dcc.Store(id="data-config-store", storage_type = "session", data = init_data_config()),
+    dcc.Store(id="data-store", storage_type="session", data = {}),
     dcc.Store(id="liveplot-store", storage_type="session", data = {}),
     html.Div(
             id="app-container",
@@ -855,12 +856,17 @@ def make_usecase_active(s1,s2,s3,s4):
 	return [d1a, d2a, d3a, d4a, d1b, d2b, d3b, d4b]
 
 @app.callback(
-    output = [Output("right-graph-fig", "figure")],
-    inputs = [Input("graph-update", "n_intervals")]
+    output = [Output("right-graph-fig", "figure"), Output("data-store", "data"), Output("liveplot-store","data")],
+    inputs = [Input("graph-update", "n_intervals")],
+    state = [State("data-store","data"), State("liveplot-store","data")],
 )
-def update_live_graph(ts):
-    print("seconds", ts)
+def update_live_graph(ts, data1, live1):
+    
     if ts==0:
+        print("SECOND IS", ts)
+        return [{}, {}, {}]
+    elif ts==1:
+        print("SECOND IS", ts)
         gen_config = init_gen_config()
         control_config = init_control_config()
         data_config = init_data_config()
@@ -870,14 +876,16 @@ def update_live_graph(ts):
         simulation_duration = int((datetime.strptime(end_time, time_format) - datetime.strptime(start_time, time_format)).total_seconds())
         current_time = datetime.strptime(start_time, time_format)
         use_case_library = construct_use_case_library(gen_config, control_config)
+        print("GOT use_case_library")
         services_list = list(use_case_library.keys())
         priority_list = []
         for key, value in use_case_library.items():
             priority_list.append(use_case_library[key]["priority"])
 
         battery_obj = battery_class_new(use_case_library, gen_config, data_config)
-
+        print("Got battery_obj")
         battery_obj.get_data()
+        print("Got all the data")
         SoC_temp = battery_obj.SoC_init
         new_battery_setpoint = 0.0
 
@@ -886,22 +894,25 @@ def update_live_graph(ts):
         new_SoC = 0.0
         new_battery_reactive_power = 0.0
         x_val = []
-
-        if ts%3600==0:
+        print("Checking for the minute mark")
+        if (ts-1)%3600==0:
             next_day_hourly_interval = timedelta(days=+1)
             day_ahead_forecast_horizon = current_time + next_day_hourly_interval
             battery_obj.set_hourly_load_forecast(current_time, day_ahead_forecast_horizon)
             battery_obj.DA_optimal_quantities()
+            print("Optimization done")
         battery_obj.set_load_actual(battery_obj.load_predict[0])
-        active_power_mismatch = battery_obj.actual_load[ts] - battery_obj.load_up[0]
+        print("ALL set the actual_load")
+        active_power_mismatch = battery_obj.actual_load[ts-1] - battery_obj.load_up[0]
         reactive_power_mismatch = battery_obj.load_pf*active_power_mismatch
-
+        
+        print("Iterating through the services_list")
         for i in range(len(services_list)-1):
             service_priority = services_list[priority_list.index(i + 1)]
             if service_priority == "demand_charge":
                 # check demand charge reduction in real-time
                 new_SoC, new_battery_setpoint, new_grid_load = battery_obj.rtc_demand_charge_reduction\
-                    (i, active_power_mismatch, battery_obj.battery_setpoints_prediction[0], SoC_temp, battery_obj.actual_load[ts])
+                    (i, active_power_mismatch, battery_obj.battery_setpoints_prediction[0], SoC_temp, battery_obj.actual_load[ts-1])
 
             elif service_priority == "power_factor_correction":
                 if i == 0: # highest priority
@@ -919,24 +930,27 @@ def update_live_graph(ts):
                 pass 
 
             elif service_priority == "reserves_placement":
+
                 pass 
+        print("DOne services_list")
         print("----------- Real-Time Control Done --------")
         battery_obj.SoC_actual.append(SoC_temp)
         battery_obj.battery_setpoints_actual.append(new_battery_setpoint)
         battery_obj.grid_load_actual.append(new_grid_load)
         battery_obj.battery_react_power_actual.append(new_battery_reactive_power)
         battery_obj.grid_react_power_actual.append(battery_obj.load_pf*new_grid_load + new_battery_reactive_power)
-        battery_obj.grid_apparent_power_actual.append(battery_obj.get_apparent_power(new_grid_load, battery_obj.grid_react_power_actual[ts]))
-        battery_obj.grid_power_factor_actual.append(battery_obj.get_power_factor(new_grid_load, battery_obj.grid_apparent_power_actual[ts]))
+        battery_obj.grid_apparent_power_actual.append(battery_obj.get_apparent_power(new_grid_load, battery_obj.grid_react_power_actual[ts-1]))
+        battery_obj.grid_power_factor_actual.append(battery_obj.get_power_factor(new_grid_load, battery_obj.grid_apparent_power_actual[ts-1]))
         SoC_temp = new_SoC
-        print(str(current_time) + "-->" + " Current Active Power Battery Setpoint: " + str(battery_obj.battery_setpoints_actual[ts]))
-        print(str(current_time) + "-->" + " Current Battery SoC: " + str(battery_obj.SoC_actual[ts]))
+        print(str(current_time) + "-->" + " Current Active Power Battery Setpoint: " + str(battery_obj.battery_setpoints_actual[ts-1]))
+        print(str(current_time) + "-->" + " Current Battery SoC: " + str(battery_obj.SoC_actual[ts-1]))
 
-        print(str(current_time) + "-->" + " Current Reactive Power from Battery: " + str(battery_obj.battery_react_power_actual[ts]))
-        print(str(current_time) + "-->" + " Current Reactive Power from Grid: " + str(battery_obj.grid_react_power_actual[ts]))
+        print(str(current_time) + "-->" + " Current Reactive Power from Battery: " + str(battery_obj.battery_react_power_actual[ts-1]))
+        print(str(current_time) + "-->" + " Current Reactive Power from Grid: " + str(battery_obj.grid_react_power_actual[ts-1]))
         print(str(current_time) + "-->" + " Total Reactive Power from Load: " + str(battery_obj.load_pf*new_grid_load))
         current_time = current_time + timedelta(seconds=+1)
-
+        
+        print("_______FIG____________")
         fig = go.Figure()
         fig.add_trace(go.Scatter(
             x = [i for i in range(len(battery_obj.SoC_prediction))],
@@ -958,50 +972,61 @@ def update_live_graph(ts):
     
         )
 
+        print("_______FIG DONE____________")
+        
         data = {}
-    
-        # bobj = jsonpickle.encode(battery_obj, unpicklable=True)
-        with open('battery_obj.pkl','wb') as f:
-            dill.dump(battery_obj, f)
-        #data["battery_obj"] = 
         data["SoC_temp"] = SoC_temp
         data["simulation_duration"] = simulation_duration
         data["services_list"] = services_list
         data["priority_list"] = priority_list
         data["current_time"] = current_time.strftime("%Y-%m-%d %H:%M:%S")
 
-        print("IFFFFF 00000", data)
+        print("SENT DATA", data)
 
-        with open('data.json','w') as f:
-            json.dump(data, f)
+        live = jsonpickle.encode(battery_obj, unpicklable=True)
+        live = json.dumps(live, indent=4)
 
-        return [  fig]
+        print("SENT LIVE")
 
-    else:
-        with open('data.json','r') as f:
-            data = json.load(f)
-        print(data)
+        return [  fig, data, live]
+
+    elif ts>1:
+        print("SECOND IS", ts)
+        print("RECIEVED LIVE")
+        obj = jsonpickle.decode(live1)
+      
+        print("check decoded obj" )
+        obj = json.loads(obj)
+
+        print("THhe obj dic is ", obj)
+        gen_config = init_gen_config()
+        control_config = init_control_config()
+        data_config = init_data_config()
+        use_case_library = construct_use_case_library(gen_config, control_config)
+        print("GOT use_case_library ts >1")
+        battery_obj = battery_class_new(use_case_library, gen_config, data_config)
         
-        with open('battery_obj.pkl','rb') as f:
-            battery_obj = dill.load(f)
+        print("GOT battery_obj ts>1")
+        battery_obj.copydata(obj)
 
+        print("copydata successful ", ts)
         current_time = datetime.strptime(data["current_time"], "%Y-%m-%d %H:%M:%S")
 
-        if ts< data["simulation_duration"]:
+        if ts <= data["simulation_duration"]:
 
-            if ts%3600==0:
+            if (ts-1)%3600==0:
                 next_day_hourly_interval = timedelta(days=+1)
                 day_ahead_forecast_horizon = current_time + next_day_hourly_interval
                 battery_obj.set_hourly_load_forecast(current_time, day_ahead_forecast_horizon)
                     
-                battery_obj.set_SoC(battery_obj.SoC_actual[ts-1])
+                battery_obj.set_SoC(battery_obj.SoC_actual[ts-2])
 
                 battery_obj.DA_optimal_quantities()
             battery_obj.set_load_actual(battery_obj.load_predict[0])
             print("Battery obj actual load **********", battery_obj.actual_load, ts)
-            print("Battery obj actualload[ts] *********", battery_obj.actual_load[ts])
+            print("Battery obj actualload[ts] *********", battery_obj.actual_load[ts-1])
             print("Battery obj load up **********", battery_obj.load_up[0])
-            active_power_mismatch = battery_obj.actual_load[ts] - battery_obj.load_up[0]
+            active_power_mismatch = battery_obj.actual_load[ts-1] - battery_obj.load_up[0]
             reactive_power_mismatch = battery_obj.load_pf*active_power_mismatch
 
             for i in range(len(data["services_list"])-1):
@@ -1009,7 +1034,7 @@ def update_live_graph(ts):
                 if service_priority == "demand_charge":
                     # check demand charge reduction in real-time
                     new_SoC, new_battery_setpoint, new_grid_load = battery_obj.rtc_demand_charge_reduction\
-                    (i, active_power_mismatch, battery_obj.battery_setpoints_prediction[0], data["SoC_temp"], battery_obj.actual_load[ts])
+                    (i, active_power_mismatch, battery_obj.battery_setpoints_prediction[0], data["SoC_temp"], battery_obj.actual_load[ts-1])
 
                 elif service_priority == "power_factor_correction":
                     if i == 0: # highest priority
@@ -1034,14 +1059,14 @@ def update_live_graph(ts):
             battery_obj.grid_load_actual.append(new_grid_load)
             battery_obj.battery_react_power_actual.append(new_battery_reactive_power)
             battery_obj.grid_react_power_actual.append(battery_obj.load_pf*new_grid_load + new_battery_reactive_power)
-            battery_obj.grid_apparent_power_actual.append(battery_obj.get_apparent_power(new_grid_load, battery_obj.grid_react_power_actual[ts]))
-            battery_obj.grid_power_factor_actual.append(battery_obj.get_power_factor(new_grid_load, battery_obj.grid_apparent_power_actual[ts]))
+            battery_obj.grid_apparent_power_actual.append(battery_obj.get_apparent_power(new_grid_load, battery_obj.grid_react_power_actual[ts-1]))
+            battery_obj.grid_power_factor_actual.append(battery_obj.get_power_factor(new_grid_load, battery_obj.grid_apparent_power_actual[ts-1]))
             SoC_temp = new_SoC
-            print(str(data["current_time"]) + "-->" + " Current Active Power Battery Setpoint: " + str(battery_obj.battery_setpoints_actual[ts]))
-            print(str(data["current_time"]) + "-->" + " Current Battery SoC: " + str(battery_obj.SoC_actual[ts]))
+            print(str(data["current_time"]) + "-->" + " Current Active Power Battery Setpoint: " + str(battery_obj.battery_setpoints_actual[ts-1]))
+            print(str(data["current_time"]) + "-->" + " Current Battery SoC: " + str(battery_obj.SoC_actual[ts-1]))
 
-            print(str(data["current_time"]) + "-->" + " Current Reactive Power from Battery: " + str(battery_obj.battery_react_power_actual[ts]))
-            print(str(data["current_time"]) + "-->" + " Current Reactive Power from Grid: " + str(battery_obj.grid_react_power_actual[ts]))
+            print(str(data["current_time"]) + "-->" + " Current Reactive Power from Battery: " + str(battery_obj.battery_react_power_actual[ts-1]))
+            print(str(data["current_time"]) + "-->" + " Current Reactive Power from Grid: " + str(battery_obj.grid_react_power_actual[ts-1]))
             print(str(data["current_time"]) + "-->" + " Total Reactive Power from Load: " + str(battery_obj.load_pf*new_grid_load))
             current_time = current_time + timedelta(seconds=+1)
 
@@ -1067,51 +1092,23 @@ def update_live_graph(ts):
      
             )
 
-            
+            data = {}
             data["SoC_temp"] = SoC_temp
-            # data["simulation_duration"] = simulation_duration
-            # data["services_list"] = services_list
-            # data["priority_list"] = priority_list
+            data["simulation_duration"] = simulation_duration
+            data["services_list"] = services_list
+            data["priority_list"] = priority_list
             data["current_time"] = current_time.strftime("%Y-%m-%d %H:%M:%S") 
 
-            with open('battery_obj.pkl','wb') as f:
-                dill.dump(battery_obj, f)
+            live = jsonpickle.encode(battery_obj, unpicklable=True)
+            live = json.dumps(live, indent=4)
 
-            with open('data.json','w') as f:
-                json.dump(data, f)
-            return [ fig]
+            
+            return [ fig, data, live]
 
         
 
-    X.append(X[-1]+1) 
-    Y.append(Y[-1]+Y[-1] * random.uniform(-0.1,0.1)) 
-    fig = go.Figure()
-    fig.add_trace(go.Scatter(
-        x=list(X),
-        y=list(Y),
-        name = 'Battery Power (Charge/Discharge)',
-    )
-    )
-    
-  
-    fig.update_xaxes(range=[min(X), max(X)],showline=True, linewidth=2, linecolor='#e67300', mirror=True)
-    fig.update_yaxes(range = [min(Y), max(Y)],showline=True, linewidth=2, linecolor='#e67300', mirror=True)
-    fig.update_layout(paper_bgcolor = "#EFEDED", width=500, height=350,legend = dict(
-     orientation="h",
-     yanchor="bottom",
-     y=1.05,
-     xanchor="right",
-     x=1,
-     ),
-    xaxis_title="Hours",
-    yaxis_title="kW",
-    
-        )
-
-
-    return [ fig]
-        
+   
 
 
 if __name__ == '__main__':
-    app.run_server(debug=False)
+    app.run_server(debug=False, port=8051)
