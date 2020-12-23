@@ -7,6 +7,7 @@ from datetime import datetime, timedelta
 from battery_class_new import battery_class_new
 import matplotlib.animation as ani
 import matplotlib.pyplot as plt
+import logging
 
 
 def construct_use_case_library(gen_config, control_config):
@@ -185,8 +186,6 @@ if __name__ == "__main__":
                         battery_obj.grid_react_power_prediction[0] + battery_obj.battery_react_power_prediction[0]))
             grid_react_power_ratio = 1 - battery_react_power_ratio
 
-            # battery_active_power_ratio = (battery_obj.battery_setpoints_prediction[0] / (
-            #             battery_obj.battery_setpoints_prediction[0] + battery_obj.grid_load_prediction[0]))
             battery_active_power_ratio = (battery_obj.grid_load_prediction[0] / battery_obj.peak_load_prediction)
 
 

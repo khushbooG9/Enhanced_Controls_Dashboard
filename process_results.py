@@ -182,10 +182,9 @@ posfile_rt = "_rt"
 folder_name = 'results_pictures\\'
 case_name = 'sensitivity'
 fig_name = folder_name + case_name
-# no_of_data_files = 5
 
-# ts = ["86400", "172800", "259200", "345600", "432000", "518400"]
-ts = ["86400", "172800", "259200"]
+# ts = ["86400", "172800", "259200", "345600", "432000", "518400", "604800", "691200", "777600", "864000", "950400", "1036800", "1123200"]
+ts = ["86400", "172800", "259200", "345600", "432000", "518400", "604800"]
 no_of_data_files = len(ts)
 
 # ts = ["86400"]
@@ -237,19 +236,19 @@ plot_1_variables_rt = ['Time', 'battery_setpoints_rt', 'grid_load_rt', 'total_lo
 plot_continous(plot_1_variables_da, plot_1_variables_rt, da_data, rt_data, no_of_data_files, fig_name)
 
 
-
 #
-plot_2_variables_da = ['Time', 'SoC_da']
-plot_2_variables_rt = ['Time', 'SoC_rt']
-plot_continous(plot_2_variables_da, plot_2_variables_rt, da_data, rt_data, no_of_data_files, fig_name)
-
-plot_3_variables_da = ['Time', 'react_grid_da',  'react_batt_da']
-plot_3_variables_rt =  ['Time', 'react_grid_rt',  'react_batt_rt']
-plot_continous(plot_3_variables_da, plot_3_variables_rt, da_data, rt_data, no_of_data_files, fig_name)
-
-plot_4_variables_da = ['Time', 'grid_pf_da']
-plot_4_variables_rt =  ['Time', 'grid_pf_rt']
-plot_continous(plot_4_variables_da, plot_4_variables_rt, da_data, rt_data, no_of_data_files, fig_name)
+# #
+# plot_2_variables_da = ['Time', 'SoC_da']
+# plot_2_variables_rt = ['Time', 'SoC_rt']
+# plot_continous(plot_2_variables_da, plot_2_variables_rt, da_data, rt_data, no_of_data_files, fig_name)
+#
+# plot_3_variables_da = ['Time', 'react_grid_da',  'react_batt_da']
+# plot_3_variables_rt =  ['Time', 'react_grid_rt',  'react_batt_rt']
+# plot_continous(plot_3_variables_da, plot_3_variables_rt, da_data, rt_data, no_of_data_files, fig_name)
+#
+# plot_4_variables_da = ['Time', 'grid_pf_da']
+# plot_4_variables_rt =  ['Time', 'grid_pf_rt']
+# plot_continous(plot_4_variables_da, plot_4_variables_rt, da_data, rt_data, no_of_data_files, fig_name)
 
 
 #

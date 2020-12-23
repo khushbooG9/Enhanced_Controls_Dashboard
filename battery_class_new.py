@@ -252,15 +252,15 @@ class battery_class_new:
         # if ts > 0:
         #     self.load_predict[0] = self.actual_load[ts-1]
 
-        self.load_up[0] = self.load_predict[0]
-        self.load_down[0] = self.load_predict[0]
+        # self.load_up[0] = self.load_predict[0]
+        # self.load_down[0] = self.load_predict[0]
         self.grid_original_apparant_power = np.sqrt(self.load_predict**2 + (self.load_pf*self.load_predict)**2)
         self.grid_original_power_factor = (self.load_predict+1e-4)/(self.grid_original_apparant_power+1e-4)
 
 
     def set_load_actual(self, load_val, diff):
-        #dev = ((self.load_dev*np.random.randn(1)[0]*0.1)-(self.load_dev*np.random.randn(1)[0]*0.1))
-        dev = 0.0
+        dev = ((self.load_dev*np.random.randn(1)[0]*0.1)-(self.load_dev*np.random.randn(1)[0]*0.1))
+        # dev = 0.0
         self.actual_load.append(load_val + diff + dev)
         self.actual_reactive_load.append( (load_val + diff + dev)*self.load_pf)
 
