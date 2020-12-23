@@ -469,7 +469,9 @@ def build_buttons_panel():
           html.Div(
               id="card-2",
               children=[
-                  html.Button("Data Input", className="", id="button2"),
+                  
+                  html.Button("Reset Live Updating", className="", id="button2", n_clicks=0),
+                  daq.StopButton(id="stop-button", size=160, n_clicks=0),
                  
               ],
           ),
@@ -627,8 +629,9 @@ def build_right_graph():
        [ dcc.Graph(id="right-graph-fig", animate=True),
          dcc.Interval(
             id='graph-update',
-            interval = 5000,
-            n_intervals = 0
+            interval = 1000,
+            n_intervals = 0, 
+            disabled = True,
          ),
 
        ]
@@ -854,6 +857,23 @@ def make_usecase_active(s1,s2,s3,s4):
 	else:
 		d4a, d4b = True, True
 	return [d1a, d2a, d3a, d4a, d1b, d2b, d3b, d4b]
+
+@app.callback(
+    [Output("graph-update", "disabled"), Output("stop-button", "buttonText")],
+    [Input("stop-button", "n_clicks")],
+    [State("graph-update", "disabled")],
+)
+def stop_production(n_clicks, current):
+    if n_clicks == 0:
+        return True, "start"
+    return not current, "stop" if current else "start"
+
+
+# @app.callback(
+# 	[Output("graph-update","n_intervals")],
+# 	[Input("")],
+# 	[],
+# )
 
 @app.callback(
     output = [Output("right-graph-fig", "figure"), Output("data-store", "data"), Output("liveplot-store","data")],
