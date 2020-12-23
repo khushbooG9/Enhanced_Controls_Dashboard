@@ -624,7 +624,7 @@ def build_right_graph():
 
 
     return  html.Div(
-       [ dcc.Graph(id="right-graph-fig",  animate=True),
+       [ dcc.Graph(id="right-graph-fig", animate=True),
          dcc.Interval(
             id='graph-update',
             interval = 5000,
@@ -768,8 +768,8 @@ def serve_layout():
     dcc.Store(id="gen-config-store", storage_type = "session", data = init_gen_config()),
     dcc.Store(id="control-config-store", storage_type = "session", data = init_control_config()),
     dcc.Store(id="data-config-store", storage_type = "session", data = init_data_config()),
-    dcc.Store(id="data-store", storage_type="local", data = {}),
-    dcc.Store(id="liveplot-store", storage_type="local", data = {}),
+    dcc.Store(id="data-store", storage_type="session", data = {}),
+    dcc.Store(id="liveplot-store", storage_type="session", data = {}),
     html.Div(
             id="app-container",
             children=[
@@ -972,13 +972,13 @@ def update_live_graph(ts, data1, live1):
         print("_______FIG____________")
         fig = go.Figure()
         fig.add_trace(go.Scatter(
-            x = [i for i in range(24)],
-            y = [i for i in battery_obj.SoC_prediction],
+            x = [i for i in range(len(battery_obj.SoC_actual))],
+            y = [i for i in battery_obj.SoC_actual],
             name = "SoC"
             )
         )
-        fig.update_xaxes(showline=True, linewidth=2, linecolor='#e67300', mirror=True)
-        fig.update_yaxes(showline=True, linewidth=2, linecolor='#e67300', mirror=True)
+        fig.update_xaxes(range=[0, len(battery_obj.SoC_actual)],showline=True, linewidth=2, linecolor='#e67300', mirror=True)
+        fig.update_yaxes(range=[min(battery_obj.SoC_actual), max(battery_obj.SoC_actual)],showline=True, linewidth=2, linecolor='#e67300', mirror=True)
         fig.update_layout(paper_bgcolor = "#EFEDED", width=500, height=350,legend = dict(
          orientation="h",
          yanchor="bottom",
@@ -1087,25 +1087,25 @@ def update_live_graph(ts, data1, live1):
 #             print(str(data["current_time"]) + "-->" + " Total Reactive Power from Load: " + str(battery_obj.load_pf*new_grid_load))
 
             print(str(data1["current_time"]) + "-->" + " Current Active Power Battery Setpoint: " + str(battery_obj.battery_setpoints_actual[ts]))
-            print(str(data1["current_time"]) + "-->" + " Current Battery SoC: " + str(battery_obj.SoC_actual[ts]))
+            #print(str(data1["current_time"]) + "-->" + " Current Battery SoC: " + str(battery_obj.SoC_actual))
 
             print(str(data1["current_time"]) + "-->" + " Current Reactive Power from Battery: " + str(battery_obj.battery_react_power_actual[ts]))
             print(str(data1["current_time"]) + "-->" + " Current Reactive Power from Grid: " + str(battery_obj.grid_react_power_actual[ts]))
             print(str(data1["current_time"]) + "-->" + " Total Reactive Power from Load: " + str(battery_obj.load_pf*new_grid_load))
-            print("SOC Prediction :", battery_obj.SoC_prediction, ts)
+            #print("SOC Prediction :", battery_obj.SoC_prediction, ts)
 
             current_time = current_time + timedelta(seconds=+1)
 
 
             fig = go.Figure()
             fig.add_trace(go.Scatter(
-            x = [i for i in range(24)],
-            y = [i for i in battery_obj.SoC_prediction],
+            x = [i for i in range(len(battery_obj.SoC_actual))],
+            y = [i for i in battery_obj.SoC_actual],
             name = "SoC"
             )
             )
-            fig.update_xaxes(showline=True, linewidth=2, linecolor='#e67300', mirror=True)
-            fig.update_yaxes(showline=True, linewidth=2, linecolor='#e67300', mirror=True)
+            fig.update_xaxes(range=[0, len(battery_obj.SoC_actual)],showline=True, linewidth=2, linecolor='#e67300', mirror=True)
+            fig.update_yaxes(range=[min(battery_obj.SoC_actual), max(battery_obj.SoC_actual)],showline=True, linewidth=2, linecolor='#e67300', mirror=True)
             fig.update_layout(paper_bgcolor = "#EFEDED", width=500, height=350,legend = dict(
             orientation="h",
             yanchor="bottom",
@@ -1136,4 +1136,4 @@ def update_live_graph(ts, data1, live1):
 
 
 if __name__ == '__main__':
-    app.run_server(debug=False, port=8051)
+    app.run_server(debug=True, port=8051)
