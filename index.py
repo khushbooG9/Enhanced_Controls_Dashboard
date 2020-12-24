@@ -992,13 +992,20 @@ def update_live_graph(ts, data1, live1):
         print("_______FIG____________")
         fig = go.Figure()
         fig.add_trace(go.Scatter(
-            x = [i for i in range(len(battery_obj.SoC_actual))],
-            y = [i for i in battery_obj.SoC_actual],
-            name = "SoC"
+            x = [i for i in range(3600)],
+            y = [battery_obj.SoC_prediction[0]]*3600,
+            name = "SoC Prediction"
             )
         )
-        fig.update_xaxes(range=[0, len(battery_obj.SoC_actual)],showline=True, linewidth=2, linecolor='#e67300', mirror=True)
-        fig.update_yaxes(range=[min(battery_obj.SoC_actual), max(battery_obj.SoC_actual)],showline=True, linewidth=2, linecolor='#e67300', mirror=True)
+        fig.add_trace(go.Scatter(
+            x = [i for i in range(len(battery_obj.SoC_actual))],
+            y = [i for i in battery_obj.SoC_actual],
+            name = "SoC Actual"
+            )
+        )
+        ymin, ymax = min(battery_obj.SoC_prediction + battery_obj.SoC_actual), max(battery_obj.SoC_prediction + battery_obj.SoC_actual)
+        fig.update_xaxes(range=[0, 3600],showline=True, linewidth=2, linecolor='#e67300', mirror=True)
+        fig.update_yaxes(range=[ymin, 1500],showline=True, linewidth=2, linecolor='#e67300', mirror=True)
         fig.update_layout(paper_bgcolor = "#EFEDED", width=500, height=350,legend = dict(
          orientation="h",
          yanchor="bottom",
@@ -1119,13 +1126,20 @@ def update_live_graph(ts, data1, live1):
 
             fig = go.Figure()
             fig.add_trace(go.Scatter(
+            x = [i for i in range(3600) ],
+            y = [battery_obj.SoC_prediction[0]]*3600,
+            name = "SoC Prediction"
+            )
+            )
+            fig.add_trace(go.Scatter(
             x = [i for i in range(len(battery_obj.SoC_actual))],
             y = [i for i in battery_obj.SoC_actual],
-            name = "SoC"
+            name = "SoC Actual"
             )
             )
-            fig.update_xaxes(range=[0, len(battery_obj.SoC_actual)],showline=True, linewidth=2, linecolor='#e67300', mirror=True)
-            fig.update_yaxes(range=[min(battery_obj.SoC_actual), max(battery_obj.SoC_actual)],showline=True, linewidth=2, linecolor='#e67300', mirror=True)
+            ymin, ymax = min(battery_obj.SoC_prediction + battery_obj.SoC_actual), max(battery_obj.SoC_prediction + battery_obj.SoC_actual)
+            fig.update_xaxes(range=[0, 3600],showline=True, linewidth=2, linecolor='#e67300', mirror=True)
+            fig.update_yaxes(range=[ymin, 1500],showline=True, linewidth=2, linecolor='#e67300', mirror=True)
             fig.update_layout(paper_bgcolor = "#EFEDED", width=500, height=350,legend = dict(
             orientation="h",
             yanchor="bottom",
