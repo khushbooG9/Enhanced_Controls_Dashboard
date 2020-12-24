@@ -186,7 +186,7 @@ if __name__ == "__main__":
                         battery_obj.grid_react_power_prediction[0] + battery_obj.battery_react_power_prediction[0]))
             grid_react_power_ratio = 1 - battery_react_power_ratio
 
-            battery_active_power_ratio = (battery_obj.grid_load_prediction[0] / battery_obj.peak_load_prediction)
+            battery_active_power_ratio = (battery_obj.peak_load_prediction/battery_obj.grid_load_prediction[0])
 
 
             if ts > 0:
