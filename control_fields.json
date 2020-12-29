@@ -11,7 +11,7 @@
   },
   "energy_arbitrage": {
     "rule_based": 0,
-    "optimization_based": 0,
+    "optimization_based": 1,
     "priority": 3
   },
   "reserves_placement": {

@@ -180,7 +180,7 @@ posfile_da = "_da"
 posfile_rt = "_rt"
 
 folder_name = 'results_pictures\\'
-case_name = 'sensitivity'
+case_name = 'arbitrage'
 fig_name = folder_name + case_name
 
 # ts = ["86400", "172800", "259200", "345600", "432000", "518400", "604800", "691200", "777600", "864000", "950400", "1036800", "1123200"]

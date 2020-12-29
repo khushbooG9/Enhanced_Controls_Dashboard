@@ -1,4 +1,5 @@
 {
   "FacilityLoadDataPath": "data/load_data.csv",
-  "PriceDataPath": "data/price_data.csv"
+  "PriceDataPath": "data/price_data.csv",
+  "ReservePriceDataPath": "data/reserve_price_data.csv"
 }

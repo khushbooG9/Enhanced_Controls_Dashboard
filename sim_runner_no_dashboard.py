@@ -39,24 +39,24 @@ def construct_use_case_library(gen_config, control_config):
                 use_case_config[key]["control_type"] = 'rule-based'
 
 
-    if key == "energy_arbitrage":
-        if control_config[key]["optimization_based"] == 1:
-            use_case_config[key]["control_type"] = 'opti-based'
-            use_case_config[key]["budget_uncertainty"] = gen_config["arbitrage_budget"]
-        else:
-            use_case_config[key]["control_type"] = 'rule-based'
-            use_case_config[key]["arbitrage_price_threshold"] = gen_config["arbitrage_price_threshold"]
+        if key == "energy_arbitrage":
+            if control_config[key]["optimization_based"] == 1:
+                use_case_config[key]["control_type"] = 'opti-based'
+                use_case_config[key]["budget_uncertainty"] = gen_config["arbitrage_budget"]
+            else:
+                use_case_config[key]["control_type"] = 'rule-based'
+                use_case_config[key]["arbitrage_price_threshold"] = gen_config["arbitrage_price_threshold"]
 
 
-    if key == "reserves_placement":
-        if control_config[key]["optimization_based"] == 1:
-            use_case_config[key]["control_type"] = 'opti-based'
-            use_case_config[key]["max_reserve_up_cap"] = gen_config["max_reserve_up_cap"]
-            use_case_config[key]["max_reserve_down_cap"] = gen_config["max_reserve_down_cap"]
-        else:
-            use_case_config[key]["control_type"] = 'rule-based'
-            use_case_config[key]["max_reserve_up_cap"] = gen_config["max_reserve_up_cap"]
-            use_case_config[key]["max_reserve_down_cap"] = gen_config["max_reserve_down_cap"]
+        if key == "reserves_placement":
+            if control_config[key]["optimization_based"] == 1:
+                use_case_config[key]["control_type"] = 'opti-based'
+                use_case_config[key]["max_reserve_up_cap"] = gen_config["max_reserve_up_cap"]
+                use_case_config[key]["max_reserve_down_cap"] = gen_config["max_reserve_down_cap"]
+            else:
+                use_case_config[key]["control_type"] = 'rule-based'
+                use_case_config[key]["max_reserve_up_cap"] = gen_config["max_reserve_up_cap"]
+                use_case_config[key]["max_reserve_down_cap"] = gen_config["max_reserve_down_cap"]
 
     if key == "external_signal":
         if control_config[key]["applied"] == 1:
@@ -134,7 +134,7 @@ if __name__ == "__main__":
     batt_react_power_temp = 0.0
     battery_react_power_ratio = 0.0
     grid_react_power_ratio = 0.0
-    battery_active_power_ratio = 0.0
+    battery_active_power_ratio_peak = 0.0
     # if things go haywire then we have some initialized values
     new_grid_load = 0.0
     new_grid_reactive_power = 0.0
@@ -144,7 +144,7 @@ if __name__ == "__main__":
 
     # creating dictionaries which will save results
     da_variables = {'Time': [], 'battery_setpoints_da': [], 'SoC_da': [], 'grid_load_da': [], 'peak_load_da': [], 'react_grid_da': [], 'react_batt_da': [], 'grid_pf_da': [], 'total_load_predict_da': []}
-    rt_variables = {'Time': [], 'battery_setpoints_rt': [], 'SoC_rt': [], 'grid_load_rt': [], 'peak_load_rt': [], 'react_grid_rt': [], 'react_batt_rt': [], 'grid_pf_rt': [], 'total_load_actual_rt': []}
+    rt_variables = {'Time': [], 'battery_setpoints_rt': [], 'SoC_rt': [], 'grid_load_rt': [], 'peak_load_rt': [], 'react_grid_rt': [], 'react_batt_rt': [], 'grid_pf_rt': [], 'total_load_actual_rt': [], 'price_predict_da': []}
 
     # fig, ax = plt.subplots()
 
@@ -161,6 +161,8 @@ if __name__ == "__main__":
 
             battery_obj.set_hourly_load_forecast(current_time, day_ahead_forecast_horizon, ts)
 
+            if battery_obj.use_case_dict['energy_arbitrage']['control_type'] == 'opti-based':
+                battery_obj.set_hourly_price_forecast(current_time, day_ahead_forecast_horizon, ts)
 
             print("Solving the Day-Ahead Optimization Problem")
 
@@ -185,8 +187,10 @@ if __name__ == "__main__":
             battery_react_power_ratio = (battery_obj.battery_react_power_prediction[0] / (
                         battery_obj.grid_react_power_prediction[0] + battery_obj.battery_react_power_prediction[0]))
             grid_react_power_ratio = 1 - battery_react_power_ratio
-
-            battery_active_power_ratio = (battery_obj.peak_load_prediction/battery_obj.grid_load_prediction[0])
+            if battery_obj.grid_load_prediction[0] == 0.0:
+                battery_active_power_ratio_peak = 1.0
+            else:
+                battery_active_power_ratio_peak = (battery_obj.peak_load_prediction/battery_obj.grid_load_prediction[0])
 
 
             if ts > 0:
@@ -217,7 +221,7 @@ if __name__ == "__main__":
             da_variables['react_batt_da'].append([battery_obj.battery_react_power_prediction[0]]*60*60)
             da_variables['grid_pf_da'].append([battery_obj.grid_power_factor_prediction[0]]*60*60)
             da_variables['total_load_predict_da'].append([battery_obj.load_up[0]]*60*60)
-
+            da_variables['price_predict_da'].append([battery_obj.price_predict[0]]*60*60)
 
         # RealTime Control Routine
         # get updated load profile
@@ -246,24 +250,24 @@ if __name__ == "__main__":
                     # new_SoC, new_battery_setpoint, new_grid_load = battery_obj.rtc_demand_charge_reduction\
                     #     (i, active_power_mismatch, battery_obj.battery_setpoints_prediction[0], SoC_temp, battery_obj.actual_load[ts])
                     new_SoC, new_battery_setpoint, new_grid_load = battery_obj.rtc_demand_charge_reduction \
-                        (i, active_power_mismatch, batt_temp, SoC_temp, battery_obj.actual_load[ts], batt_react_power_temp, battery_active_power_ratio)
+                        (i, active_power_mismatch, batt_temp, SoC_temp, battery_obj.actual_load[ts], batt_react_power_temp, battery_active_power_ratio_peak)
 
                 elif service_priority == "power_factor_correction":
 
-
-                        new_battery_reactive_power = batt_react_power_temp + battery_react_power_ratio*reactive_power_mismatch
-                        new_grid_reactive_power = grid_react_power_temp + grid_react_power_ratio*reactive_power_mismatch
-                        apparant_temp = battery_obj.get_apparent_power(grid_act_power_temp, new_grid_reactive_power)
-                        pf_temp = battery_obj.get_power_factor(grid_act_power_temp, apparant_temp)
-
-                        if i == 0:  # highest priority
-                            print("Power Factor Correction is the highest priority")
-
-                            if abs(pf_temp) - battery_obj.pf_limit < 0.05:
-                                print("power factor is below the limit -- do something about it as it is the highest priority")
-                                new_battery_reactive_power = (np.sqrt((grid_act_power_temp**2)*(1/(battery_obj.grid_power_factor_prediction[0]**2)) - ((grid_act_power_temp*battery_obj.grid_power_factor_prediction[0])**2)))
-                            else:
-                                print("power factor is within the tolerance of limit of " + str(battery_obj.pf_limit))
+                    new_battery_reactive_power, new_grid_reactive_power, apparant_temp, pf_temp = battery_obj.rtc_power_factor_correction(i, batt_react_power_temp, grid_react_power_temp, reactive_power_mismatch,  battery_react_power_ratio, grid_react_power_ratio, grid_act_power_temp )
+                    # new_battery_reactive_power = batt_react_power_temp + battery_react_power_ratio*reactive_power_mismatch
+                    # new_grid_reactive_power = grid_react_power_temp + grid_react_power_ratio*reactive_power_mismatch
+                    # apparant_temp = battery_obj.get_apparent_power(grid_act_power_temp, new_grid_reactive_power)
+                    # pf_temp = battery_obj.get_power_factor(grid_act_power_temp, apparant_temp)
+                    #
+                    # if i == 0:  # highest priority
+                    #     print("Power Factor Correction is the highest priority")
+                    #
+                    #     if abs(pf_temp) - battery_obj.pf_limit < 0.05:
+                    #         print("power factor is below the limit -- do something about it as it is the highest priority")
+                    #         new_battery_reactive_power = (np.sqrt((grid_act_power_temp**2)*(1/(battery_obj.grid_power_factor_prediction[0]**2)) - ((grid_act_power_temp*battery_obj.grid_power_factor_prediction[0])**2)))
+                    #     else:
+                    #         print("power factor is within the tolerance of limit of " + str(battery_obj.pf_limit))
                     # else:
                     #     # this means that actually load power is lower than expected, hence the reactive power drawn is also less
                     #     # ratio of the battery from the total reactive mismatch

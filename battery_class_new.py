@@ -47,17 +47,19 @@ class battery_class_new:
         self.windowLength = int(gen_dict["windowLength"])
         self.price_dev = gen_dict["price_dev"]
         self.load_dev = gen_dict["load_dev"]
+        self.price_dev = gen_dict["price_dev"]
         self.load_data_resolution = gen_dict["load_data_resolution"]
         self.peak_price = gen_dict["peak_price"]
         self.load_pf = gen_dict["load_pf"]
         self.reserve_SoC = gen_dict["reserve_SoC"]*gen_dict["bat_capacity_kWh"]
 
         self.TIME = range(0, self.windowLength)
+        self.TIME_minus_1 = range(0, self.windowLength-1)
         self.SoC_init = gen_dict["SoC_init"]*gen_dict["bat_capacity_kWh"]
 
         # demand charge reduction Variables
         self.demand_charge_budget = int(gen_dict["demand_charge_budget"]*self.windowLength)
-
+        self.arbitrage_budget = int(gen_dict["arbitrage_budget"]*self.windowLength)
         self.real_time_control_resolution = gen_dict["real_time_control_resolution"]   # seconds
         self.hrs_to_secs = self.real_time_control_resolution*(1/3600)   # to convert hourly day-ahead results quantities to real-time control time steps
 
@@ -76,19 +78,25 @@ class battery_class_new:
         self.load_down = None
         self.price_data = None
 
+        self.price_predict = None
+        self.price_up = None
+        self.price_down = None
 
         self.battery_setpoints_prediction = [[]] * self.windowLength
         self.SoC_prediction = [[]] * self.windowLength
         self.peak_load_prediction = None
         self.grid_load_prediction = [[]] * self.windowLength
-
         self.grid_react_power_prediction = [[]] * self.windowLength
         self.battery_react_power_prediction = [[]] * self.windowLength
-
         self.grid_apparent_power_prediction = [[]] * self.windowLength
         self.apparent_power_battery = [[]] * self.windowLength
-
         self.grid_power_factor_prediction = [[]] * self.windowLength
+        self.arbitrage_revenue_predicted = []
+        self.peak_surcharge_predicted = []
+        self.reserve_revenue_prediced = []
+        self.arbitrage_revenue_actual = []
+        self.peak_surcharge_actual = []
+        self.reserve_revenue_actual = []
 
         self.grid_original_apparant_power = [[]] * self.windowLength
         self.grid_original_power_factor = [[]] * self.windowLength
@@ -194,13 +202,38 @@ class battery_class_new:
             #     new_SoC, new_battery_setpoint = self.check_SoC(new_battery_setpoint, current_SoC)
 
         return new_SoC, new_battery_setpoint, new_grid_load
-    def set_price_forecast(self):
-        """ Set the f_DA attribute
 
-        Args:
-            forecasted_price (float x 48): cleared price in $/kWh
-        """
-        self.price_predict = deepcopy(self.price_data)
+    def rtc_power_factor_correction(self, i, batt_react_power_temp, grid_react_power_temp, reactive_power_mismatch, battery_react_power_ratio, grid_react_power_ratio,  grid_act_power_temp):
+        new_battery_reactive_power = batt_react_power_temp + battery_react_power_ratio * reactive_power_mismatch
+        new_grid_reactive_power = grid_react_power_temp + grid_react_power_ratio * reactive_power_mismatch
+        apparant_temp = self.get_apparent_power(grid_act_power_temp, new_grid_reactive_power)
+        pf_temp = self.get_power_factor(grid_act_power_temp, apparant_temp)
+
+        if i == 0:  # highest priority
+            print("Power Factor Correction is the highest priority")
+
+            if abs(pf_temp) - self.pf_limit < 0.05:
+                print("power factor is below the limit -- do something about it as it is the highest priority")
+                # new_battery_reactive_power = (np.sqrt(
+                #     (grid_act_power_temp ** 2) * (1 / (battery_obj.grid_power_factor_prediction[0] ** 2)) - (
+                #                 (grid_act_power_temp * battery_obj.grid_power_factor_prediction[0]) ** 2)))
+            else:
+                print("power factor is within the tolerance of limit of " + str(self.pf_limit))
+
+        # else:
+        #     # this means that actually load power is lower than expected, hence the reactive power drawn is also less
+        #     # ratio of the battery from the total reactive mismatch
+        #     print("Power Factor Correction is the priority number " + str(i+1))
+
+        return new_battery_reactive_power, new_grid_reactive_power, apparant_temp, pf_temp
+
+    # def set_price_forecast(self):
+    #     """ Set the f_DA attribute
+    #
+    #     Args:
+    #         forecasted_price (float x 48): cleared price in $/kWh
+    #     """
+    #     self.price_predict = deepcopy(self.price_data)
 
 
     def get_data(self):
@@ -223,6 +256,8 @@ class battery_class_new:
             print("load data is not for the whole year")
 
         self.price_data = pd.read_csv(self.PriceDataPath)
+        # multiply by 1e-3 to convert $/MWh to $/MVarh
+        self.price_data['Value'] = self.price_data['Value'] * 1e-3
         self.price_data['Time'] = pd.to_datetime(self.price_data['Time'].values)
         self.price_data.set_index('Time')
 
@@ -232,6 +267,18 @@ class battery_class_new:
             print("load data is not in the StartTime and EndTime range")
         if len(self.price_data['Time']) < self.windowLength * 365:
             print("load data is not for the whole year")
+
+        # TODO: import reserve prices
+        # self.res_price_data = pd.read_csv(self.PriceDataPath)
+        # self.price_data['Time'] = pd.to_datetime(self.price_data['Time'].values)
+        # self.price_data.set_index('Time')
+        #
+        # # self.load_data = self.load_data[
+        # #     (self.load_data['Time'] >= self.StartTime) & (self.load_data['Time'] < self.EndTime)]
+        # if len(self.price_data['Time']) == 0:
+        #     print("load data is not in the StartTime and EndTime range")
+        # if len(self.price_data['Time']) < self.windowLength * 365:
+        #     print("load data is not for the whole year")
 
 
     def set_hourly_load_forecast(self, current_time, forecast_time, ts):
@@ -260,6 +307,24 @@ class battery_class_new:
         self.actual_load.append(load_val + diff + dev)
         self.actual_reactive_load.append( (load_val + diff + dev)*self.load_pf)
 
+    def set_hourly_price_forecast(self, current_time, forecast_time, ts):
+        """ Set the f_DA attribute
+
+        Args:
+            Forecasted Price (float x 24): in $/kWh
+        """
+        self.price_predict = self.price_data[(self.price_data['Time'] >= current_time) & (self.price_data['Time'] < forecast_time)]['Value'].values
+        self.price_up = self.price_predict + self.price_predict*self.price_dev
+        self.price_down = self.price_predict - self.price_predict*self.price_dev
+        self.price_up[0] = self.price_predict[0]
+        self.price_down[0] = self.price_predict[0]
+
+    def set_price_actual(self, load_val, diff):
+        dev = ((self.load_dev*np.random.randn(1)[0]*0.1)-(self.load_dev*np.random.randn(1)[0]*0.1))
+        # dev = 0.0
+        self.actual_load.append(load_val + diff + dev)
+        self.actual_reactive_load.append( (load_val + diff + dev)*self.load_pf)
+
 
     def set_SoC(self, latest_SoC):
         self.SoC_init = latest_SoC
@@ -280,6 +345,9 @@ class battery_class_new:
         if self.use_case_dict["demand_charge"]["control_type"] == "opti-based":
             temp = temp + sum(m.eta_D[i] for i in self.TIME) + self.peak_price*m.p_peak + self.demand_charge_budget*m.beta_D
 
+        if self.use_case_dict["energy_arbitrage"]["control_type"] == "opti-based":
+            temp = temp + sum(m.eta_A[i] for i in self.TIME_minus_1) + sum(self.price_down[i+1]*(m.p_chg[i+1]-m.p_dis[i+1]) for i in self.TIME_minus_1) + self.arbitrage_budget*m.beta_A
+            temp = temp + self.price_predict[0]*(m.p_chg[0]-m.p_dis[0])
         return temp
 
 
@@ -288,6 +356,13 @@ class battery_class_new:
             return m.beta_D + m.eta_D[i] >= (self.load_up[i] - self.load_down[i])
         else:
             return m.beta_D + m.eta_D[i] == 0.0
+
+    def con_rule_ine1_arbitrage(self, m, i):
+        if self.use_case_dict["energy_arbitrage"]["control_type"] == "opti-based":
+            return m.beta_A + m.eta_A[i] >= (self.price_up[i+1] - self.price_down[i+1])*m.p_chg[i+1]
+        else:
+            return m.beta_A + m.eta_A[i] == 0.0
+
 
     def con_rule_ine2_demand_chg(self, m, i):
         if self.use_case_dict["demand_charge"]["control_type"] == "opti-based":
@@ -368,6 +443,8 @@ class battery_class_new:
 
         model.eta_D = pyo.Var(self.TIME, bounds=(0, None))
         model.beta_D = pyo.Var(bounds = (0, None))
+        model.eta_A = pyo.Var(self.TIME_minus_1, bounds=(0, None))
+        model.beta_A = pyo.Var(bounds = (0, None))
 
         model.theta = pyo.Var(self.TIME, bounds = (0, None))
 
@@ -383,7 +460,7 @@ class battery_class_new:
         model.con8 = pyo.Constraint(self.TIME, rule=self.con_rule_eq2_p_balance)
         model.con9 = pyo.Constraint(self.TIME, rule=self.con_rule_eq3_soc)
         model.con10 = pyo.Constraint(self.TIME, rule=self.con_rule_eq4_q_balance)
-
+        model.con11 = pyo.Constraint(self.TIME_minus_1, rule=self.con_rule_ine1_arbitrage)
 
         model.obj = pyo.Objective(rule=self.obj_rule, sense=pyo.minimize)
 
@@ -413,8 +490,6 @@ class battery_class_new:
                 self.grid_load_prediction[t] = pyo.value(model.p_total[t])
                 self.grid_react_power_prediction[t] = pyo.value(model.q_total[t])
                 self.battery_react_power_prediction[t] = pyo.value(model.q_batt[t])
-                #self.grid_apparent_power[t] = np.sqrt(self.grid_react_power_prediction[t]**2 + self.grid_load_prediction[t]**2)
-                #self.grid_power_factor[t] = (self.grid_load_prediction[t]+1e-6)/(self.grid_apparent_power[t]+1e-6)
                 self.grid_apparent_power_prediction[t] = self.get_apparent_power(self.grid_load_prediction[t], self.grid_react_power_prediction[t])
                 self.grid_power_factor_prediction[t] = self.get_power_factor(self.grid_load_prediction[t], self.grid_apparent_power_prediction[t])
             self.peak_load_prediction = pyo.value(model.p_peak)
