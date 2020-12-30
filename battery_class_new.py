@@ -109,29 +109,28 @@ class battery_class_new:
 
     def todict(self):
         data = {}
-        data["use_case_dict"] = self.use_case_dict
-        data["name"] = self.name
-        data["capacity"] = self.capacity
-        data["rating"] = self.rating
-        data["charge"] = self.charge
-        data["efficiency"] = self.efficiency
-        data["StartTime"] = self.StartTime
-        data["EndTime"] = self.EndTime
-        data["SimulationDays"] = self.SimulationDays
-        data["FacilityLoadDataPath"] = self.FacilityLoadDataPath
-        data["PriceDataPath"] = self.PriceDataPath
-        data["rated_inverter_kVA"] = self.rated_inverter_kVA
-        data["rated_kW"] = self.rated_kW
-        data["inv_eta"]  = self.inv_eta
-        data["bat_eta"] = self.bat_eta
-        data["rated_kWh"] = self.rated_kWh
-        data["windowLength"] = self.windowLength
-        data["price_dev"] = self.price_dev
-        data["load_dev"] = self.load_dev
-        data["load_data_resolution"] = self.load_data_resolution
-        data["peak_price"] = self.peak_price
-        data["load_pf"] = self.load_pf
-        data["reserve_SoC"] = self.reserve_SoC
+        # data["name"] = self.name
+        # data["capacity"] = self.capacity
+        # data["rating"] = self.rating
+        # data["charge"] = self.charge
+        # data["efficiency"] = self.efficiency
+        # data["StartTime"] = self.StartTime
+        # data["EndTime"] = self.EndTime
+        # data["SimulationDays"] = self.SimulationDays
+        # data["FacilityLoadDataPath"] = self.FacilityLoadDataPath
+        # data["PriceDataPath"] = self.PriceDataPath
+        # data["rated_inverter_kVA"] = self.rated_inverter_kVA
+        # data["rated_kW"] = self.rated_kW
+        # data["inv_eta"]  = self.inv_eta
+        # data["bat_eta"] = self.bat_eta
+        # data["rated_kWh"] = self.rated_kWh
+        # data["windowLength"] = self.windowLength
+        # data["price_dev"] = self.price_dev
+        # data["load_dev"] = self.load_dev
+        # data["load_data_resolution"] = self.load_data_resolution
+        # data["peak_price"] = self.peak_price
+        # data["load_pf"] = self.load_pf
+        # data["reserve_SoC"] = self.reserve_SoC
         data["TIME"] = list(self.TIME)
         data["SoC_init"] = self.SoC_init
         data["demand_charge_budget"] = self.demand_charge_budget
@@ -174,29 +173,29 @@ class battery_class_new:
 
 
     def fromdict(self, data):
-        self.use_case_dict = data["use_case_dict"]
-        self.name = data["name"]
-        self.capacity = data["capacity"]
-        self.rating = data["rating"]
-        self.charge = data["charge"]
-        self.efficiency = data["efficiency"]
-        self.StartTime = data["StartTime"]
-        self.EndTime = data["EndTime"]
-        self.SimulationDays = data["SimulationDays"]
-        self.FacilityLoadDataPath = data["FacilityLoadDataPath"]
-        self.PriceDataPath = data["PriceDataPath"]
-        self.rated_inverter_kVA = data["rated_inverter_kVA"]
-        self.rated_kW = data["rated_kW"]
-        self.inv_eta = data["inv_eta"]
-        self.bat_eta = data["bat_eta"]
-        self.rated_kWh = data["rated_kWh"]
-        self.windowLength = data["windowLength"]
-        self.price_dev = data["price_dev"]
-        self.load_dev = data["load_dev"]
-        self.load_data_resolution = data["load_data_resolution"]
-        self.peak_price = data["peak_price"]
-        self.load_pf = data["load_pf"]
-        self.reserve_SoC = data["reserve_SoC"]
+        # self.use_case_dict = data["use_case_dict"]
+        # self.name = data["name"]
+        # self.capacity = data["capacity"]
+        # self.rating = data["rating"]
+        # self.charge = data["charge"]
+        # self.efficiency = data["efficiency"]
+        # self.StartTime = data["StartTime"]
+        # self.EndTime = data["EndTime"]
+        # self.SimulationDays = data["SimulationDays"]
+        # self.FacilityLoadDataPath = data["FacilityLoadDataPath"]
+        # self.PriceDataPath = data["PriceDataPath"]
+        # self.rated_inverter_kVA = data["rated_inverter_kVA"]
+        # self.rated_kW = data["rated_kW"]
+        # self.inv_eta = data["inv_eta"]
+        # self.bat_eta = data["bat_eta"]
+        # self.rated_kWh = data["rated_kWh"]
+        # self.windowLength = data["windowLength"]
+        # self.price_dev = data["price_dev"]
+        # self.load_dev = data["load_dev"]
+        # self.load_data_resolution = data["load_data_resolution"]
+        # self.peak_price = data["peak_price"]
+        # self.load_pf = data["load_pf"]
+        # self.reserve_SoC = data["reserve_SoC"]
 
         self.TIME = data["TIME"]
         self.SoC_init = data["SoC_init"]
@@ -336,19 +335,20 @@ class battery_class_new:
         check_SoC = 0
         if SoC_temp < self.reserve_SoC:
             check_SoC = 1
-            print("Battery min SoC will violate with this setpoints -- adjusting the power w.r.t. allowable SoC")
+            #print("Battery min SoC will violate with this setpoints -- adjusting the power w.r.t. allowable SoC")
             delta_P = (self.reserve_SoC - current_SoC) / self.real_time_control_resolution
             new_battery_setpoint = delta_P
             SoC_temp = self.reserve_SoC
 
         elif SoC_temp > (self.rated_kWh - self.reserve_SoC):
             check_SoC = 1
-            print("Battery max SoC will violate with this setpoints -- adjusting the power w.r.t. allowable SoC")
+            #print("Battery max SoC will violate with this setpoints -- adjusting the power w.r.t. allowable SoC")
             delta_P = (self.rated_kWh - self.reserve_SoC - current_SoC) / self.real_time_control_resolution
             new_battery_setpoint = delta_P
             SoC_temp = self.rated_kWh - self.reserve_SoC
         else:
-            print("New Setpoints satisfy SoC requirement")
+            pass
+            #print("New Setpoints satisfy SoC requirement")
 
         if check_SoC == 1:
             SoC_temp = current_SoC - new_battery_setpoint * self.real_time_control_resolution
@@ -357,9 +357,9 @@ class battery_class_new:
 
     def rtc_demand_charge_reduction(self, i, active_power_mismatch, set_point_prediction, current_SoC, actual_load):
         if i == 0:  # highest priority
-            print("Demand Charge is the highest priority")
+            #print("Demand Charge is the highest priority")
             if active_power_mismatch > 0.0:
-                print("positive Mismatch Found --> battery should discharge")
+                #print("positive Mismatch Found --> battery should discharge")
                 # adjust battery power setpoint and see whether the adjusted power is even physically possible
                 new_battery_setpoint = self.change_setpoint(set_point_prediction, active_power_mismatch)
                 # check SoC
@@ -369,23 +369,24 @@ class battery_class_new:
 
                 # check grid loading
 
-                if new_grid_load > self.peak_load_prediction:
-                    print(
-                        "new grid load has become higher than peak load --> either mismatch is too big or SoC limits have reached")
-                else:
-                    print("adjusted battery power and kept the peak load as planned")
+                # if new_grid_load > self.peak_load_prediction:
+                #     # print(
+                #     #     "new grid load has become higher than peak load --> either mismatch is too big or SoC limits have reached")
+                # else:
+                #     print("adjusted battery power and kept the peak load as planned")
 
             else:
-                print(
-                    "negative_mismatch Found --> actual load is less than predicted, so keep the setpoints as is")
+                # print(
+                #     "negative_mismatch Found --> actual load is less than predicted, so keep the setpoints as is")
                 new_grid_load = actual_load + active_power_mismatch - set_point_prediction
                 new_battery_setpoint = set_point_prediction
                 new_SoC, new_battery_setpoint = self.check_SoC(new_battery_setpoint, current_SoC)
-        else:
+        #else:
             # it is not the highest priority so see if something can be done
-            print("Demand Charge is the priority number " + str(i + 1))
+            #print("Demand Charge is the priority number " + str(i + 1))
 
         return new_SoC, new_battery_setpoint, new_grid_load
+        
     def set_price_forecast(self):
         """ Set the f_DA attribute
 
