@@ -158,8 +158,25 @@ body {
   border-bottom: white solid 0.8rem; 
   justify-content: flex-end;
   align-items: flex-end;
+ /* height: 40rem;
+  flex-direction: row;
+  display: flex;
+  max-width: 100%;*/
 }
 
+
+#bottom-panel-container {
+  background-color: #EFEDED;
+  margin: 0;
+  height: 100%;
+  border-left: white solid 0.8rem;
+  border-right: none;
+  border-top: none;
+  border-bottom: none;
+  flex: 1 1 auto;
+  margin-right: 50px;
+  margin-left: 90px;
+}
 
 
 #left-graph {
@@ -167,14 +184,16 @@ body {
   flex: 1 1 auto;
 }
 
-#right-graph{
+#right-graph {
   height: 100%;
   margin: 0;
   border-left: white solid 0.8rem;
   flex: 1 1 auto;
 }
 
-#left-graph-fig, #right-graph-fig {
+
+
+#left-graph-fig, #right-graph-fig, #down-graph-fig {
   
   height: 95%;
   width: 95%;
@@ -352,7 +371,7 @@ body {
   text-align: center;
   font-weight: 500;
 }
-#bottom-panel-container {
+/*#bottom-panel-container {
   width: 40%;
   box-sizing: content-box;
   display: flex;
@@ -366,7 +385,24 @@ body {
   padding: 2%;
   max-width: 40%;
   
+}*/
+
+#revenue-block {
+  width: 120%;
+  box-sizing: content-box;
+  display: flex;
+  flex-direction: column;
+  background-color:  #ffcc99;
+  justify-content: space-evenly;
+  align-items: flex-start;
+  border: 2px solid #e67300;
+  display: inline-block;
+  margin: 15px;
+  padding: 2%;
+  max-width: 95%;
+  
 }
+
 #revenue-label, #load-label1, #load-label2, #profile-label1, #profile-label2, #profile-label3 {
   display: flex;
   flex-direction: row;
