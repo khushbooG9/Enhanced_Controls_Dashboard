@@ -39,6 +39,7 @@ class battery_class_new:
         self.SimulationDays = gen_dict["SimulationDays"]
         self.FacilityLoadDataPath = data_dict["FacilityLoadDataPath"]
         self.PriceDataPath = data_dict["PriceDataPath"]
+        self.ResPriceDataPath = data_dict["ReservePriceDataPath"]
         self.rated_inverter_kVA = gen_dict["rated_inverter_kVA"]
         self.rated_kW = gen_dict["rated_kW"]
         self.inv_eta = gen_dict["inv_eta"]
@@ -102,6 +103,8 @@ class battery_class_new:
         self.grid_original_power_factor = [[]] * self.windowLength
 
         self.battery_setpoints_actual = []
+        self.arbitrage_purchased_power_actual_rt = []
+        self.arbitrage_purchased_power_ideal_rt = []
         self.SoC_actual = []
         self.peak_load_actual = []
         self.grid_load_actual = []
@@ -111,6 +114,7 @@ class battery_class_new:
         self.actual_reactive_load = []
         self.grid_apparent_power_actual = []
         self.grid_power_factor_actual = []
+        self.actual_price = []
 
     def change_setpoint(self, old_setpoint, mismatch):
         new_battery_setpoint = min(self.rated_kW, max(-self.rated_kW, old_setpoint + mismatch))
@@ -141,99 +145,36 @@ class battery_class_new:
 
         return SoC_temp, new_battery_setpoint
 
-    def rtc_demand_charge_reduction(self, i, active_power_mismatch, set_point_prediction, current_SoC, actual_load,  batt_react_setpoint, batt_sensitivity):
-        if i == 0:  # highest priority
-            print("Demand Charge is the highest priority")
-            if active_power_mismatch > 0.0:
-                print("positive Mismatch Found --> battery should discharge")
-                # adjust battery power setpoint and see whether the adjusted power is even physically possible
-                new_battery_setpoint = self.change_setpoint(set_point_prediction, active_power_mismatch)
-                # check SoC
-                new_SoC, new_battery_setpoint = self.check_SoC(new_battery_setpoint, current_SoC)
-                # new grid load
-                new_grid_load = min(0, actual_load - new_battery_setpoint)
+    def rtc_demand_charge_reduction(self, active_power_mismatch, set_point_prediction, current_SoC, actual_load,  batt_react_setpoint, batt_sensitivity):
 
-                # check grid loading
-                if new_grid_load == 0:
-                    # new_battery_setpoints = set_point_prediction
-                    new_SoC, new_battery_setpoint = self.check_SoC(set_point_prediction, current_SoC)
+        new_battery_setpoint = self.change_setpoint(set_point_prediction, batt_sensitivity*active_power_mismatch)
 
-                if new_grid_load > self.peak_load_prediction:
-                    print(
-                        "new grid load has become higher than peak load --> either mismatch is too big or SoC limits have reached")
-                else:
-                    print("adjusted battery power and kept the peak load as planned")
+        if np.sqrt(batt_react_setpoint**2 + new_battery_setpoint**2) <= self.rated_inverter_kVA: # new setpoints are within inverter range
+            new_SoC, new_battery_setpoint = self.check_SoC(new_battery_setpoint, current_SoC)
 
-            else:
-                print(
-                    "negative_mismatch Found --> actual load is less than predicted, so keep the setpoints as is")
-                new_grid_load = actual_load + active_power_mismatch - set_point_prediction
-                new_battery_setpoint = set_point_prediction
-                new_SoC, new_battery_setpoint = self.check_SoC(new_battery_setpoint, current_SoC)
+            new_grid_load = max(0, actual_load - new_battery_setpoint)
         else:
-            print("Demand Charge is the priority number " + str(i + 1) + " so using sensitivities for it")
+            print("battery setpoint change has taken the power outside of inverter capacity")
+            new_battery_setpoint = np.sqrt(self.rated_inverter_kVA**2 - batt_react_setpoint**2)
+            new_battery_setpoint = self.change_setpoint(set_point_prediction, new_battery_setpoint)
+            new_SoC, new_battery_setpoint = self.check_SoC(new_battery_setpoint, current_SoC)
+            new_grid_load = max(0, actual_load - new_battery_setpoint)
 
-            # if active_power_mismatch > 0.0:
-            #     print("positive Mismatch Found --> battery should discharge but we have to make sure that grid's active remains unchanged because we want to keep power factor correction in check")
-            # # it is not the highest priority so see if something can be done
-            # #     mbatt_load = set_point_prediction / np.array(self.load_up[0])
+            if new_grid_load == 0:
+                # new_battery_setpoints = set_point_prediction
+                new_SoC, new_battery_setpoint = self.check_SoC(set_point_prediction, current_SoC)
 
-            new_battery_setpoint = self.change_setpoint(set_point_prediction, batt_sensitivity*active_power_mismatch)
-
-            if np.sqrt(batt_react_setpoint**2 + new_battery_setpoint**2) <= self.rated_inverter_kVA: # new setpoints are within inverter range
-                new_SoC, new_battery_setpoint = self.check_SoC(new_battery_setpoint, current_SoC)
-
-                new_grid_load = max(0, actual_load - new_battery_setpoint)
-            else:
-                print("battery setpoint change has taken the power outside of inverter capacity")
-                new_battery_setpoint = np.sqrt(self.rated_inverter_kVA**2 - batt_react_setpoint**2)
-                new_battery_setpoint = self.change_setpoint(set_point_prediction, new_battery_setpoint)
-                new_SoC, new_battery_setpoint = self.check_SoC(new_battery_setpoint, current_SoC)
-                new_grid_load = max(0, actual_load - new_battery_setpoint)
-
-                if new_grid_load == 0:
-                    # new_battery_setpoints = set_point_prediction
-                    new_SoC, new_battery_setpoint = self.check_SoC(set_point_prediction, current_SoC)
-            # else:
-            #     print(
-            #         "negative_mismatch Found --> actual load is less than predicted, so keep the setpoints as is")
-            #     new_grid_load = actual_load + active_power_mismatch - set_point_prediction
-            #     new_battery_setpoint = set_point_prediction
-            #     new_SoC, new_battery_setpoint = self.check_SoC(new_battery_setpoint, current_SoC)
 
         return new_SoC, new_battery_setpoint, new_grid_load
 
-    def rtc_power_factor_correction(self, i, batt_react_power_temp, grid_react_power_temp, reactive_power_mismatch, battery_react_power_ratio, grid_react_power_ratio,  grid_act_power_temp):
+    def rtc_power_factor_correction(self, batt_react_power_temp, grid_react_power_temp, reactive_power_mismatch, battery_react_power_ratio, grid_react_power_ratio,  grid_act_power_temp):
         new_battery_reactive_power = batt_react_power_temp + battery_react_power_ratio * reactive_power_mismatch
         new_grid_reactive_power = grid_react_power_temp + grid_react_power_ratio * reactive_power_mismatch
         apparant_temp = self.get_apparent_power(grid_act_power_temp, new_grid_reactive_power)
         pf_temp = self.get_power_factor(grid_act_power_temp, apparant_temp)
 
-        if i == 0:  # highest priority
-            print("Power Factor Correction is the highest priority")
-
-            if abs(pf_temp) - self.pf_limit < 0.05:
-                print("power factor is below the limit -- do something about it as it is the highest priority")
-                # new_battery_reactive_power = (np.sqrt(
-                #     (grid_act_power_temp ** 2) * (1 / (battery_obj.grid_power_factor_prediction[0] ** 2)) - (
-                #                 (grid_act_power_temp * battery_obj.grid_power_factor_prediction[0]) ** 2)))
-            else:
-                print("power factor is within the tolerance of limit of " + str(self.pf_limit))
-
-        # else:
-        #     # this means that actually load power is lower than expected, hence the reactive power drawn is also less
-        #     # ratio of the battery from the total reactive mismatch
-        #     print("Power Factor Correction is the priority number " + str(i+1))
 
         return new_battery_reactive_power, new_grid_reactive_power, apparant_temp, pf_temp
-
-    # def set_price_forecast(self):
-    #     """ Set the f_DA attribute
-    #
-    #     Args:
-    #         forecasted_price (float x 48): cleared price in $/kWh
-    #     """
-    #     self.price_predict = deepcopy(self.price_data)
 
 
     def get_data(self):
@@ -269,16 +210,17 @@ class battery_class_new:
             print("load data is not for the whole year")
 
         # TODO: import reserve prices
-        # self.res_price_data = pd.read_csv(self.PriceDataPath)
-        # self.price_data['Time'] = pd.to_datetime(self.price_data['Time'].values)
-        # self.price_data.set_index('Time')
-        #
-        # # self.load_data = self.load_data[
-        # #     (self.load_data['Time'] >= self.StartTime) & (self.load_data['Time'] < self.EndTime)]
-        # if len(self.price_data['Time']) == 0:
-        #     print("load data is not in the StartTime and EndTime range")
-        # if len(self.price_data['Time']) < self.windowLength * 365:
-        #     print("load data is not for the whole year")
+        self.res_price_data = pd.read_csv(self.ResPriceDataPath)
+        self.res_price_data['Value'] = pd.read_csv(self.PriceDataPath) * 1e-3
+        self.res_price_data['Time'] = pd.to_datetime(self.res_price_data['Time'].values)
+        self.res_price_data.set_index('Time')
+
+        # self.load_data = self.load_data[
+        #     (self.load_data['Time'] >= self.StartTime) & (self.load_data['Time'] < self.EndTime)]
+        if len(self.res_price_data['Time']) == 0:
+            print("load data is not in the StartTime and EndTime range")
+        if len(self.res_price_data['Time']) < self.windowLength * 365:
+            print("load data is not for the whole year")
 
 
     def set_hourly_load_forecast(self, current_time, forecast_time, ts):
@@ -294,7 +236,7 @@ class battery_class_new:
         # because we know the forecast at the current time step
         # if ts > 0:
         #     self.load_predict[0] = self.actual_load[ts-1]
-
+        #
         # self.load_up[0] = self.load_predict[0]
         # self.load_down[0] = self.load_predict[0]
         self.grid_original_apparant_power = np.sqrt(self.load_predict**2 + (self.load_pf*self.load_predict)**2)
@@ -302,13 +244,13 @@ class battery_class_new:
 
 
     def set_load_actual(self, load_val, diff):
-        dev = ((self.load_dev*np.random.randn(1)[0]*0.1)-(self.load_dev*np.random.randn(1)[0]*0.1))
+        dev = ((self.load_dev*np.random.randn(1)[0]*0.3)-(self.load_dev*np.random.randn(1)[0]*0.3))
         # dev = 0.0
         self.actual_load.append(load_val + diff + dev)
         self.actual_reactive_load.append( (load_val + diff + dev)*self.load_pf)
 
     def set_hourly_price_forecast(self, current_time, forecast_time, ts):
-        """ Set the f_DA attribute
+        """ Set the forecast price
 
         Args:
             Forecasted Price (float x 24): in $/kWh
@@ -319,11 +261,27 @@ class battery_class_new:
         self.price_up[0] = self.price_predict[0]
         self.price_down[0] = self.price_predict[0]
 
-    def set_price_actual(self, load_val, diff):
-        dev = ((self.load_dev*np.random.randn(1)[0]*0.1)-(self.load_dev*np.random.randn(1)[0]*0.1))
-        # dev = 0.0
-        self.actual_load.append(load_val + diff + dev)
-        self.actual_reactive_load.append( (load_val + diff + dev)*self.load_pf)
+    def set_hourly_res_price_forecast(self, current_time, forecast_time, ts):
+        """ Set the forecast price
+
+        Args:
+            Forecasted Price (float x 24): in $/kWh
+        """
+        self.res_price_predict = self.price_data[(self.price_data['Time'] >= current_time) & (self.price_data['Time'] < forecast_time)]['Value'].values
+        self.res_price_up = self.res_price_predict + self.res_price_predict*self.res_price_dev
+        self.res_price_down = self.res_price_predict - self.res_price_predict*self.res_price_dev
+        self.res_price_up[0] = self.res_price_predict[0]
+        self.res_price_down[0] = self.res_price_predict[0]
+
+
+    def set_price_actual(self, price_val, diff, ts):
+        if (ts%300) == 0:
+            dev = 0.025*(price_val*np.random.randn(1)[0] - price_val*np.random.randn(1)[0])
+        else:
+            dev = 0.0
+            diff = 0.0
+        self.actual_price.append(price_val + dev + diff)
+        # self.actual_reactive_load.append( (price_val + dev)*self.load_pf)
 
 
     def set_SoC(self, latest_SoC):
