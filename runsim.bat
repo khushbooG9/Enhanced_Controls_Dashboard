@@ -1,1 +1,1 @@
-start /b cmd /c python sim_runner_no_dashboard.py ^> sim_runner_no_dashboard.log 2^>^&1
+start /b cmd /c python sim_runner_no_dashboard.py ^> run_log.log 2^>^&1

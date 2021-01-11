@@ -16,7 +16,7 @@
   },
   "reserves_placement": {
     "rule_based": 0,
-    "optimization_based": 0,
+    "optimization_based": 1,
     "priority": 4
   },
   "external_signal": {

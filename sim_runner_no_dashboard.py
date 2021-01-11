@@ -74,22 +74,19 @@ def store_dict_to_json(ts, variables, id):
 def clean_dict(dict, id):
     if id == "da":
         dict = {'Time': [], 'battery_setpoints_da': [], 'SoC_da': [], 'grid_load_da': [], 'peak_load_da': [],
-                'react_grid_da': [], 'react_batt_da': [], 'grid_pf_da': [], 'total_load_predict_da': [],
-                'price_predict_da': [], 'arbitrage_purchased_power_da': []
-                }
+                        'react_grid_da': [], 'react_batt_da': [], 'grid_pf_da': [], 'total_load_predict_da': [],
+                        'price_predict_da': [], 'arbitrage_purchased_power_da': [], 'reg_up_cap_da': [],
+                        'reg_down_cap_da': [], 'reg_price_predict_up': [], 'reg_price_predict_down': []}
+
     elif id == "rt":
-        dict = {'Time': [], 'battery_setpoints_rt': [], 'SoC_rt': [], 'grid_load_rt': [],'peak_load_rt': [],
-                'react_grid_rt': [], 'react_batt_rt': [], 'grid_pf_rt': [], 'total_load_actual_rt': [],
-                'price_actual_rt': [], 'arbitrage_purchased_power_ideal_rt': [], 'arbitrage_purchased_power_actual_rt': []
-                }
+        dict = {'Time': [], 'battery_setpoints_rt': [], 'SoC_rt': [], 'grid_load_rt': [], 'peak_load_rt': [],
+                        'react_grid_rt': [], 'react_batt_rt': [], 'grid_pf_rt': [], 'total_load_actual_rt': [],
+                        'price_actual_rt': [], 'arbitrage_purchased_power_ideal_rt': [],
+                        'arbitrage_purchased_power_actual_rt': [],
+                        'reg_price_up_rt': [], 'reg_price_down_rt': [], 'reg_up_cap_rt': [], 'reg_down_cap_rt': []}
     elif id == 'results':
-        dict = {'Time': [],
-                'arbitrage_revenue_da': [],
-                'arbitrage_revenue_ideal_rt': [],
-                'arbitrage_revenue_actual_rt': [],
-                'peak_surcharge_rt': [],
-                'peak_surcharge_da': [],
-                'original_surcharge': []}
+        dict = {'Time': [], 'arbitrage_revenue_da': [], 'peak_surcharge_da': [], 'arbitrage_revenue_ideal_rt': [], 'arbitrage_revenue_actual_rt': [], 'peak_surcharge_rt': [], 'original_surcharge': [],
+               'reg_up_rev_da': [], 'reg_down_rev_da': [], 'reg_up_rev_rt': [], 'reg_down_rev_rt': []}
 
     return dict
 
@@ -136,6 +133,8 @@ if __name__ == "__main__":
     new_SoC = battery_obj.SoC_init
     # new_SoC = SoC_temp
     new_battery_setpoint = 0.0
+    new_reserve_up_cap = 0.0
+    new_reserve_down_cap = 0.0
     batt_temp = 0.0
     load_temp = 0.0
     load_react_temp = 0.0
@@ -147,6 +146,10 @@ if __name__ == "__main__":
     battery_active_power_ratio_peak = 0.0
     price_temp = 0.0
     arbitrage_sensitivity = 0.0
+    res_price_up_temp = 0.0
+    res_price_down_temp = 0.0
+    res_up_sensitivity = 0.0
+    res_down_sensitivity = 0.0
     # if things go haywire then we have some initialized values
     new_grid_load = 0.0
     new_grid_reactive_power = 0.0
@@ -157,10 +160,16 @@ if __name__ == "__main__":
     x_val = []
 
     # creating dictionaries which will save results
-    da_variables = {'Time': [], 'battery_setpoints_da': [], 'SoC_da': [], 'grid_load_da': [], 'peak_load_da': [], 'react_grid_da': [], 'react_batt_da': [], 'grid_pf_da': [], 'total_load_predict_da': [], 'price_predict_da': [], 'arbitrage_purchased_power_da': []}
-    rt_variables = {'Time': [], 'battery_setpoints_rt': [], 'SoC_rt': [], 'grid_load_rt': [], 'peak_load_rt': [], 'react_grid_rt': [], 'react_batt_rt': [], 'grid_pf_rt': [], 'total_load_actual_rt': [], 'price_actual_rt': [], 'arbitrage_purchased_power_ideal_rt': [], 'arbitrage_purchased_power_actual_rt': []}
-
-    metrics = {'Time': [], 'arbitrage_revenue_da': [], 'peak_surcharge_da': [], 'arbitrage_revenue_ideal_rt': [], 'arbitrage_revenue_actual_rt': [], 'peak_surcharge_rt': [], 'original_surcharge': []}
+    da_variables = {'Time': [], 'battery_setpoints_da': [], 'SoC_da': [], 'grid_load_da': [], 'peak_load_da': [],
+                    'react_grid_da': [], 'react_batt_da': [], 'grid_pf_da': [], 'total_load_predict_da': [],
+                    'price_predict_da': [], 'arbitrage_purchased_power_da': [], 'reg_up_cap_da': [], 'reg_down_cap_da': [], 'reg_price_predict_up': [], 'reg_price_predict_down': []}
+    rt_variables = {'Time': [], 'battery_setpoints_rt': [], 'SoC_rt': [], 'grid_load_rt': [], 'peak_load_rt': [],
+                    'react_grid_rt': [], 'react_batt_rt': [], 'grid_pf_rt': [], 'total_load_actual_rt': [],
+                    'price_actual_rt': [], 'arbitrage_purchased_power_ideal_rt': [], 'arbitrage_purchased_power_actual_rt': [],
+                    'reg_price_up_rt': [], 'reg_price_down_rt': [],'reg_up_cap_rt': [], 'reg_down_cap_rt': []}
+    #TODO: add reserve capacity metric
+    metrics = {'Time': [], 'arbitrage_revenue_da': [], 'peak_surcharge_da': [], 'arbitrage_revenue_ideal_rt': [], 'arbitrage_revenue_actual_rt': [], 'peak_surcharge_rt': [], 'original_surcharge': [],
+               'reg_up_rev_da': [], 'reg_down_rev_da': [], 'reg_up_rev_rt': [], 'reg_down_rev_rt': []}
 
     while ts < simulation_duration:
         print('current time -> ' + str(current_time))
@@ -178,6 +187,9 @@ if __name__ == "__main__":
             if battery_obj.use_case_dict['energy_arbitrage']['control_type'] == 'opti-based':
                 battery_obj.set_hourly_price_forecast(current_time, day_ahead_forecast_horizon, ts)
 
+            if battery_obj.use_case_dict['reserves_placement']['control_type'] == 'opti-based':
+                battery_obj.set_hourly_res_price_forecast(current_time, day_ahead_forecast_horizon, ts)
+
             print("Solving the Day-Ahead Optimization Problem")
 
             if ts > 0:
@@ -186,13 +198,26 @@ if __name__ == "__main__":
             battery_obj.DA_optimal_quantities()
 
             print("Battery-Setpoints (kW) -> "+str(battery_obj.battery_setpoints_prediction))
+            if battery_obj.use_case_dict['reserves_placement']['control_type'] == 'opti-based':
+                print("Battery-Res Up (kWh) -> "+str(battery_obj.battery_res_up_prediction))
+                print("Battery-Res Down (kWh) -> "+str(battery_obj.battery_res_down_prediction))
+
             print("Battery-SoC (kWh)-> "+str(battery_obj.SoC_prediction))
             print("PeakLoad (kW) -> "+str(battery_obj.peak_load_prediction))
             print("GridLoad (kW) -> "+str(battery_obj.grid_load_prediction))
             print("GridReact (kVar) -> "+str(battery_obj.grid_react_power_prediction))
             print("BattReact (kVar) -> "+str(battery_obj.battery_react_power_prediction))
+            # print("ResPriceUp ($/kWh) -> "+str(battery_obj.res_price_predict_up))
+            # print("ResPriceDown ($/kWh) -> "+str(battery_obj.res_price_predict_down))
+
+
             new_battery_setpoint = battery_obj.battery_setpoints_prediction[0]
-            load_temp = battery_obj.load_predict[0]
+            new_reserve_up_cap = battery_obj.battery_res_up_prediction[0]*5/60  # per 5 minute of an hour
+            new_reserve_down_cap = battery_obj.battery_res_down_prediction[0]*5/60  # per 5 minute of an hour
+            if ts > 0:
+                load_temp = battery_obj.actual_load[ts-1]
+            else:
+                load_temp = battery_obj.load_predict[0]
             load_react_temp = battery_obj.load_predict[0]*battery_obj.load_pf
             grid_act_power_temp = battery_obj.grid_load_prediction[0]
             grid_react_power_temp = battery_obj.grid_react_power_prediction[0]
@@ -201,13 +226,43 @@ if __name__ == "__main__":
             if battery_obj.use_case_dict['energy_arbitrage']['control_type'] == 'opti-based':
 
                 price_temp = battery_obj.price_predict[0]
-                arbitrage_sensitivity = abs(max(battery_obj.battery_setpoints_prediction)-min(battery_obj.battery_setpoints_prediction)) / (abs(max(battery_obj.price_predict)-min(battery_obj.price_predict))/np.std(np.array(battery_obj.price_predict)))
+                arbitrage_sensitivity = abs(((max(battery_obj.battery_setpoints_prediction) - min(battery_obj.battery_setpoints_prediction)) / np.std(battery_obj.battery_setpoints_prediction))) / \
+                                        (abs(max(battery_obj.price_predict) - min(battery_obj.price_predict)) / np.std(np.array(battery_obj.price_predict)))
 
-            # arbitrage_sensitivity = (abs(
-            #     max(battery_obj.battery_setpoints_prediction) - min(battery_obj.battery_setpoints_prediction)) / np.std(
-            #     battery_obj.battery_setpoints_prediction)) / (
-            #             abs(max(battery_obj.price_predict) - min(battery_obj.price_predict)) / np.std(
-            #         np.array(battery_obj.price_predict)))
+                # arbitrage_sensitivity = ((max(battery_obj.battery_setpoints_prediction) - min(battery_obj.battery_setpoints_prediction))) / \
+                #                         (abs(max(battery_obj.price_predict) - min(battery_obj.price_predict)) / np.std(np.array(battery_obj.price_predict)))
+
+            if battery_obj.use_case_dict['reserves_placement']['control_type'] == 'opti-based':
+                res_price_up_temp = battery_obj.res_price_predict_up[0]
+                if np.std(battery_obj.battery_res_up_prediction) == 0.0:
+                    res_up_sensitivity = 0.5
+                else:
+                    res_up_sensitivity = ((max(battery_obj.battery_res_up_prediction) - min(
+                        battery_obj.battery_res_up_prediction)) / np.std(battery_obj.battery_res_up_prediction)) / \
+                                            (abs(max(battery_obj.res_price_predict_up) - min(battery_obj.res_price_predict_up)) / np.std(
+                                                np.array(battery_obj.res_price_predict_up)))
+                res_price_down_temp = battery_obj.res_price_predict_down[0]
+
+                if np.std(battery_obj.battery_res_down_prediction)  == 0.0:
+                    res_down_sensitivity = 0.5
+                else:
+                    res_down_sensitivity = ((max(battery_obj.battery_res_down_prediction) - min(
+                        battery_obj.battery_res_down_prediction)) / np.std(battery_obj.battery_res_down_prediction)) / \
+                                         (abs(max(battery_obj.res_price_predict_down) - min(
+                                             battery_obj.res_price_predict_down)) / np.std(
+                                             np.array(battery_obj.res_price_predict_down)))
+                # res_up_sensitivity = ((max(battery_obj.battery_res_up_prediction) - min(
+                #     battery_obj.battery_res_up_prediction))) / \
+                #                      (abs(max(battery_obj.res_price_predict_up) - min(
+                #                          battery_obj.res_price_predict_up)) / np.std(
+                #                          np.array(battery_obj.res_price_predict_up)))
+                # res_price_down_temp = battery_obj.res_price_predict_down[0]
+                # res_down_sensitivity = ((max(battery_obj.battery_res_down_prediction) - min(
+                #     battery_obj.battery_res_down_prediction))) / \
+                #                        (abs(max(battery_obj.res_price_predict_down) - min(
+                #                            battery_obj.res_price_predict_down)) / np.std(
+                #                            np.array(battery_obj.res_price_predict_down)))
+
             battery_react_power_ratio = (battery_obj.battery_react_power_prediction[0] / (battery_obj.grid_react_power_prediction[0] + battery_obj.battery_react_power_prediction[0]))
             grid_react_power_ratio = 1 - battery_react_power_ratio
             if battery_obj.grid_load_prediction[0] == 0.0:
@@ -229,7 +284,10 @@ if __name__ == "__main__":
                 rt_variables['price_actual_rt'].append(battery_obj.actual_price[ts-60*60:ts])
                 rt_variables['arbitrage_purchased_power_ideal_rt'].append(battery_obj.arbitrage_purchased_power_ideal_rt[ts-60*60:ts])
                 rt_variables['arbitrage_purchased_power_actual_rt'].append(battery_obj.arbitrage_purchased_power_actual_rt[ts-60*60:ts])
-
+                rt_variables['reg_up_cap_rt'].append(battery_obj.battery_res_up_cap_actual[ts-60*60:ts])
+                rt_variables['reg_down_cap_rt'].append(battery_obj.battery_res_down_cap_actual[ts-60*60:ts])
+                rt_variables['reg_price_up_rt'].append(battery_obj.actual_res_price_up[ts-60*60:ts])
+                rt_variables['reg_price_down_rt'].append(battery_obj.actual_res_price_down[ts-60*60:ts])
                 x_val = []
 
             if ((ts % battery_obj.reporting_frequency) == 0) and (ts > 1):
@@ -241,6 +299,10 @@ if __name__ == "__main__":
                 metrics['peak_surcharge_rt'].append(np.max(np.array(rt_variables['peak_load_rt']))*battery_obj.peak_price)
                 metrics['peak_surcharge_da'].append(np.max(np.array(da_variables['peak_load_da']))*battery_obj.peak_price)
                 metrics['original_surcharge'].append(np.max(np.array(rt_variables['total_load_actual_rt']))*battery_obj.peak_price)
+                metrics['reg_up_rev_da'].append(np.sum(np.multiply(np.array(da_variables['reg_up_cap_da'])[:, 0], np.array(da_variables['reg_price_predict_up'])[:, 0])))
+                metrics['reg_down_rev_da'].append(np.sum(np.multiply(np.array(da_variables['reg_down_cap_da'])[:, 0], np.array(da_variables['reg_price_predict_down'])[:, 0])))
+                metrics['reg_up_rev_rt'].append(np.sum(np.multiply(np.array(rt_variables['reg_up_cap_rt'])[:, idx], np.array(rt_variables['reg_price_up_rt'])[:, idx]))*5/60)
+                metrics['reg_down_rev_rt'].append(np.sum(np.multiply(np.array(rt_variables['reg_down_cap_rt'])[:, idx], np.array(rt_variables['reg_price_down_rt'])[:, idx]))*5/60)
                 store_dict_to_json(ts, da_variables, 'da')
                 store_dict_to_json(ts, rt_variables, 'rt')
                 store_dict_to_json(ts, metrics, 'results')
@@ -258,27 +320,47 @@ if __name__ == "__main__":
             da_variables['total_load_predict_da'].append([battery_obj.load_predict[0]]*60*60)
             da_variables['price_predict_da'].append([battery_obj.price_predict[0]]*60*60)
             da_variables['arbitrage_purchased_power_da'].append([battery_obj.battery_setpoints_prediction[0]]*60*60)
+            da_variables['reg_price_predict_up'].append([battery_obj.res_price_predict_up[0]]*60*60)
+            da_variables['reg_price_predict_down'].append([battery_obj.res_price_predict_down[0]]*60*60)
+            da_variables['reg_up_cap_da'].append([battery_obj.battery_res_up_prediction[0]]*60*60)
+            da_variables['reg_down_cap_da'].append([battery_obj.battery_res_down_prediction[0]]*60*60)
 
         # RealTime Control Routine
         # get updated load profile
         # battery_obj.set_load_actual(load_temp, (battery_obj.load_predict[1]-battery_obj.load_predict[0])*battery_obj.hrs_to_secs/2 )
 
-        battery_obj.set_load_actual(load_temp, np.mean(np.diff(battery_obj.load_predict[0:10])) * battery_obj.hrs_to_secs)
+        # battery_obj.set_load_actual(load_temp, np.mean(np.diff(battery_obj.load_predict[0:10])) * battery_obj.hrs_to_secs)
+
+        battery_obj.set_load_actual(load_temp, np.mean(np.diff(battery_obj.load_predict[0:3])) * battery_obj.hrs_to_secs)
 
 
-        print(str(current_time) + "-->" + " Actual active power load: " + str(battery_obj.actual_load[ts]))
-        print(str(current_time) + "-->" + " Actual reactive power load: " + str(battery_obj.actual_reactive_load[ts]))
+        # print(str(current_time) + "-->" + " Actual active power load: " + str(battery_obj.actual_load[ts]))
+        # print(str(current_time) + "-->" + " Actual reactive power load: " + str(battery_obj.actual_reactive_load[ts]))
 
         # get mismatch from the prediction
         active_power_mismatch = battery_obj.actual_load[ts] - load_temp
-        print(str(current_time) + "-->" + " Act-Power Mismatch: " + str(active_power_mismatch))
+        # print(str(current_time) + "-->" + " Act-Power Mismatch: " + str(active_power_mismatch))
         reactive_power_mismatch = battery_obj.actual_reactive_load[ts] - load_react_temp
-        print(str(current_time) + "-->" + " React-Power Mismatch: " + str(reactive_power_mismatch))
+        # print(str(current_time) + "-->" + " React-Power Mismatch: " + str(reactive_power_mismatch))
 
         if battery_obj.use_case_dict['energy_arbitrage']['control_type'] == 'opti-based':
             battery_obj.set_price_actual(price_temp, (battery_obj.price_predict[1]-battery_obj.price_predict[0])*300*battery_obj.hrs_to_secs, ts)
         else:
-            battery_obj.actual_price.append(price_temp, ts)
+            battery_obj.actual_price.append(price_temp)
+
+        if battery_obj.use_case_dict['reserves_placement']['control_type'] == 'opti-based':
+            battery_obj.get_reg_signal(current_time, ts)
+            battery_obj.set_res_price_actual(res_price_up_temp,
+                                             res_price_down_temp,
+                                             (battery_obj.res_price_predict_up[1] - battery_obj.res_price_predict_up[
+                                                 0]) * 300 * battery_obj.hrs_to_secs,
+                                             (battery_obj.res_price_predict_down[1] - battery_obj.res_price_predict_down[
+                                                 0]) * 300 * battery_obj.hrs_to_secs,
+                                             ts)
+        else:
+            battery_obj.actual_res_price_up.append(res_price_down_temp)
+            battery_obj.actual_res_price_down.append(res_price_down_temp)
+
 
         # check if external signal has been imposed
 
@@ -309,14 +391,19 @@ if __name__ == "__main__":
                          grid_act_power_temp)
 
                 elif service_request == "energy_arbitrage":
-                    #TODO: when demand charge is not done before it, then how to automate it? one way is to make battery temp, SoC temp variable and keep changing it only
                     if (ts % 300) == 0:     # decide arbitrage power
                         if battery_obj.use_case_dict['energy_arbitrage']['control_type'] == 'opti-based':
                             price_mismatch = (battery_obj.actual_price[ts] - battery_obj.price_predict[0])
 
-                            print(str(current_time) + "-->" + " Energy Price Mismatch: " + str(price_mismatch))
+                            # print(str(current_time) + "-->" + " Energy Price Mismatch: " + str(price_mismatch))
+                            if (price_mismatch > 0.0) and (new_battery_setpoint > 0.0):
+                                delP = arbitrage_sensitivity*price_mismatch
+                            elif (price_mismatch < 0.0) and (new_battery_setpoint < 0.0):
+                                delP = arbitrage_sensitivity*price_mismatch
+                            else:
+                                delP = 0.0
                             # new_battery_setpoint = new_battery_setpoint + arbitrage_sensitivity*price_mismatch
-                            new_battery_setpoint = battery_obj.change_setpoint(new_battery_setpoint, arbitrage_sensitivity*price_mismatch)
+                            new_battery_setpoint = battery_obj.change_setpoint(new_battery_setpoint, delP)
                             # check SoC
                             new_SoC, new_battery_setpoint = battery_obj.check_SoC(new_battery_setpoint, new_SoC)
                             # new grid load
@@ -326,8 +413,68 @@ if __name__ == "__main__":
                         if ts > 0:
                             battery_obj.arbitrage_purchased_power_actual_rt[ts-300:ts] = [min(abs(battery_obj.arbitrage_purchased_power_actual_rt[ts-300:ts]))]*300
                     # if PRIORITY is True:   # maintain arbitrage threshold
+                elif service_request == "reserves_placement":
+                    if (ts % 300) == 0:     # decide reserve purchase power
+                        if battery_obj.use_case_dict['reserves_placement']['control_type'] == 'opti-based':
+                            res_price_up_mismatch = (battery_obj.actual_res_price_up[ts] - battery_obj.res_price_predict_up[0])
+                            res_price_down_mismatch = (battery_obj.actual_res_price_down[ts] - battery_obj.res_price_predict_down[0])
+                            # print(str(current_time) + "-->" + " Reserve Price Up Mismatch: " + str(res_price_up_mismatch))
+                            # print(str(current_time) + "-->" + " Reserve Price Down Mismatch: " + str(res_price_down_mismatch))
+
+                            # if res_price_up_mismatch > 0.0:
+                            # new_reserve_up_cap = min((battery_obj.rated_kWh - battery_obj.reserve_SoC),
+                            #                          max(battery_obj.reserve_SoC,
+                            #                             new_reserve_up_cap + (res_price_up_mismatch * res_up_sensitivity)))
+                            if res_price_up_mismatch > 0.0:
+                                new_reserve_up_cap += (res_price_up_mismatch * res_up_sensitivity)
+                            # if new_reserve_up_cap > (battery_obj.rated_kWh - battery_obj.reserve_SoC):
+                            #     new_reserve_up_cap = battery_obj.rated_kWh - battery_obj.reserve_SoC
+                            # elif  new_reserve_up_cap < battery_obj.reserve_SoC:
+                            #     new_reserve_up_cap = battery_obj.reserve_SoC
+
+                            # temp = new_SoC - (battery_obj.battery_setpoints_prediction[0] * battery_obj.hrs_to_secs * 299) - (new_reserve_up_cap/battery_obj.bat_eta) * battery_obj.hrs_to_secs * 299
+                            # this is a check that with this SoC will we violate the SoC range in the next hour or not?
+                            # temp = new_SoC - new_reserve_up_cap*(60/5)
+                            # if temp < battery_obj.reserve_SoC:
+                            #     # new_reserve_up_cap = new_reserve_up_cap - (battery_obj.bat_eta * (-battery_obj.reserve_SoC + new_SoC - (battery_obj.battery_setpoints_prediction[0] * battery_obj.hrs_to_secs * 299) ) / (battery_obj.hrs_to_secs * 300))
+                            #     new_reserve_up_cap -= (battery_obj.reserve_SoC-temp)*5/60
+                        # if res_price_down_mismatch > 0.0:
+                        #     new_reserve_down_cap = min((battery_obj.rated_kWh - battery_obj.reserve_SoC),
+                        #                              max(battery_obj.reserve_SoC,
+                        #                                 new_reserve_down_cap + (res_price_down_mismatch * res_down_sensitivity)))
+                            if res_price_down_mismatch > 0.0:
+                                new_reserve_down_cap += (res_price_down_mismatch * res_down_sensitivity)
+                            # temp = new_SoC + (battery_obj.battery_setpoints_prediction[0] * battery_obj.hrs_to_secs * 299) + (new_reserve_down_cap*battery_obj.bat_eta) * battery_obj.hrs_to_secs * 299
+                            # temp = new_SoC + new_reserve_down_cap*(60/5)
+                            # if temp > (battery_obj.rated_kWh-battery_obj.reserve_SoC):
+                            #     new_reserve_down_cap -= (temp-battery_obj.rated_kWh+battery_obj.reserve_SoC)*5/60
+
+                                # new_reserve_down_cap = new_reserve_down_cap - ((battery_obj.rated_kWh - battery_obj.reserve_SoC - new_SoC + (battery_obj.battery_setpoints_prediction[0] * battery_obj.hrs_to_secs * 299) ) / ( battery_obj.bat_eta * battery_obj.hrs_to_secs * 300))
 
 
+                            # print(str(current_time) + "-->" + " Reserve Up Capacity Realtime: " + str(new_reserve_up_cap) + " predicted: " + str(battery_obj.battery_res_up_prediction[0]*5/60))
+                            # print(str(current_time) + "-->" + " Reserve Down Capacity Realtime: " + str(new_reserve_down_cap) + " predicted: " + str(battery_obj.battery_res_down_prediction[0]*5/60))
+
+                    if battery_obj.actual_reg_signal[ts] < 0.0:
+                        # below the complicated 0.5/(5*60) comes from conversion of capacity to power
+                        # 0.5 comes from the fact the signal is coming every 2 second, (5*60) because capacity is given for every 5 minutes
+                        new_battery_setpoint = battery_obj.change_setpoint(new_battery_setpoint,
+                                                                           battery_obj.actual_reg_signal[ts] * new_reserve_down_cap*(1/(5*60)))
+                        # new_battery_setpoint = battery_obj.change_setpoint(new_battery_setpoint,
+                        #                                                    battery_obj.actual_reg_signal[ts] * new_reserve_down_cap/(battery_obj.res_eta_down*60/5))
+
+                        new_SoC, new_battery_setpoint = battery_obj.check_SoC(new_battery_setpoint, new_SoC)
+                        # print(str(current_time) + "-->" + " Regulation Signal: " + str(
+                        #     battery_obj.actual_reg_signal[ts] * new_reserve_down_cap*(0.5/(5*60)))+ ': reg_down_cap: ' + str(new_reserve_down_cap) + 'batt_sp' + str(new_battery_setpoint))
+
+                    elif battery_obj.actual_reg_signal[ts] > 0.0:
+                        new_battery_setpoint = battery_obj.change_setpoint(new_battery_setpoint,
+                                                                           battery_obj.actual_reg_signal[ts] * new_reserve_up_cap*(1/(5*60)))
+                        # new_battery_setpoint = battery_obj.change_setpoint(new_battery_setpoint,
+                        #                                                    battery_obj.actual_reg_signal[ts] * new_reserve_up_cap/(battery_obj.res_eta_up*60/5))
+                        new_SoC, new_battery_setpoint = battery_obj.check_SoC(new_battery_setpoint, new_SoC)
+                        # print(str(current_time) + "-->" + " Regulation Signal: " + str(
+                        #     battery_obj.actual_reg_signal[ts] * new_reserve_up_cap *(0.5/(5*60))) + ': reg_up_cap: ' + str(new_reserve_up_cap) + 'batt_sp' + str(new_battery_setpoint))
             except:
                 pass
 
@@ -336,7 +483,7 @@ if __name__ == "__main__":
         if (top_priority_service_request == "demand_charge"):
             print("Demand Charge is the highest priority")
             if new_grid_load > battery_obj.peak_load_prediction:
-                print("demand charge is the top prioirity but the peak load is getting violated")
+                # print("demand charge is the top prioirity but the peak load is getting violated")
                 # adjust battery power setpoint and see whether the adjusted power is even physically possible
                 new_battery_setpoint = battery_obj.change_setpoint(new_battery_setpoint, new_grid_load-battery_obj.peak_load_prediction)
                 # check SoC
@@ -367,7 +514,7 @@ if __name__ == "__main__":
                 apparant_temp = battery_obj.get_apparent_power(grid_act_power_temp, new_battery_reactive_power)
                 pf_temp = battery_obj.get_power_factor(grid_act_power_temp, apparant_temp)
                 if (np.sqrt(new_battery_reactive_power**2 + new_battery_setpoint**2) > battery_obj.rated_inverter_kVA):
-                    print("reactive power change has violated the rated inverter kVA")
+                    # print("reactive power change has violated the rated inverter kVA")
                     new_battery_setpoint = np.sqrt(battery_obj.rated_inverter_kVA**2 - new_battery_reactive_power**2)
             else:
                 print("power factor is within the tolerance of limit of " + str(battery_obj.pf_limit))
@@ -388,7 +535,30 @@ if __name__ == "__main__":
                     new_grid_load = max(0, battery_obj.actual_load[ts] - new_battery_setpoint)
             arbitrage_purchased_power_actual = new_battery_setpoint
 
-        print("----------- Real-Time Control Done --------")
+        # elif (top_priority_service_request == "reserves_placement"):
+        #         res_up_mismatch =  ideal_reserve_up_cap - battery_obj.battery_res_up_prediction[0]
+        #
+        #         new_battery_setpoint = battery_obj.change_setpoint(new_battery_setpoint,
+        #                                                            arbitrage_purchased_power_ideal - new_battery_setpoint)
+        #
+        #         if new_battery_setpoint < arbitrage_purchased_power_ideal:
+        #             new_battery_setpoint = battery_obj.change_setpoint(new_battery_setpoint,
+        #                                                                arbitrage_purchased_power_ideal - new_battery_setpoint)
+        #             new_SoC, new_battery_setpoint = battery_obj.check_SoC(new_battery_setpoint, new_SoC)
+        #             new_grid_load = max(0, battery_obj.actual_load[ts] - new_battery_setpoint)
+        #     elif arbitrage_purchased_power_ideal < 0:  # we asked for charging power
+        #         if new_battery_setpoint > arbitrage_purchased_power_ideal:
+        #             new_battery_setpoint = battery_obj.change_setpoint(new_battery_setpoint,
+        #                                                                arbitrage_purchased_power_ideal - new_battery_setpoint)
+        #             new_SoC, new_battery_setpoint = battery_obj.check_SoC(new_battery_setpoint, new_SoC)
+        #             new_grid_load = max(0, battery_obj.actual_load[ts] - new_battery_setpoint)
+        #     arbitrage_purchased_power_actual = new_battery_setpoint
+        #
+        #     ideal_reserve_up_cap = new_reserve_up_cap
+        #     ideal_reserve_down_cap = new_reserve_down_cap
+
+
+        # print("----------- Real-Time Control Done --------")
         battery_obj.SoC_actual.append(new_SoC)
         battery_obj.battery_setpoints_actual.append(new_battery_setpoint)
         battery_obj.grid_load_actual.append(new_grid_load)
@@ -396,25 +566,30 @@ if __name__ == "__main__":
         battery_obj.grid_react_power_actual.append(new_grid_reactive_power)
         battery_obj.grid_apparent_power_actual.append(battery_obj.get_apparent_power(new_grid_load, battery_obj.grid_react_power_actual[ts]))
         battery_obj.grid_power_factor_actual.append(battery_obj.get_power_factor(new_grid_load, battery_obj.grid_apparent_power_actual[ts]))
+        battery_obj.battery_res_up_cap_actual.append(new_reserve_up_cap*60/5)
+        battery_obj.battery_res_down_cap_actual.append(new_reserve_down_cap*60/5)
         if (arbitrage_purchased_power_actual > new_battery_setpoint) and arbitrage_purchased_power_actual > 0:
             check_point = 1
 
         battery_obj.arbitrage_purchased_power_actual_rt.append(arbitrage_purchased_power_actual)
         battery_obj.arbitrage_purchased_power_ideal_rt.append(arbitrage_purchased_power_ideal)
-        # SoC_temp = new_SoC
-        # batt_temp = new_battery_setpoint
         load_temp = battery_obj.actual_load[ts]
         price_temp = battery_obj.actual_price[ts]
         load_react_temp = battery_obj.actual_reactive_load[ts]
         grid_act_power_temp = new_grid_load
         grid_react_power_temp = new_grid_reactive_power
         batt_react_power_temp = new_battery_reactive_power
-        print(str(current_time) + "-->" + " Current Active Power Battery Setpoint: " + str(battery_obj.battery_setpoints_actual[ts]))
-        print(str(current_time) + "-->" + " Current Battery SoC: " + str(battery_obj.SoC_actual[ts]))
+        res_price_up_temp = battery_obj.actual_res_price_up[ts]
+        res_price_down_temp = battery_obj.actual_res_price_down[ts]
 
-        print(str(current_time) + "-->" + " Current Reactive Power from Battery: " + str(battery_obj.battery_react_power_actual[ts]))
-        print(str(current_time) + "-->" + " Current Reactive Power from Grid: " + str(battery_obj.grid_react_power_actual[ts]))
-        print(str(current_time) + "-->" + " Total Reactive Power from Load: " + str(battery_obj.load_pf*new_grid_load))
+        if (battery_obj.battery_setpoints_actual[ts] > 740.0) or (battery_obj.battery_setpoints_actual[ts] < -740.0):
+            check_point = 1
+        # print(str(current_time) + "-->" + " Current Active Power Battery Setpoint: " + str(battery_obj.battery_setpoints_actual[ts]))
+        # print(str(current_time) + "-->" + " Current Battery SoC: " + str(battery_obj.SoC_actual[ts]))
+        #
+        # print(str(current_time) + "-->" + " Current Reactive Power from Battery: " + str(battery_obj.battery_react_power_actual[ts]))
+        # print(str(current_time) + "-->" + " Current Reactive Power from Grid: " + str(battery_obj.grid_react_power_actual[ts]))
+        # print(str(current_time) + "-->" + " Total Reactive Power from Load: " + str(battery_obj.load_pf*new_grid_load))
 
         x_val.append(ts)
 
