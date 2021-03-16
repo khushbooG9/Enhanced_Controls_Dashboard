@@ -889,12 +889,9 @@ def update_live_graph(ts, data1, live1, gen_config, data_config, use_case_librar
         if ts % 3600 == 0:
             battery_obj.set_hourly_load_forecast(current_time, current_time + timedelta(days=1))
             battery_obj.DA_optimal_quantities()
-            # print("Optimization done")
         battery_obj.set_load_actual(battery_obj.load_predict[0])
         active_power_mismatch = battery_obj.actual_load[ts] - battery_obj.load_up[0]
         reactive_power_mismatch = battery_obj.load_pf * active_power_mismatch
-
-        # print("Iterating through the services_list")
         for i in range(len(services_list) - 1):
             service_priority = services_list[priority_list.index(i + 1)]
             if service_priority == "demand_charge":
@@ -908,8 +905,6 @@ def update_live_graph(ts, data1, live1, gen_config, data_config, use_case_librar
                     pass
 
                 else:
-                    # this means that actually load power is lower than expected, hence the reactive power drawn is also less
-                    # ratio of the battery from the total reactive mismatch
                     battery_ratio = (1 - battery_obj.battery_react_power_prediction[0] / (
                             battery_obj.grid_react_power_prediction[0] + battery_obj.battery_react_power_prediction[
                         0]))
@@ -928,20 +923,24 @@ def update_live_graph(ts, data1, live1, gen_config, data_config, use_case_librar
         battery_obj.get_power_factor(new_grid_load, battery_obj.grid_apparent_power_actual[ts]))
     SoC_temp = new_SoC
 
+    #print(f"soc actual = {battery_obj.SoC_actual}")
+    #print(f"grid load actual = {battery_obj.grid_load_actual}")
+    #print(f"grid reac = {battery_obj.grid_load_actual}")
+
     current_time = current_time + timedelta(seconds=+1)
 
-    fig1_dict = {'linewidth': 2, 'linecolor': '#e67300', 'width': 500, 'height': 350,
+    fig1_dict = {'linewidth': 2, 'linecolor': '#EFEDED', 'width': 500, 'height': 350,
                  'xaxis_title': 'Seconds', 'yaxis_title': 'kW'}
     fig1 = dash_fig(ts, battery_obj.SoC_prediction, battery_obj.SoC_actual,
-                    "SoC Prediction", "SoC Actual")
+                    "SoC Prediction", "SoC Actual", **fig1_dict)
     fig2 = dash_fig(ts, battery_obj.grid_load_prediction, battery_obj.grid_load_actual,
-                    "Grid Load Prediction", "Grid Load Actual")
+                    "Grid Load Prediction", "Grid Load Actual", **fig1_dict)
 
     fig4 = dash_fig(ts, [battery_obj.peak_load_prediction], battery_obj.peak_load_actual,
-                    "Peak Load Prediction", "Peak Load Actual")
+                    "Peak Load Prediction", "Peak Load Actual", **fig1_dict)
 
     fig3 = dash_fig(ts, battery_obj.grid_react_power_prediction, battery_obj.grid_react_power_actual,
-                    "Grid Reactive Power Prediction", "Grid Reactive Power Actual")
+                    "Grid Reactive Power Prediction", "Grid Reactive Power Actual",**fig1_dict)
 
     fig5 = dash_fig(ts, battery_obj.battery_react_power_prediction, battery_obj.battery_react_power_actual,
                     "Peak Reactive Power Prediction", "Peak Reactive Power Actual")
