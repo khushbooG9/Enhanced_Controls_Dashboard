@@ -534,60 +534,6 @@ def build_top_panel():
     )
 
 
-# def left_graph():
-#     battery_obj = BatteryClass('dict.json')  # make object
-#     battery_obj.get_data()
-
-#     battery_obj.set_load_forecast()
-#     battery_obj.DA_optimal_quantities()
-#     fig = make_subplots(rows=2, cols=1, shared_xaxes=True)
-
-#     fig.append_trace(go.Scatter(
-
-#         x = [i for i in range(len(battery_obj.grid_react_power_prediction))],
-#         y = battery_obj.grid_react_power_prediction,
-#         name= "Total Reactive Power Grid ",
-#         ), row=1, col=1)
-#     fig.add_trace(go.Scatter(
-
-#         x = [i for i in range(len(battery_obj.grid_react_power_prediction))],
-#         y = battery_obj.battery_react_power_prediction,
-#         name= "Reactive Power Battery",
-#         ), row=1, col=1)
-#     fig.add_trace(go.Scatter(
-
-#         x = [i for i in range(len(battery_obj.grid_react_power_prediction))],
-#         y = battery_obj.load_up*battery_obj.load_pf,
-#         name= "Predicted Reactive Power Load",
-#         ), row=1, col=1)
-
-#     fig.append_trace(go.Scatter(
-#         x= [i for i in range(len(battery_obj.grid_react_power_prediction))],
-#         y= battery_obj.grid_power_factor,
-#         name = "New Power Factor",
-#         ), row=2, col=1)
-
-#     fig.add_trace(go.Scatter(
-
-#         x = [i for i in range(len(battery_obj.grid_react_power_prediction))],
-#         y = battery_obj.grid_original_power_factor,
-#         name= "Old Power Factor", line = dict(dash="dash")
-#         ), row=2, col=1)
-
-
-#     fig.update_yaxes(title_text="kVar", row=1, col=1,showline=True, linewidth=2, linecolor='#e67300', mirror=True)
-#     fig.update_yaxes(title_text="cosphi", row=2, col=1,showline=True, linewidth=2, linecolor='#e67300', mirror=True, title_standoff=2)
-#     fig.update_xaxes(row=1, col=1,showline=True, linewidth=2, linecolor='#e67300', mirror=True)
-#     fig.update_xaxes(title_text="Hours", row=2, col=1,showline=True, linewidth=2, linecolor="#e67300", mirror=True)
-#     fig.update_layout(title= "Grid Side Results" ,width=500, height=350,paper_bgcolor = "#EFEDED",legend=dict(
-#     orientation="h",
-#     yanchor="bottom",
-#     y=1.05,
-#     xanchor="right",
-#     x=1), 
-# 	)
-#     return fig
-
 def build_left_graph():
     """
     function to build left graph
@@ -598,55 +544,6 @@ def build_left_graph():
         id="left-graph-fig", animate=True,
     )
 
-
-# def right_graph():
-#     battery_obj = BatteryClass('dict.json')  # make object
-#     battery_obj.get_data()
-
-#     battery_obj.set_load_forecast()
-#     battery_obj.DA_optimal_quantities()
-
-#     fig = go.Figure()
-#     fig.add_trace(go.Scatter(
-#         x=[i for i in range(len(battery_obj.battery_setpoints))],
-#         y=[i for i in battery_obj.battery_setpoints],
-# 		name = 'Battery Power (Charge/Discharge)',
-# 	)
-# 	)
-#     fig.add_trace(go.Scatter(
-#         x=[i for i in range(len(battery_obj.battery_setpoints))],
-#         y=[battery_obj.peak_load_prediction]*battery_obj.windowLength,
-#         name = 'Peak Load',
-#     )
-#     )
-#     fig.add_trace(go.Scatter(
-#         x=[i for i in range(len(battery_obj.battery_setpoints))],
-#         y=[i for i in battery_obj.grid_load_prediction],
-#         name = 'Grid Load',
-#     )
-#     )
-#     fig.add_trace(go.Scatter(
-#         x=[i for i in range(len(battery_obj.battery_setpoints))],
-#         y=[i for i in battery_obj.load_predict],
-#         name = 'Load Prediction',
-#     )
-#     )
-#     fig.update_xaxes(showline=True, linewidth=2, linecolor='#e67300', mirror=True)
-#     fig.update_yaxes(showline=True, linewidth=2, linecolor='#e67300', mirror=True)
-#     fig.update_layout(paper_bgcolor = "#EFEDED", width=500, height=350,legend = dict(
-#      orientation="h",
-# 	 yanchor="bottom",
-# 	 y=1.05,
-# 	 xanchor="right",
-# 	 x=1,
-# 	 ),
-# 	xaxis_title="Hours",
-# 	yaxis_title="kW",
-
-#         )
-
-
-#     return fig
 
 def build_right_graph():
     """
@@ -797,12 +694,10 @@ def build_tabs():
 #     binary = ' '.join(format(ord(letter), 'b') for letter in str)
 #     return binary
 
-
 # def binary_to_dict(the_binary):
 #     jsn = ''.join(chr(int(x, 2)) for x in the_binary.split())
 #     d = dill.loads(jsn)  
 #     return d
-
 
 def serve_layout():
     return html.Div(
@@ -918,84 +813,84 @@ def stop_production(n_clicks, current):
     return not current, "stop" if current else "start"
 
 
-# @app.callback(
-# 	[Output("graph-update","n_intervals")],
-# 	[Input("")],
-# 	[],
-# )
-
 @app.callback(
-    output=[Output("right-graph-fig", "figure"), Output("left-graph-fig", "figure"), Output("down-graph-fig", "figure"), \
+    output=[Output("right-graph-fig", "figure"), Output("left-graph-fig", "figure"), Output("down-graph-fig", "figure"),
             Output("data-store", "data"), Output("liveplot-store", "data")],
     inputs=[Input("graph-update", "n_intervals")],
     state=[State("data-store", "data"), State("liveplot-store", "data"), State("gen-config-store", "data"),
-           State("data-config-store", "data"), \
-           State("usecase-store", "data")],
-)
+           State("data-config-store", "data"),
+           State("usecase-store", "data")], )
 # @cache.memoize
-
-def dash_fig(ts, prediction_data, actual_data, prediction_name, actual_name, x_max, x_min, y_max, y_min, **kwargs):
-    dict = {'linewidth': 2, 'linecolor': '#e67300', 'width': 500, 'height': 350,
-            'xaxis_title': 'Seconds', 'yaxis_title': 'kW'}
-    dict.update(kwargs)
-    legend_dict = dict(orientation="h", yanchor="bottom", y=1.05, xanchor="right", x=1)
-    fig = go.Figure()
-    fig.add_trace(go.Scatter(
-        x=[i for i in range(ts)],
-        y=[prediction_data[0]] * ts,
-        name="prediction_name"))
-    fig.add_trace(go.Scatter(
-        x=[i for i in range(len(actual_data))],
-        y=[i for i in actual_data],
-        name="actual_name"))
-    fig.update_xaxes(range=[x_min, x_max], showline=True, linewidth=2, linecolor='#e67300', mirror=True)
-    fig.update_yaxes(range=[y_min, y_max], showline=True, linewidth=2, linecolor='#e67300', mirror=True)
-    fig.update_layout(paper_bgcolor=dict['linecolor'], width=dict['width'], height=dict['height'], legend=legend_dict,
-                      xaxis_title=dict['xaxis_title'],
-                      yaxis_title=dict['yaxis_title'])
-    return fig
-
+# fig1= None
 
 def update_live_graph(ts, data1, live1, gen_config, data_config, use_case_library):
     '''
     updating the live graph
     '''
+
+    def dash_fig(ts, prediction_data, actual_data, prediction_name, actual_name, **kwargs):
+        dict_fig = {'linewidth': 2, 'linecolor': '#EFEDED', 'width': 600, 'height': 350,
+                    'xaxis_title': 'Seconds', 'yaxis_title': 'kW'}
+        if kwargs:
+            dict_fig.update(kwargs)
+        legend_dict = dict(orientation="h", yanchor="bottom", y=1.05, xanchor="right", x=1)
+        fig = go.Figure()
+        fig.add_trace(go.Scatter(
+            x=[i for i in range(3600)],
+            y=[prediction_data[0]] * 3600,
+            name=prediction_name))
+        fig.add_trace(go.Scatter(
+            x=[i for i in range(len(actual_data))],
+            y=[i for i in actual_data],
+            name=actual_name))
+
+        ymin, ymax = min(prediction_data + actual_data), max(prediction_data + actual_data)
+        fig.update_xaxes(range=[0, ts], showline=True, linewidth=2, linecolor='#e67300', mirror=True)
+        fig.update_yaxes(range=[ymin - 20, ymax + 20], showline=True, linewidth=2, linecolor='#e67300', mirror=True)
+        # fig.update_yaxes(showline=True, linewidth=2, linecolor='#e67300', mirror=True)
+        fig.update_layout(paper_bgcolor=dict_fig['linecolor'], width=dict_fig['width'], height=dict_fig['height'],
+                          legend=legend_dict,
+                          xaxis_title=dict_fig['xaxis_title'],
+                          yaxis_title=dict_fig['yaxis_title'])
+        return fig
+
+    data = {}
+    new_battery_setpoint = 0.0
+    new_grid_load = 0.0
+    new_SoC = 0.0
+    new_battery_reactive_power = 0.0
+    time_format = '%Y-%m-%d %H:%M:%S'
+    start_time = gen_config['StartTime']
+    end_time = gen_config['EndTime']
+    battery_obj = battery_class_new(use_case_library, gen_config, data_config)
+
     if ts == 0:
-        print("SECOND IS", ts)
-        time_format = '%Y-%m-%d %H:%M:%S'
-        start_time = gen_config['StartTime']
-        end_time = gen_config['EndTime']
         simulation_duration = int(
             (datetime.strptime(end_time, time_format) - datetime.strptime(start_time, time_format)).total_seconds())
         current_time = datetime.strptime(start_time, time_format)
-        # use_case_library = construct_use_case_library(gen_config, control_config)
-        # print("GOT use_case_library")
         services_list = list(use_case_library.keys())
         priority_list = []
         for key, value in use_case_library.items():
             priority_list.append(use_case_library[key]["priority"])
-
-        battery_obj = battery_class_new(use_case_library, gen_config, data_config)
-        # print("Got battery_obj")
-        battery_obj.get_data()
-        # print("Got all the data")
         SoC_temp = battery_obj.SoC_init
-        new_battery_setpoint = 0.0
+        battery_obj.get_data()
 
-        # if things go haywire then we have some initialized values
-        new_grid_load = 0.0
-        new_SoC = 0.0
-        new_battery_reactive_power = 0.0
-        x_val = []
-        # print("Checking for the minute mark")
+    elif ts > 0:
+        battery_obj.fromdict(live1)
+        simulation_duration = data1["simulation_duration"]
+        current_time = datetime.strptime(data1["current_time"], "%Y-%m-%d %H:%M:%S")
+        services_list = data1["services_list"]
+        priority_list = data1["priority_list"]
+        SoC_temp = data1["SoC_temp"]
+
+    print("SECOND IS", ts)
+
+    if ts < simulation_duration:
         if ts % 3600 == 0:
-            next_day_hourly_interval = timedelta(days=+1)
-            day_ahead_forecast_horizon = current_time + next_day_hourly_interval
-            battery_obj.set_hourly_load_forecast(current_time, day_ahead_forecast_horizon)
+            battery_obj.set_hourly_load_forecast(current_time, current_time + timedelta(days=1))
             battery_obj.DA_optimal_quantities()
             # print("Optimization done")
         battery_obj.set_load_actual(battery_obj.load_predict[0])
-        # print("ALL set the actual_load")
         active_power_mismatch = battery_obj.actual_load[ts] - battery_obj.load_up[0]
         reactive_power_mismatch = battery_obj.load_pf * active_power_mismatch
 
@@ -1022,342 +917,43 @@ def update_live_graph(ts, data1, live1, gen_config, data_config, use_case_librar
                     new_battery_reactive_power = battery_obj.battery_react_power_prediction[
                                                      0] + battery_ratio * reactive_power_mismatch
 
-        battery_obj.SoC_actual.append(SoC_temp)
-        battery_obj.battery_setpoints_actual.append(new_battery_setpoint)
-        battery_obj.grid_load_actual.append(new_grid_load)
-        battery_obj.battery_react_power_actual.append(new_battery_reactive_power)
-        battery_obj.grid_react_power_actual.append(battery_obj.load_pf * new_grid_load + new_battery_reactive_power)
-        battery_obj.grid_apparent_power_actual.append(
-            battery_obj.get_apparent_power(new_grid_load, battery_obj.grid_react_power_actual[ts]))
-        battery_obj.grid_power_factor_actual.append(
-            battery_obj.get_power_factor(new_grid_load, battery_obj.grid_apparent_power_actual[ts]))
-        SoC_temp = new_SoC
-        # print(str(current_time) + "-->" + " Current Active Power Battery Setpoint: " + str(battery_obj.battery_setpoints_actual[ts]))
-        print(str(current_time) + "-->" + " Current Battery SoC: " + str(battery_obj.SoC_actual[ts]))
-        current_time = current_time + timedelta(seconds=+1)
+    battery_obj.SoC_actual.append(SoC_temp)
+    battery_obj.battery_setpoints_actual.append(new_battery_setpoint)
+    battery_obj.grid_load_actual.append(new_grid_load)
+    battery_obj.battery_react_power_actual.append(new_battery_reactive_power)
+    battery_obj.grid_react_power_actual.append(battery_obj.load_pf * new_grid_load + new_battery_reactive_power)
+    battery_obj.grid_apparent_power_actual.append(
+        battery_obj.get_apparent_power(new_grid_load, battery_obj.grid_react_power_actual[ts]))
+    battery_obj.grid_power_factor_actual.append(
+        battery_obj.get_power_factor(new_grid_load, battery_obj.grid_apparent_power_actual[ts]))
+    SoC_temp = new_SoC
 
-        print("_______FIG____________")
+    current_time = current_time + timedelta(seconds=+1)
 
-        ymin, ymax = min(battery_obj.SoC_prediction + battery_obj.SoC_actual), max(
-            battery_obj.SoC_prediction + battery_obj.SoC_actual)
-        fig1_dict = {'linewidth': 2, 'linecolor': '#e67300', 'width': 500, 'height': 350,
-                     'xaxis_title': 'Seconds', 'yaxis_title': 'kW'}
-        fig_1 = dash_fig(ts, battery_obj.SoC_prediction[0], battery_obj.SoC_actual, 3600, 0, ymax, ymin, **fig1_dict)
+    fig1_dict = {'linewidth': 2, 'linecolor': '#e67300', 'width': 500, 'height': 350,
+                 'xaxis_title': 'Seconds', 'yaxis_title': 'kW'}
+    fig1 = dash_fig(ts, battery_obj.SoC_prediction, battery_obj.SoC_actual,
+                    "SoC Prediction", "SoC Actual")
+    fig2 = dash_fig(ts, battery_obj.grid_load_prediction, battery_obj.grid_load_actual,
+                    "Grid Load Prediction", "Grid Load Actual")
 
-        fig_2 = dash_fig()
+    fig4 = dash_fig(ts, [battery_obj.peak_load_prediction], battery_obj.peak_load_actual,
+                    "Peak Load Prediction", "Peak Load Actual")
 
-        fig_3 = dash_fig()
+    fig3 = dash_fig(ts, battery_obj.grid_react_power_prediction, battery_obj.grid_react_power_actual,
+                    "Grid Reactive Power Prediction", "Grid Reactive Power Actual")
 
-        fig3 = go.Figure()
-        fig3.add_trace(go.Scatter(
-            x=[i for i in range(3600)],
-            y=[battery_obj.grid_react_power_prediction[0]] * 3600,
-            name="Grid Reactive Power Prediction"
-        )
-        )
-        fig3.add_trace(go.Scatter(
-            x=[i for i in range(3600)],
-            y=[battery_obj.battery_react_power_prediction[0]] * 3600,
-            name="Peak Reactive Power Prediction"
-        )
-        )
-        fig3.add_trace(go.Scatter(
-            x=[i for i in range(len(battery_obj.grid_react_power_actual))],
-            y=[i for i in battery_obj.grid_react_power_actual],
-            name="Grid Reactive Power Actual"
-        )
-        )
-        fig3.add_trace(go.Scatter(
-            x=[i for i in range(len(battery_obj.battery_react_power_actual))],
-            y=[i for i in battery_obj.battery_react_power_actual],
-            name="Peak Reactive Power Actual"
-        )
-        )
-        ymin3 = min(
-            battery_obj.grid_react_power_prediction + battery_obj.grid_react_power_actual + battery_obj.battery_react_power_actual + battery_obj.battery_react_power_prediction)
-        ymax3 = max(
-            battery_obj.grid_react_power_prediction + battery_obj.grid_react_power_actual + battery_obj.battery_react_power_actual + battery_obj.battery_react_power_prediction)
-        fig3.update_xaxes(range=[0, ts], showline=True, linewidth=2, linecolor='#e67300', mirror=True)
-        fig3.update_yaxes(range=[ymin3 - 10, ymax3 + 10], showline=True, linewidth=2, linecolor='#e67300', mirror=True)
-        fig3.update_layout(paper_bgcolor="#EFEDED", width=500, height=350, legend=dict(
-            orientation="h",
-            yanchor="bottom",
-            y=1.05,
-            xanchor="right",
-            x=1,
-        ),
-                           xaxis_title="Seconds",
-                           yaxis_title="kW",
+    fig5 = dash_fig(ts, battery_obj.battery_react_power_prediction, battery_obj.battery_react_power_actual,
+                    "Peak Reactive Power Prediction", "Peak Reactive Power Actual")
 
-                           )
+    data["SoC_temp"] = SoC_temp
+    data["simulation_duration"] = simulation_duration
+    data["services_list"] = services_list
+    data["priority_list"] = priority_list
+    data["current_time"] = current_time.strftime("%Y-%m-%d %H:%M:%S")
+    live = battery_obj.todict()
 
-        fig2 = go.Figure()
-        fig2.add_trace(go.Scatter(
-            x=[i for i in range(ts)],
-            y=[battery_obj.grid_load_prediction[0]] * 3600,
-            name="Grid Load Prediction"
-        )
-        )
-        fig2.add_trace(go.Scatter(
-            x=[i for i in range(3600)],
-            y=[battery_obj.peak_load_prediction[0]] * 3600,
-            name="Peak Load Prediction"
-        )
-        )
-        fig2.add_trace(go.Scatter(
-            x=[i for i in range(len(battery_obj.grid_load_actual))],
-            y=[i for i in battery_obj.grid_load_actual],
-            name="Grid Load Actual"
-        )
-        )
-        fig2.add_trace(go.Scatter(
-            x=[i for i in range(len(battery_obj.peak_load_actual))],
-            y=[i for i in battery_obj.peak_load_actual],
-            name="Peak Load Actual"
-        )
-        )
-        ymin2 = min(battery_obj.grid_load_prediction + battery_obj.grid_load_actual + battery_obj.peak_load_actual + [
-            battery_obj.peak_load_prediction])
-        ymax2 = max(battery_obj.grid_load_prediction + battery_obj.grid_load_actual + battery_obj.peak_load_actual + [
-            battery_obj.peak_load_prediction])
-        fig2.update_xaxes(range=[0, ts], showline=True, linewidth=2, linecolor='#e67300', mirror=True)
-        fig2.update_yaxes(range=[120, 200], showline=True, linewidth=2, linecolor='#e67300', mirror=True)
-        fig2.update_layout(paper_bgcolor="#EFEDED", width=500, height=350, legend=dict(
-            orientation="h",
-            yanchor="bottom",
-            y=1.05,
-            xanchor="right",
-            x=1,
-        ),
-                           xaxis_title="Seconds",
-                           yaxis_title="kW",
-
-                           )
-
-        # print("_______FIG DONE____________")
-
-        data = {}
-        data["SoC_temp"] = SoC_temp
-        data["simulation_duration"] = simulation_duration
-        data["services_list"] = services_list
-        data["priority_list"] = priority_list
-        data["current_time"] = current_time.strftime("%Y-%m-%d %H:%M:%S")
-
-        print("SENT DATA", data)
-
-        # live = jsonpickle.encode(battery_obj, unpicklable=True)
-        live = battery_obj.todict()
-
-        # print("SENT LIVE")
-
-        return [fig1, fig2, fig3, data, live]
-
-    elif ts > 0:
-        print("SECOND IS", ts)
-        # print("RECIEVED Data", data1)
-        # print("RECIEVED LIVE")
-
-        # gen_config = init_gen_config()
-        # control_config = init_control_config()
-        # data_config = init_data_config()
-        # use_case_library = construct_use_case_library(gen_config, control_config)
-        # print("GOT use_case_library ts >1")
-        battery_obj = battery_class_new(use_case_library, gen_config, data_config)
-
-        # print("GOT battery_obj ts>1")
-        battery_obj.fromdict(live1)
-
-        # print("copydata successful ", ts)
-        current_time = datetime.strptime(data1["current_time"], "%Y-%m-%d %H:%M:%S")
-
-        if ts < data1["simulation_duration"]:
-
-            if ts % 3600 == 0:
-                next_day_hourly_interval = timedelta(days=+1)
-                day_ahead_forecast_horizon = current_time + next_day_hourly_interval
-                battery_obj.set_hourly_load_forecast(current_time, day_ahead_forecast_horizon)
-
-                battery_obj.set_SoC(battery_obj.SoC_actual[ts])
-
-                battery_obj.DA_optimal_quantities()
-            battery_obj.set_load_actual(battery_obj.load_predict[0])
-            # print("Battery obj actual load **********", battery_obj.actual_load, ts)
-            # print("Battery obj actualload[ts] *********", battery_obj.actual_load[ts])
-            # print("Battery obj load up **********", battery_obj.load_up[0])
-            active_power_mismatch = battery_obj.actual_load[ts - 1] - battery_obj.load_up[0]
-            reactive_power_mismatch = battery_obj.load_pf * active_power_mismatch
-
-            for i in range(len(data1["services_list"]) - 1):
-                service_priority = data1["services_list"][data1["priority_list"].index(i + 1)]
-                if service_priority == "demand_charge":
-                    # check demand charge reduction in real-time
-                    new_SoC, new_battery_setpoint, new_grid_load = battery_obj.rtc_demand_charge_reduction \
-                        (i, active_power_mismatch, battery_obj.battery_setpoints_prediction[0], data1["SoC_temp"],
-                         battery_obj.actual_load[ts])
-
-
-                elif service_priority == "power_factor_correction":
-                    if i == 0:  # highest priority
-                        pass
-
-                    else:
-                        # this means that actually load power is lower than expected, hence the reactive power drawn is also less
-                        # ratio of the battery from the total reactive mismatch
-                        battery_ratio = (1 - battery_obj.battery_react_power_prediction[0] / (
-                                battery_obj.grid_react_power_prediction[0] +
-                                battery_obj.battery_react_power_prediction[0]))
-
-                        new_battery_reactive_power = battery_obj.battery_react_power_prediction[
-                                                         0] + battery_ratio * reactive_power_mismatch
-
-                # elif service_priority == "energy_arbitrage":
-                #     pass 
-
-                # elif service_priority == "reserves_placement":
-                #     pass 
-            # print("----------- Real-Time Control Done --------")
-            battery_obj.SoC_actual.append(data1["SoC_temp"])
-            battery_obj.battery_setpoints_actual.append(new_battery_setpoint)
-            battery_obj.grid_load_actual.append(new_grid_load)
-            battery_obj.battery_react_power_actual.append(new_battery_reactive_power)
-            battery_obj.grid_react_power_actual.append(battery_obj.load_pf * new_grid_load + new_battery_reactive_power)
-            battery_obj.grid_apparent_power_actual.append(
-                battery_obj.get_apparent_power(new_grid_load, battery_obj.grid_react_power_actual[ts]))
-            battery_obj.grid_power_factor_actual.append(
-                battery_obj.get_power_factor(new_grid_load, battery_obj.grid_apparent_power_actual[ts]))
-            SoC_temp = new_SoC
-
-            print(f"current_time = {battery_obj.SoC_actual[ts - 1]}")
-
-            current_time = current_time + timedelta(seconds=+1)
-
-            fig1 = go.Figure()
-            fig1.add_trace(go.Scatter(
-                x=[i for i in range(3600)],
-                y=[battery_obj.SoC_prediction[0]] * 3600,
-                name="SoC Prediction"
-            )
-            )
-            fig1.add_trace(go.Scatter(
-                x=[i for i in range(len(battery_obj.SoC_actual))],
-                y=[i for i in battery_obj.SoC_actual],
-                name="SoC Actual"
-            )
-            )
-            ymin, ymax = min(battery_obj.SoC_prediction + battery_obj.SoC_actual), max(
-                battery_obj.SoC_prediction + battery_obj.SoC_actual)
-            fig1.update_xaxes(range=[0, ts], showline=True, linewidth=2, linecolor='#e67300', mirror=True)
-            fig1.update_yaxes(range=[ymin, ymax + 100], showline=True, linewidth=2, linecolor='#e67300', mirror=True)
-            fig1.update_layout(paper_bgcolor="#EFEDED", width=500, height=350, legend=dict(
-                orientation="h",
-                yanchor="bottom",
-                y=1.05,
-                xanchor="right",
-                x=1,
-            ),
-                               xaxis_title="Seconds",
-                               yaxis_title="kW",
-
-                               )
-
-            fig2 = go.Figure()
-            fig2.add_trace(go.Scatter(
-                x=[i for i in range(3600)],
-                y=[battery_obj.grid_load_prediction[0]] * 3600,
-                name="Grid Load Prediction"
-            )
-            )
-            fig2.add_trace(go.Scatter(
-                x=[i for i in range(3600)],
-                y=[battery_obj.peak_load_prediction] * 3600,
-                name="Peak Load Prediction"
-            )
-            )
-            fig2.add_trace(go.Scatter(
-                x=[i for i in range(len(battery_obj.grid_load_actual))],
-                y=[i for i in battery_obj.grid_load_actual],
-                name="Grid Load Actual"
-            )
-            )
-            fig2.add_trace(go.Scatter(
-                x=[i for i in range(len(battery_obj.peak_load_actual))],
-                y=[i for i in battery_obj.peak_load_actual],
-                name="Peak Load Actual"
-            )
-            )
-            ymin2 = min(
-                battery_obj.grid_load_prediction + battery_obj.grid_load_actual + battery_obj.peak_load_actual + [
-                    battery_obj.peak_load_prediction])
-            ymax2 = max(
-                battery_obj.grid_load_prediction + battery_obj.grid_load_actual + battery_obj.peak_load_actual + [
-                    battery_obj.peak_load_prediction])
-            fig2.update_xaxes(range=[0, ts], showline=True, linewidth=2, linecolor='#e67300', mirror=True)
-            fig2.update_yaxes(range=[120, 200], showline=True, linewidth=2, linecolor='#e67300', mirror=True)
-            fig2.update_layout(paper_bgcolor="#EFEDED", width=500, height=350, legend=dict(
-                orientation="h",
-                yanchor="bottom",
-                y=1.05,
-                xanchor="right",
-                x=1,
-            ),
-                               xaxis_title="Seconds",
-                               yaxis_title="kW",
-
-                               )
-
-            fig3 = go.Figure()
-            fig3.add_trace(go.Scatter(
-                x=[i for i in range(3600)],
-                y=[battery_obj.grid_react_power_prediction[0]] * 3600,
-                name="Grid Reactive Power Prediction"
-            )
-            )
-            fig3.add_trace(go.Scatter(
-                x=[i for i in range(3600)],
-                y=[battery_obj.battery_react_power_prediction[0]] * 3600,
-                name="Peak Reactive Power Prediction"
-            )
-            )
-            fig3.add_trace(go.Scatter(
-                x=[i for i in range(len(battery_obj.grid_react_power_actual))],
-                y=[i for i in battery_obj.grid_react_power_actual],
-                name="Grid Reactive Power Actual"
-            )
-            )
-            fig3.add_trace(go.Scatter(
-                x=[i for i in range(len(battery_obj.battery_react_power_actual))],
-                y=[i for i in battery_obj.battery_react_power_actual],
-                name="Peak Reactive Power Actual"
-            )
-            )
-            ymin3 = min(
-                battery_obj.grid_react_power_prediction + battery_obj.grid_react_power_actual + battery_obj.battery_react_power_actual + battery_obj.battery_react_power_prediction)
-            ymax3 = max(
-                battery_obj.grid_react_power_prediction + battery_obj.grid_react_power_actual + battery_obj.battery_react_power_actual + battery_obj.battery_react_power_prediction)
-            fig3.update_xaxes(range=[0, ts], showline=True, linewidth=2, linecolor='#e67300', mirror=True)
-            fig3.update_yaxes(range=[-160, 20], showline=True, linewidth=2, linecolor='#e67300', mirror=True)
-            fig3.update_layout(paper_bgcolor="#EFEDED", width=500, height=350, legend=dict(
-                orientation="h",
-                yanchor="bottom",
-                y=1.05,
-                xanchor="right",
-                x=1,
-            ),
-                               xaxis_title="Seconds",
-                               yaxis_title="kW",
-
-                               )
-
-            data = {}
-            data["SoC_temp"] = SoC_temp
-            data["simulation_duration"] = data1["simulation_duration"]
-            data["services_list"] = data1["services_list"]
-            data["priority_list"] = data1["priority_list"]
-            data["current_time"] = current_time.strftime("%Y-%m-%d %H:%M:%S")
-
-            live = battery_obj.todict()
-
-            return [fig1, fig2, fig3, fig4, data, live]
+    return [fig1, fig2, fig3, data, live]
 
 
 if __name__ == '__main__':
