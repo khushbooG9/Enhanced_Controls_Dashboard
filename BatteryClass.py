@@ -1,31 +1,6 @@
 # Copyright (C) 2017-2019 Battelle Memorial Institute
 # file: battery_dsot_v1.py # TODO: update
-"""Class that controls the Battery DER
-
-Implements the optimum schedule of charging and discharging DA; generate the bids
-for DA and RT; monitor and supervisory control of GridLAB-D environment element.
-
-The function call order for this agent is:
-    initialize
-
-    set_price_forecast(forecasted_price)
-
-    Repeats at every hour:
-        formulate_bid_da(){return BID}
-
-        set_price_forecast(forecasted_price)
-
-        Repeats at every 5 min:
-            set_battery_SOC(fncs_str){updates C_init}
-
-            formulate_bid_rt(){return BID}
-
-            inform_bid(price){update RTprice}
-
-            bid_accepted(){update inv_P_setpoint and GridLAB-D P_out if needed}
-
-
-"""
+""""""
 import math
 import numpy as np
 import tesp_support.helpers as helpers

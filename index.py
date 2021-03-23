@@ -1,5 +1,7 @@
 from app import *
 import dash
+import base64
+import io
 import dash_html_components as html
 import dash_core_components as dcc
 from dash.dependencies import Input, Output, State
@@ -41,6 +43,7 @@ def build_banner():
 
 
 def init_usecase():
+
     with open("dict.json", 'r', encoding='utf-8') as lp:
         gen_config = json.load(lp)
 
@@ -77,10 +80,9 @@ def data_upload_panel():
             html.Div(
                 id="configuration-select-menu",
                 children=[
-                    html.H6("Upload Data"),
+                    html.H6("Upload"),
                     html.Br(),
-                    html.Br(),
-
+                    #html.Br(),
                     html.Div(
                         id="dropdown-label",
                         children=[
@@ -90,18 +92,29 @@ def data_upload_panel():
                                     dcc.DatePickerRange(
                                         start_date_placeholder_text="Start Period",
                                         end_date_placeholder_text="End Period",
+                                        calendar_orientation='horizontal',
 
                                     )
                                 ]
                             ),
                             html.Div(
                                 children=[
+                                    html.Label("Upload Profile Data"),
                                     dcc.Upload(
                                         id="upload-load-profile-data",
-                                        children=html.Div([
-                                            'Drag and Drop or ',
-                                            html.A('Select a File')
-                                        ])
+                                        children=html.Div(
+                                            ["Drag and drop or select a file"]),
+                                        style={
+                                            'width': '200%',
+                                            'height': '30px',
+                                            'lineHeight': '30px',
+                                            'borderWidth': '1px',
+                                            'borderStyle': 'dashed',
+                                            'borderRadius': '2px',
+                                            'textAlign': 'center',
+                                            'margin': '10px',
+                                            'fontSize': '12px'
+                                        }
                                     ),
                                 ]
                             ),
@@ -109,6 +122,7 @@ def data_upload_panel():
                             # html.Div(id='output-upload-cable-data'),
                         ]
                     ),
+                    html.Br(),
                     html.Div(id='output-upload-load-profile-data'),
                     html.Br(),
                     html.Div(
@@ -126,12 +140,21 @@ def data_upload_panel():
                             ),
                             html.Div(
                                 children=[
+                                    html.Label("Upload Energy Price Data"),
                                     dcc.Upload(
                                         id="upload-energy-price-data",
-                                        children=html.Div([
-                                            'Drag and Drop or ',
-                                            html.A('Select a File')
-                                        ])
+                                        children=html.Div(["Drag and drop or click to select a file to upload." ]),
+                                        style={
+                                            'width': '200%',
+                                            'height': '30px',
+                                            'lineHeight': '30px',
+                                            'borderWidth': '1px',
+                                            'borderStyle': 'dashed',
+                                            'borderRadius': '2px',
+                                            'textAlign': 'center',
+                                            'margin': '10px',
+                                            'fontSize': '12px'
+                                        }
                                     ),
                                 ]
                             ),
@@ -139,6 +162,7 @@ def data_upload_panel():
                             # html.Div(id='output-upload-cable-data'),
                         ]
                     ),
+                    html.Br(),
                     html.Div(id='output-upload-energy-price-data'),
                     html.Br(),
                     html.Div(
@@ -153,10 +177,19 @@ def data_upload_panel():
                                 children=[
                                     dcc.Upload(
                                         id="upload-ess-data",
-                                        children=html.Div([
-                                            'Drag and Drop or ',
-                                            html.A('Select a File')
-                                        ])
+                                        children=html.Div(["Drag and drop or click to select a file to upload."
+                                        ]),
+                                        style={
+                                            'width': '200%',
+                                            'height': '30px',
+                                            'lineHeight': '30px',
+                                            'borderWidth': '1px',
+                                            'borderStyle': 'dashed',
+                                            'borderRadius': '2px',
+                                            'textAlign': 'center',
+                                            'margin': '10px',
+                                            'fontSize': '12px'
+                                        }
                                     ),
                                 ]
                             ),
@@ -172,6 +205,15 @@ def data_upload_panel():
         ]
 
     )
+
+# @app.callback(Output('data', 'contents'),
+#             [Input('upload-energy-price-data', 'contents')])
+# def update_upload_data(price_data):
+#     content_type, content_string = price_data.split(',')
+#     decoded = base64.b64decode(content_string)
+#     df = pd.read_csv(
+#         io.StringIO(decoded.decode('utf-8')), delimiter=r'\s+')
+#     return df
 
 
 def build_usecase_line(line_num, label, switch_value, dd_value, value):
@@ -540,8 +582,16 @@ def build_left_graph():
     Reference: https://plotly.com/python/subplots/
     """
 
-    return dcc.Graph(
-        id="left-graph-fig", animate=True,
+    return html.Div(
+        [dcc.Graph(id="left-graph-fig", animate=True),
+         dcc.Interval(
+             id='graph-update',
+             interval=5000,
+             n_intervals=0,
+             disabled=True,
+         ),
+
+         ]
     )
 
 
@@ -683,10 +733,7 @@ def build_tabs():
     )
 
 
-# X = deque(maxlen = 20)
-# X.append(1) 
 
-# Y = deque(maxlen = 20) 
 # Y.append(1)
 
 # def dict_to_binary(the_dict):
@@ -696,7 +743,7 @@ def build_tabs():
 
 # def binary_to_dict(the_binary):
 #     jsn = ''.join(chr(int(x, 2)) for x in the_binary.split())
-#     d = dill.loads(jsn)  
+#     d = dill.loads(jsn)
 #     return d
 
 def serve_layout():
@@ -827,7 +874,6 @@ def update_live_graph(ts, data1, live1, gen_config, data_config, use_case_librar
     '''
     updating the live graph
     '''
-
     def dash_fig(ts, prediction_data, actual_data, prediction_name, actual_name, **kwargs):
         dict_fig = {'linewidth': 2, 'linecolor': '#EFEDED', 'width': 600, 'height': 350,
                     'xaxis_title': 'Seconds', 'yaxis_title': 'kW'}
@@ -836,16 +882,25 @@ def update_live_graph(ts, data1, live1, gen_config, data_config, use_case_librar
         legend_dict = dict(orientation="h", yanchor="bottom", y=1.05, xanchor="right", x=1)
         fig = go.Figure()
         fig.add_trace(go.Scatter(
-            x=[i for i in range(3600)],
-            y=[prediction_data[0]] * 3600,
+            x = [i for i in range(max(0, ts-20), (ts+1))],
+            y = [prediction_data[0]] * (min(ts,20) +1),
             name=prediction_name))
         fig.add_trace(go.Scatter(
-            x=[i for i in range(len(actual_data))],
-            y=[i for i in actual_data],
+            x = [i for i in range(max(0, ts-20), (ts+1))],
+            y = [i for i in deque(actual_data, maxlen= 20)],
             name=actual_name))
 
+        # fig.add_trace(go.Scatter(
+        #     x=[i for i in range(ts-20, ts+ 2)],
+        #     y=[prediction_data[0]] * (ts + 2),
+        #     name=prediction_name))
+        # fig.add_trace(go.Scatter(
+        #     x=[i for i in range(len(actual_data))],
+        #     y=[i for i in actual_data],
+        #     name=actual_name))
+
         ymin, ymax = min(prediction_data + actual_data), max(prediction_data + actual_data)
-        fig.update_xaxes(range=[0, ts], showline=True, linewidth=2, linecolor='#e67300', mirror=True)
+        fig.update_xaxes(range=[max(0, ts-20), ts], showline=True, linewidth=2, linecolor='#e67300', mirror=True)
         fig.update_yaxes(range=[ymin - 20, ymax + 20], showline=True, linewidth=2, linecolor='#e67300', mirror=True)
         # fig.update_yaxes(showline=True, linewidth=2, linecolor='#e67300', mirror=True)
         fig.update_layout(paper_bgcolor=dict_fig['linecolor'], width=dict_fig['width'], height=dict_fig['height'],
@@ -923,9 +978,10 @@ def update_live_graph(ts, data1, live1, gen_config, data_config, use_case_librar
         battery_obj.get_power_factor(new_grid_load, battery_obj.grid_apparent_power_actual[ts]))
     SoC_temp = new_SoC
 
-    #print(f"soc actual = {battery_obj.SoC_actual}")
-    #print(f"grid load actual = {battery_obj.grid_load_actual}")
-    #print(f"grid reac = {battery_obj.grid_load_actual}")
+    print(f"soc actual = {battery_obj.SoC_actual}")
+    print(f"soc prediction = {battery_obj.SoC_prediction}")
+    print(f"grid load actual = {battery_obj.grid_load_actual}")
+    print(f"grid reac = {battery_obj.grid_load_actual}")
 
     current_time = current_time + timedelta(seconds=+1)
 
