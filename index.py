@@ -43,7 +43,6 @@ def build_banner():
 
 
 def init_usecase():
-
     with open("dict.json", 'r', encoding='utf-8') as lp:
         gen_config = json.load(lp)
 
@@ -82,7 +81,7 @@ def data_upload_panel():
                 children=[
                     html.H6("Upload"),
                     html.Br(),
-                    #html.Br(),
+                    # html.Br(),
                     html.Div(
                         id="dropdown-label",
                         children=[
@@ -143,7 +142,7 @@ def data_upload_panel():
                                     html.Label("Upload Energy Price Data"),
                                     dcc.Upload(
                                         id="upload-energy-price-data",
-                                        children=html.Div(["Drag and drop or click to select a file to upload." ]),
+                                        children=html.Div(["Drag and drop or click to select a file to upload."]),
                                         style={
                                             'width': '200%',
                                             'height': '30px',
@@ -178,7 +177,7 @@ def data_upload_panel():
                                     dcc.Upload(
                                         id="upload-ess-data",
                                         children=html.Div(["Drag and drop or click to select a file to upload."
-                                        ]),
+                                                           ]),
                                         style={
                                             'width': '200%',
                                             'height': '30px',
@@ -205,6 +204,7 @@ def data_upload_panel():
         ]
 
     )
+
 
 # @app.callback(Output('data', 'contents'),
 #             [Input('upload-energy-price-data', 'contents')])
@@ -555,7 +555,6 @@ def build_top_panel():
     Function to build top panel for 2 graph placeholders
     TBD
     """
-
     return html.Div(
         id="top-section-container",
         className="row",
@@ -733,19 +732,6 @@ def build_tabs():
     )
 
 
-
-# Y.append(1)
-
-# def dict_to_binary(the_dict):
-#     str = dill.dumps(the_dict)
-#     binary = ' '.join(format(ord(letter), 'b') for letter in str)
-#     return binary
-
-# def binary_to_dict(the_binary):
-#     jsn = ''.join(chr(int(x, 2)) for x in the_binary.split())
-#     d = dill.loads(jsn)
-#     return d
-
 def serve_layout():
     return html.Div(
         id="big-app-container",
@@ -773,7 +759,6 @@ def serve_layout():
 
 
 app.layout = serve_layout
-
 
 @app.callback(
     output=[Output("app-content", "children")],
@@ -867,13 +852,11 @@ def stop_production(n_clicks, current):
     state=[State("data-store", "data"), State("liveplot-store", "data"), State("gen-config-store", "data"),
            State("data-config-store", "data"),
            State("usecase-store", "data")], )
-# @cache.memoize
-# fig1= None
-
 def update_live_graph(ts, data1, live1, gen_config, data_config, use_case_library):
     '''
     updating the live graph
     '''
+
     def dash_fig(ts, prediction_data, actual_data, prediction_name, actual_name, **kwargs):
         dict_fig = {'linewidth': 2, 'linecolor': '#EFEDED', 'width': 600, 'height': 350,
                     'xaxis_title': 'Seconds', 'yaxis_title': 'kW'}
@@ -882,27 +865,16 @@ def update_live_graph(ts, data1, live1, gen_config, data_config, use_case_librar
         legend_dict = dict(orientation="h", yanchor="bottom", y=1.05, xanchor="right", x=1)
         fig = go.Figure()
         fig.add_trace(go.Scatter(
-            x = [i for i in range(max(0, ts-20), (ts+1))],
-            y = [prediction_data[0]] * (min(ts,20) +1),
+            x=[i for i in range(max(0, ts - 20), (ts + 1))],
+            y=[prediction_data[0]] * (min(ts, 20) + 1),
             name=prediction_name))
         fig.add_trace(go.Scatter(
-            x = [i for i in range(max(0, ts-20), (ts+1))],
-            y = [i for i in deque(actual_data, maxlen= 20)],
+            x=[i for i in range(max(0, ts - 20), (ts + 1))],
+            y=[i for i in deque(actual_data, maxlen=20)],
             name=actual_name))
-
-        # fig.add_trace(go.Scatter(
-        #     x=[i for i in range(ts-20, ts+ 2)],
-        #     y=[prediction_data[0]] * (ts + 2),
-        #     name=prediction_name))
-        # fig.add_trace(go.Scatter(
-        #     x=[i for i in range(len(actual_data))],
-        #     y=[i for i in actual_data],
-        #     name=actual_name))
-
         ymin, ymax = min(prediction_data + actual_data), max(prediction_data + actual_data)
-        fig.update_xaxes(range=[max(0, ts-20), ts], showline=True, linewidth=2, linecolor='#e67300', mirror=True)
+        fig.update_xaxes(range=[max(0, ts - 20), ts], showline=True, linewidth=2, linecolor='#e67300', mirror=True)
         fig.update_yaxes(range=[ymin - 20, ymax + 20], showline=True, linewidth=2, linecolor='#e67300', mirror=True)
-        # fig.update_yaxes(showline=True, linewidth=2, linecolor='#e67300', mirror=True)
         fig.update_layout(paper_bgcolor=dict_fig['linecolor'], width=dict_fig['width'], height=dict_fig['height'],
                           legend=legend_dict,
                           xaxis_title=dict_fig['xaxis_title'],
@@ -996,7 +968,7 @@ def update_live_graph(ts, data1, live1, gen_config, data_config, use_case_librar
                     "Peak Load Prediction", "Peak Load Actual", **fig1_dict)
 
     fig3 = dash_fig(ts, battery_obj.grid_react_power_prediction, battery_obj.grid_react_power_actual,
-                    "Grid Reactive Power Prediction", "Grid Reactive Power Actual",**fig1_dict)
+                    "Grid Reactive Power Prediction", "Grid Reactive Power Actual", **fig1_dict)
 
     fig5 = dash_fig(ts, battery_obj.battery_react_power_prediction, battery_obj.battery_react_power_actual,
                     "Peak Reactive Power Prediction", "Peak Reactive Power Actual")
