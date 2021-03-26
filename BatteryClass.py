@@ -28,7 +28,6 @@ The function call order for this agent is:
 """
 import math
 import numpy as np
-import tesp_support.helpers as helpers
 from copy import deepcopy
 import logging as log
 import pyomo.environ as pyo
@@ -396,7 +395,7 @@ if __name__ == "__main__":
     ax.plot(battery_obj.grid_load_prediction, label='Grid Load')
     # ax.plot(battery_obj.load_down, label='Load Lower Bound')
     # ax.plot(battery_obj.load_up, label='Load Upper Bound')
-    ax.plot(battery_obj.load_predict, label='Load Prediction')
+    ax.plot(battery_obj.load_predict[0:24], label='Load Prediction')
 
     ax.set_ylabel('kW')
     ax.set_xlabel('Hours')
@@ -408,7 +407,7 @@ if __name__ == "__main__":
     fig, ax = plt.subplots(2,1, sharex=True)
     ax[0].plot(battery_obj.grid_react_power_prediction, label='Total Reactive Power Grid ')
     ax[0].plot(battery_obj.battery_react_power_prediction, label='Reactive Power Battery')
-    ax[0].plot(battery_obj.load_up*battery_obj.load_pf, label='Predicted Reactive Power Load')
+    ax[0].plot(battery_obj.load_up[0:24]*battery_obj.load_pf, label='Predicted Reactive Power Load')
 
     ax[0].set_ylabel('kVar')
     ax[0].set_title('Reactive Power')
@@ -417,7 +416,7 @@ if __name__ == "__main__":
     ax[0].grid(True)
 
     ax[1].plot(battery_obj.grid_power_factor, label='New Power Factor')
-    ax[1].plot(battery_obj.grid_original_power_factor, label='Old Power Factor', dashes=[4,4])
+    ax[1].plot(battery_obj.grid_original_power_factor[0:24], label='Old Power Factor', dashes=[4,4])
     ax[1].set_xlabel('Hours')
     ax[1].set_ylabel('cosphi')
     ax[1].legend()
@@ -426,52 +425,5 @@ if __name__ == "__main__":
 
     plt.show()
 
-    # ===================== plots to check inputs =============================
-    # fig, ax = plt.subplots()
-    # ax.plot(battery_obj.load_up,label='load up')
-    # ax.plot(battery_obj.load_down,label='load down')
-    # ax.plot(battery_obj.load_predict,label='load predict')
-    # ax.set_ylabel('kW')
-    # ax.set_xlabel('Hours')
-    # ax.set_title('Load Prediction')
-    # ax.legend()
-    # ax.grid(True)
-    # plt.show()
-    # B_obj1.set_price_forecast(price_DA.tolist())
-    # quantity = B_obj1.DA_optimal_quantities()
-    # print("--- %s seconds ---" % (time.time() - start_time))
-    # print(quantity)
-#    B = B_obj1.RT_fix_four_points_range(BID,0.2920860000000012,5.0)
-#    A = B_obj1.RT_fix_four_points_range(B,0.2920860000000012,0.2920860000000012)
-#    B_obj2 = BatteryDSOT(agent,glm,'test')# make object
-#
-#    for i in range(5):
-#        B_obj1.set_price_forecast(price_DA)
-#        B_obj2.set_price_forecast(price_DA)
-#
-#        BIDS = B_obj1.formulate_bid_da()
-#        B_obj2.formulate_bid_da()
-#
-#        BIDS8 = B_obj1.bid_da
-#
-#        Quantity = B_obj1.optimized_Quantity
-
-#    rtbid = B_obj1.formulate_bid_rt()
-#    price_forecast = B_obj.f_DA
-#    BIDS_of_agent = B_obj.bid_da
-#    #B_obj.Cinit = B_obj.batteryCapacity * 0.5#B_obj.set_battery_SOC()
-#    BID = [[-5.0,6.0],[0.0,5.0],[0.0,4.0],[5.0,3.0]]
-#    fixed = B_obj.RT_fix_four_points_range(BID,0.0,10.0)
-#    print(fixed)
-#    fixed = B_obj.RT_fix_four_points_range(BID,-float('inf'),0.0)
-#    print(fixed)
-#    fixed = B_obj.RT_fix_four_points_range(BID,0.0,float('inf'))
-#    print(fixed)
-#    fixed = B_obj.RT_fix_four_points_range(BID,0.5,0.5)
-#    print(fixed)
-#    getQ = B_obj.from_P_to_Q_battery(BID,10)
-#    print(getQ)
-#    getQ = B_obj.from_P_to_Q_battery(fixed,10)
-#    print(getQ)
 
 

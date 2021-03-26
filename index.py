@@ -10,7 +10,7 @@ import dash_table
 import pandas as pd 
 from battery_class_new import * 
 from sim_runner_no_dashboard import * 
-from BatteryClass import * 
+
 from collections import deque
 import random 
 import json 
