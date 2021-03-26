@@ -621,28 +621,28 @@ def revenue_block():
             html.H6("Revenue"),
             html.Br(),
             html.Div(
-                id="revenue-label",
+                id="revenue-label1",
                 children=[
                     html.Label("Day Ahead Estimate"),
-                    dcc.Input(id="revenue1", type='text'),
+                    dcc.Input(id="revenue1", type='text',disabled=True),
                 ]
             ),
 
             html.Br(),
             html.Div(
-                id="revenue-label",
+                id="revenue-label2",
                 children=[
                     html.Label("Actual, Not Adjusted"),
-                    dcc.Input(id="revenue2", type='text'),
+                    dcc.Input(id="revenue2", type='text',disabled=True),
                 ]
             ),
 
             html.Br(),
             html.Div(
-                id="revenue-label",
+                id="revenue-label3",
                 children=[
                     html.Label("Actual, Real Time Adjusted"),
-                    dcc.Input(id="revenue3", type='text'),
+                    dcc.Input(id="revenue3", type='text',disabled=True),
                 ]
             ),
 
@@ -862,11 +862,11 @@ def stop_production(n_clicks, current):
 
 @app.callback(
     output=[Output("right-graph-fig", "figure"), Output("left-graph-fig", "figure"), Output("down-graph-fig", "figure"),
-            Output("data-store", "data"), Output("liveplot-store", "data")],
+            Output("data-store", "data"), Output("liveplot-store", "data"), Output("revenue1","data"), Output("revenue2", "data"), Output("revenue3", "data")],
     inputs=[Input("graph-update", "n_intervals")],
     state=[State("data-store", "data"), State("liveplot-store", "data"), State("gen-config-store", "data"),
            State("data-config-store", "data"),
-           State("usecase-store", "data")], )
+           State("usecase-store", "data")],)
 # @cache.memoize
 # fig1= None
 
@@ -944,6 +944,23 @@ def update_live_graph(ts, data1, live1, gen_config, data_config, use_case_librar
         if ts % 3600 == 0:
             battery_obj.set_hourly_load_forecast(current_time, current_time + timedelta(days=1))
             battery_obj.DA_optimal_quantities()
+
+        # if ((ts % battery_obj.reporting_frequency) == 0) and (ts > 1):
+        #     idx = np.arange(0, 3600, 300)
+        # battery_obj.metrics['Time'].append(ts)
+        # battery_obj.metrics['arbitrage_revenue_da'].append(np.sum(
+        #     np.multiply(np.array(da_variables['arbitrage_purchased_power_da'])[:, 0],
+        #                 np.array(da_variables['price_predict_da'])[:, 0])))
+        # metrics['arbitrage_revenue_ideal_rt'].append(np.sum(
+        #     np.multiply(np.array(rt_variables['arbitrage_purchased_power_ideal_rt'])[:, idx],
+        #                 np.array(rt_variables['price_actual_rt'])[:, idx])) * 5 / 60)
+        # metrics['arbitrage_revenue_actual_rt'].append(np.sum(
+        #     np.multiply(np.array(rt_variables['arbitrage_purchased_power_actual_rt'])[:, idx],
+        #                 np.array(rt_variables['price_actual_rt'])[:, idx])) * 5 / 60)
+
+
+
+
         battery_obj.set_load_actual(battery_obj.load_predict[0])
         active_power_mismatch = battery_obj.actual_load[ts] - battery_obj.load_up[0]
         reactive_power_mismatch = battery_obj.load_pf * active_power_mismatch
@@ -981,7 +998,15 @@ def update_live_graph(ts, data1, live1, gen_config, data_config, use_case_librar
     print(f"soc actual = {battery_obj.SoC_actual}")
     print(f"soc prediction = {battery_obj.SoC_prediction}")
     print(f"grid load actual = {battery_obj.grid_load_actual}")
-    print(f"grid reac = {battery_obj.grid_load_actual}")
+    # print(f"grid load actual 0:ts = {battery_obj.grid_load_actual[0:ts]}")
+    # print(f"grid load actual max(0:ts) = {max(battery_obj.grid_load_actual[0:ts])}")
+
+    battery_obj.metrics['peak_surcharge_da'].append(battery_obj.peak_load_prediction * battery_obj.peak_price)
+    battery_obj.metrics['original_surcharge'].append(max(battery_obj.grid_load_actual) * battery_obj.peak_price)
+
+    print('da surcharge' + str(battery_obj.metrics['peak_surcharge_da'][-1]))
+    print('real time surcharge' + str(battery_obj.metrics['original_surcharge'][-1]))
+
 
     current_time = current_time + timedelta(seconds=+1)
 
@@ -1006,9 +1031,13 @@ def update_live_graph(ts, data1, live1, gen_config, data_config, use_case_librar
     data["services_list"] = services_list
     data["priority_list"] = priority_list
     data["current_time"] = current_time.strftime("%Y-%m-%d %H:%M:%S")
+    revenue1 = battery_obj.metrics['peak_surcharge_da'][-1]
+    revenue2 = revenue1
+    revenue3 = battery_obj.metrics['original_surcharge'][-1]
+
     live = battery_obj.todict()
 
-    return [fig1, fig2, fig3, data, live]
+    return [fig1, fig2, fig3, data, live, revenue1, revenue2, revenue3]
 
 
 if __name__ == '__main__':

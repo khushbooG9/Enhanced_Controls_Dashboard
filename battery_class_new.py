@@ -6,7 +6,7 @@
 """
 import math
 import numpy as np
-import tesp_support.helpers as helpers
+#import tesp_support.helpers as helpers
 from copy import deepcopy
 import logging as log
 import pyomo.environ as pyo
@@ -106,6 +106,10 @@ class battery_class_new:
         self.actual_load = []
         self.grid_apparent_power_actual = []
         self.grid_power_factor_actual = []
+
+        self.metrics = {'arbitrage_revenue_da': [], 'peak_surcharge_da': [], 'arbitrage_revenue_ideal_rt': [],
+                   'arbitrage_revenue_actual_rt': [], 'peak_surcharge_rt': [], 'original_surcharge': [],
+                   'reg_up_rev_da': [], 'reg_down_rev_da': [], 'reg_up_rev_rt': [], 'reg_down_rev_rt': []}
 
     def todict(self):
         data = {}
