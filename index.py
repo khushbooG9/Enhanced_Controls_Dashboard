@@ -215,7 +215,6 @@ def data_upload_panel():
 #         io.StringIO(decoded.decode('utf-8')), delimiter=r'\s+')
 #     return df
 
-
 def build_usecase_line(line_num, label, switch_value, dd_value, value):
     return html.Div(
         id=line_num,
