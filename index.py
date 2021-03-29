@@ -522,24 +522,42 @@ def build_buttons_panel():
         id="buttons-panel",
         className="row",
         children=[
+            # html.Div(
+            #     id="card-1",
+            #     children=[
+            #         html.Button(className="", id="button1", children="Arbitrage", n_clicks=0),
+            #         html.Button(className="", id="button1", children="Peak Shaving", n_clicks=0),
+            #         html.Button(className="", id="button1", children="Demand Shaping", n_clicks=0),
+            #         html.Button(className="", id="button1", children="System Capacity", n_clicks=0),
+            #         html.Button(className="", id="button1", children="Frequency Regulation", n_clicks=0),
+            #         html.Button(className="", id="button1", children="Spinning/Non-Spinning Reserve", n_clicks=0),
+            #         html.Button(className="", id="button1", children="Volt/Var", n_clicks=0),
+            #         html.Button(className="", id="button1", children="Co-optimize", n_clicks=0),
+            #     ],
+            # ),
             html.Div(
                 id="card-1",
                 children=[
-                    html.Button(className="", id="button1", children="Arbitrage", n_clicks=0),
-                    html.Button(className="", id="button1", children="Peak Shaving", n_clicks=0),
-                    html.Button(className="", id="button1", children="Demand Shaping", n_clicks=0),
-                    html.Button(className="", id="button1", children="System Capacity", n_clicks=0),
-                    html.Button(className="", id="button1", children="Frequency Regulation", n_clicks=0),
-                    html.Button(className="", id="button1", children="Spinning/Non-Spinning Reserve", n_clicks=0),
-                    html.Button(className="", id="button1", children="Volt/Var", n_clicks=0),
-                    html.Button(className="", id="button1", children="Co-optimize", n_clicks=0),
+
+                    html.Button("Peak load management", className="", id="button1", n_clicks=0),
+                    html.Div(id="demand-shaping-button")
+
                 ],
             ),
             html.Div(
                 id="card-2",
                 children=[
 
-                    html.Button("Reset Live Updating", className="", id="button2", n_clicks=0),
+                    html.Button("Simulate Power Outage", className="", id="button2", n_clicks=0),
+                    html.Div(id="simulate-power-outage")
+
+                ],
+            ),
+            html.Div(
+                id="card-3",
+                children=[
+
+                    html.Button("Reset Live Updating", className="", id="button3", n_clicks=0),
                     daq.StopButton(id="stop-button", size=160, n_clicks=0),
 
                 ],
@@ -649,7 +667,6 @@ def revenue_block():
         ]
     )
 
-
 def build_bottom_graph():
     return dcc.Graph(
         id="down-graph-fig", animate=True,
@@ -732,19 +749,6 @@ def build_tabs():
         ],
     )
 
-
-
-# Y.append(1)
-
-# def dict_to_binary(the_dict):
-#     str = dill.dumps(the_dict)
-#     binary = ' '.join(format(ord(letter), 'b') for letter in str)
-#     return binary
-
-# def binary_to_dict(the_binary):
-#     jsn = ''.join(chr(int(x, 2)) for x in the_binary.split())
-#     d = dill.loads(jsn)
-#     return d
 
 def serve_layout():
     return html.Div(
@@ -859,18 +863,28 @@ def stop_production(n_clicks, current):
         return True, "start"
     return not current, "stop" if current else "start"
 
+# @app.callback(
+#     [Output("Simulate Power Outage", "disabled"), Output("Power-Outage-button", "buttonText")],
+#     [Input("Power-Outage-button", "n_clicks")],
+#     #[State("graph-update", "disabled")],
+# )
+# def power_outage(n_clicks, current):
+#     if n_clicks == 0:
+#         return True, "start"
+#     return not current, "stop" if current else "start"
+
 
 @app.callback(
     output=[Output("right-graph-fig", "figure"), Output("left-graph-fig", "figure"), Output("down-graph-fig", "figure"),
             Output("data-store", "data"), Output("liveplot-store", "data"), Output("revenue1","value"), Output("revenue2", "value"), Output("revenue3", "value")],
-    inputs=[Input("graph-update", "n_intervals")],
+    inputs=[Input("graph-update", "n_intervals"), Input("simulate-power-outage", "n_clicks")],
     state=[State("data-store", "data"), State("liveplot-store", "data"), State("gen-config-store", "data"),
            State("data-config-store", "data"),
            State("usecase-store", "data")],)
 # @cache.memoize
 # fig1= None
 
-def update_live_graph(ts, data1, live1, gen_config, data_config, use_case_library):
+def update_live_graph(ts, outage_flag, data1, live1, gen_config, data_config, use_case_library):
     '''
     updating the live graph
     '''
@@ -964,32 +978,40 @@ def update_live_graph(ts, data1, live1, gen_config, data_config, use_case_librar
         battery_obj.set_load_actual(battery_obj.load_predict[0])
         active_power_mismatch = battery_obj.actual_load[ts] - battery_obj.load_up[0]
         reactive_power_mismatch = battery_obj.load_pf * active_power_mismatch
-        for i in range(len(services_list) - 1):
-            service_priority = services_list[priority_list.index(i + 1)]
-            if service_priority == "demand_charge":
-                # check demand charge reduction in real-time
-                new_SoC, new_battery_setpoint, new_grid_load = battery_obj.rtc_demand_charge_reduction \
-                    (i, active_power_mismatch, battery_obj.battery_setpoints_prediction[0], SoC_temp,
-                     battery_obj.actual_load[ts])
+        if outage_flag:
+            check = 1
+            # outage mitigation
+            active_power_mismatch  = battery_obj.actual_load[ts]
+            # new_SoC, new_battery_setpoint, new_grid_load = battery_obj.outage_mitigation \
+            #     (active_power_mismatch, battery_obj.battery_setpoints_prediction[0], SoC_temp,
+            #      battery_obj.actual_load[ts])
+            new_battery_setpoint = battery_obj.change_setpoint(battery_obj.battery_setpoints_prediction[0], active_power_mismatch)
+            # check SoC
+            new_SoC, new_battery_setpoint = battery_obj.check_SoC(new_battery_setpoint, SoC_temp)
+            # new grid load
+            new_grid_load = battery_obj.actual_load[ts] - new_battery_setpoint
 
-            elif service_priority == "power_factor_correction":
-                if i == 0:  # highest priority
-                    pass
+        else:
+            for i in range(len(services_list) - 1):
+                service_priority = services_list[priority_list.index(i + 1)]
+                if service_priority == "demand_charge":
+                    # check demand charge reduction in real-time
+                    new_SoC, new_battery_setpoint, new_grid_load = battery_obj.rtc_demand_charge_reduction \
+                        (i, active_power_mismatch, battery_obj.battery_setpoints_prediction[0], SoC_temp,
+                         battery_obj.actual_load[ts])
 
-                else:
-                    battery_ratio = (1 - battery_obj.battery_react_power_prediction[0] / (
-                            battery_obj.grid_react_power_prediction[0] + battery_obj.battery_react_power_prediction[
-                        0]))
+                elif service_priority == "power_factor_correction":
+                    if i == 0:  # highest priority
+                        pass
 
-                    new_battery_reactive_power = battery_obj.battery_react_power_prediction[
-                                                     0] + battery_ratio * reactive_power_mismatch
-            else:
-                check = 1
-                # outage mitigation
-                # active_power_mismatch  = battery_obj.actual_load[ts]
-                #new_SoC, new_battery_setpoint, new_grid_load = battery_obj.outage_mitigation \
-                #    (i, active_power_mismatch, battery_obj.battery_setpoints_prediction[0], SoC_temp,
-                #     battery_obj.actual_load[ts])
+                    else:
+                        battery_ratio = (1 - battery_obj.battery_react_power_prediction[0] / (
+                                battery_obj.grid_react_power_prediction[0] + battery_obj.battery_react_power_prediction[
+                            0]))
+
+                        new_battery_reactive_power = battery_obj.battery_react_power_prediction[
+                                                         0] + battery_ratio * reactive_power_mismatch
+
     battery_obj.SoC_actual.append(SoC_temp)
     battery_obj.battery_setpoints_actual.append(new_battery_setpoint)
     battery_obj.grid_load_actual.append(new_grid_load)
@@ -1025,7 +1047,6 @@ def update_live_graph(ts, data1, live1, gen_config, data_config, use_case_librar
                     "SoC Prediction", "SoC Actual", **fig1_dict)
     fig2 = dash_fig(ts, battery_obj.grid_load_prediction, battery_obj.grid_load_actual,
                     "Grid Load Prediction", "Grid Load Actual", **fig1_dict)
-
     fig3 = dash_fig(ts, [battery_obj.peak_load_prediction], battery_obj.peak_load_actual,
                     "Peak Load Prediction", "Peak Load Actual", **fig1_dict)
 
@@ -1040,9 +1061,9 @@ def update_live_graph(ts, data1, live1, gen_config, data_config, use_case_librar
     data["services_list"] = services_list
     data["priority_list"] = priority_list
     data["current_time"] = current_time.strftime("%Y-%m-%d %H:%M:%S")
-    revenue1 = battery_obj.metrics['peak_surcharge_da'][-1]
+    revenue1 = round(battery_obj.metrics['peak_surcharge_da'][-1], 2)
     revenue2 = revenue1
-    revenue3 = battery_obj.metrics['original_surcharge'][-1]
+    revenue3 = round(battery_obj.metrics['original_surcharge'][-1],2)
 
     live = battery_obj.todict()
 
