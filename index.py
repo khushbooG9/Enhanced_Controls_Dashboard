@@ -12,7 +12,7 @@ import dash_table
 import pandas as pd
 from battery_class_new import *
 from sim_runner_no_dashboard import *
-from BatteryClass import *
+# from BatteryClass import *
 from collections import deque
 import random
 import json
@@ -862,7 +862,7 @@ def stop_production(n_clicks, current):
 
 @app.callback(
     output=[Output("right-graph-fig", "figure"), Output("left-graph-fig", "figure"), Output("down-graph-fig", "figure"),
-            Output("data-store", "data"), Output("liveplot-store", "data"), Output("revenue1", "value"), Output("revenue2", "value"), Output("revenue3", "value")],
+            Output("data-store", "data"), Output("liveplot-store", "data"), Output("revenue1","value"), Output("revenue2", "value"), Output("revenue3", "value")],
     inputs=[Input("graph-update", "n_intervals")],
     state=[State("data-store", "data"), State("liveplot-store", "data"), State("gen-config-store", "data"),
            State("data-config-store", "data"),
@@ -960,7 +960,7 @@ def update_live_graph(ts, data1, live1, gen_config, data_config, use_case_librar
 
 
 
-
+        # current_peak_load_prediction = 0.0
         battery_obj.set_load_actual(battery_obj.load_predict[0])
         active_power_mismatch = battery_obj.actual_load[ts] - battery_obj.load_up[0]
         reactive_power_mismatch = battery_obj.load_pf * active_power_mismatch
@@ -983,7 +983,13 @@ def update_live_graph(ts, data1, live1, gen_config, data_config, use_case_librar
 
                     new_battery_reactive_power = battery_obj.battery_react_power_prediction[
                                                      0] + battery_ratio * reactive_power_mismatch
-
+            else:
+                check = 1
+                # outage mitigation
+                # active_power_mismatch  = battery_obj.actual_load[ts]
+                #new_SoC, new_battery_setpoint, new_grid_load = battery_obj.outage_mitigation \
+                #    (i, active_power_mismatch, battery_obj.battery_setpoints_prediction[0], SoC_temp,
+                #     battery_obj.actual_load[ts])
     battery_obj.SoC_actual.append(SoC_temp)
     battery_obj.battery_setpoints_actual.append(new_battery_setpoint)
     battery_obj.grid_load_actual.append(new_grid_load)
@@ -993,16 +999,19 @@ def update_live_graph(ts, data1, live1, gen_config, data_config, use_case_librar
         battery_obj.get_apparent_power(new_grid_load, battery_obj.grid_react_power_actual[ts]))
     battery_obj.grid_power_factor_actual.append(
         battery_obj.get_power_factor(new_grid_load, battery_obj.grid_apparent_power_actual[ts]))
+    battery_obj.peak_load_actual.append(max(battery_obj.grid_load_actual[0:ts+1]))
     SoC_temp = new_SoC
 
     print(f"soc actual = {battery_obj.SoC_actual}")
     print(f"soc prediction = {battery_obj.SoC_prediction}")
     print(f"grid load actual = {battery_obj.grid_load_actual}")
+    print(f"grid peak load prediction = {battery_obj.peak_load_prediction}")
+    print(f"grid peak load actual = {max(battery_obj.peak_load_actual)}")
     # print(f"grid load actual 0:ts = {battery_obj.grid_load_actual[0:ts]}")
     # print(f"grid load actual max(0:ts) = {max(battery_obj.grid_load_actual[0:ts])}")
 
     battery_obj.metrics['peak_surcharge_da'].append(battery_obj.peak_load_prediction * battery_obj.peak_price)
-    battery_obj.metrics['original_surcharge'].append(max(battery_obj.grid_load_actual) * battery_obj.peak_price)
+    battery_obj.metrics['original_surcharge'].append(max(battery_obj.peak_load_actual) * battery_obj.peak_price)
 
     print('da surcharge' + str(battery_obj.metrics['peak_surcharge_da'][-1]))
     print('real time surcharge' + str(battery_obj.metrics['original_surcharge'][-1]))
@@ -1031,9 +1040,9 @@ def update_live_graph(ts, data1, live1, gen_config, data_config, use_case_librar
     data["services_list"] = services_list
     data["priority_list"] = priority_list
     data["current_time"] = current_time.strftime("%Y-%m-%d %H:%M:%S")
-    revenue1 = round(battery_obj.metrics['peak_surcharge_da'][-1],2)
-    revenue2 = round(revenue1, 2)
-    revenue3 = round(battery_obj.metrics['original_surcharge'][-1], 2)
+    revenue1 = battery_obj.metrics['peak_surcharge_da'][-1]
+    revenue2 = revenue1
+    revenue3 = battery_obj.metrics['original_surcharge'][-1]
 
     live = battery_obj.todict()
 

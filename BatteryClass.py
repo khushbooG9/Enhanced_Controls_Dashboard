@@ -3,7 +3,7 @@
 """"""
 import math
 import numpy as np
-import tesp_support.helpers as helpers
+#import tesp_support.helpers as helpers
 from copy import deepcopy
 import logging as log
 import pyomo.environ as pyo
@@ -310,7 +310,7 @@ class BatteryClass:
 
 
         model.obj = pyo.Objective(rule=self.obj_rule, sense=pyo.minimize)
-
+        print('Optimizing in old battery class')
         pyo.SolverFactory('ipopt').solve(model)  # solver being used
 
         # p_chg_val = [0] * len(self.TIME)
