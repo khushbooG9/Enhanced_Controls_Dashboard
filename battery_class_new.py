@@ -13,7 +13,9 @@ import pyomo.environ as pyo
 import pandas as pd
 import json
 import matplotlib.pyplot as plt
-
+# pyutilib.subprocess.GlobalData.DEFINE_SIGNAL_HANDLERS_DEFAULT = False
+import pyutilib.subprocess.GlobalData
+pyutilib.subprocess.GlobalData.DEFINE_SIGNAL_HANDLERS_DEFAULT = False
 class battery_class_new:
     """Class to control battery
 
