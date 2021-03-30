@@ -43,7 +43,6 @@ def build_banner():
 
 
 def init_usecase():
-
     with open("dict.json", 'r', encoding='utf-8') as lp:
         gen_config = json.load(lp)
 
@@ -82,7 +81,7 @@ def data_upload_panel():
                 children=[
                     html.H6("Upload"),
                     html.Br(),
-                    #html.Br(),
+                    # html.Br(),
                     html.Div(
                         id="dropdown-label",
                         children=[
@@ -143,7 +142,7 @@ def data_upload_panel():
                                     html.Label("Upload Energy Price Data"),
                                     dcc.Upload(
                                         id="upload-energy-price-data",
-                                        children=html.Div(["Drag and drop or click to select a file to upload." ]),
+                                        children=html.Div(["Drag and drop or click to select a file to upload."]),
                                         style={
                                             'width': '200%',
                                             'height': '30px',
@@ -178,7 +177,7 @@ def data_upload_panel():
                                     dcc.Upload(
                                         id="upload-ess-data",
                                         children=html.Div(["Drag and drop or click to select a file to upload."
-                                        ]),
+                                                           ]),
                                         style={
                                             'width': '200%',
                                             'height': '30px',
@@ -205,6 +204,7 @@ def data_upload_panel():
         ]
 
     )
+
 
 # @app.callback(Output('data', 'contents'),
 #             [Input('upload-energy-price-data', 'contents')])
@@ -537,29 +537,20 @@ def build_buttons_panel():
             # ),
             html.Div(
                 id="card-1",
-                children=[
-
-                    html.Button("Peak load management", className="", id="button1", n_clicks=0),
-                    html.Div(id="demand-shaping-button")
-
+                children= [html.Div(dcc.Input(id='input-box', type='text')),
+                    html.Button("Peak load threshold", className="", id="button1", n_clicks=0),
+                    html.Div(id='output-container-button')
                 ],
             ),
             html.Div(
                 id="card-2",
-                children=[
-
-                    html.Button("Simulate Power Outage", className="", id="button2", n_clicks=0),
-                    html.Div(id="simulate-power-outage")
-
-                ],
+                children=[ html.Button("Simulate Power Outage", className="", id="button2", n_clicks=0)],
             ),
             html.Div(
                 id="card-3",
                 children=[
-
                     html.Button("Reset Live Updating", className="", id="button3", n_clicks=0),
                     daq.StopButton(id="stop-button", size=160, n_clicks=0),
-
                 ],
             ),
 
@@ -642,7 +633,7 @@ def revenue_block():
                 id="revenue-label1",
                 children=[
                     html.Label("Day Ahead Estimate"),
-                    dcc.Input(id="revenue1", type='text',disabled=True),
+                    dcc.Input(id="revenue1", type='text', disabled=True),
                 ]
             ),
 
@@ -651,7 +642,7 @@ def revenue_block():
                 id="revenue-label2",
                 children=[
                     html.Label("Actual, Not Adjusted"),
-                    dcc.Input(id="revenue2", type='text',disabled=True),
+                    dcc.Input(id="revenue2", type='text', disabled=True),
                 ]
             ),
 
@@ -660,12 +651,13 @@ def revenue_block():
                 id="revenue-label3",
                 children=[
                     html.Label("Actual, Real Time Adjusted"),
-                    dcc.Input(id="revenue3", type='text',disabled=True),
+                    dcc.Input(id="revenue3", type='text', disabled=True),
                 ]
             ),
 
         ]
     )
+
 
 def build_bottom_graph():
     return dcc.Graph(
@@ -863,9 +855,10 @@ def stop_production(n_clicks, current):
         return True, "start"
     return not current, "stop" if current else "start"
 
+
 # @app.callback(
 #     [Output("Simulate Power Outage", "disabled"), Output("Power-Outage-button", "buttonText")],
-#     [Input("Power-Outage-button", "n_clicks")],
+#     [Input("", "n_clicks")],
 #     #[State("graph-update", "disabled")],
 # )
 # def power_outage(n_clicks, current):
@@ -876,18 +869,25 @@ def stop_production(n_clicks, current):
 
 @app.callback(
     output=[Output("right-graph-fig", "figure"), Output("left-graph-fig", "figure"), Output("down-graph-fig", "figure"),
-            Output("data-store", "data"), Output("liveplot-store", "data"), Output("revenue1","value"), Output("revenue2", "value"), Output("revenue3", "value")],
-    inputs=[Input("graph-update", "n_intervals"), Input("simulate-power-outage", "n_clicks")],
-    state=[State("data-store", "data"), State("liveplot-store", "data"), State("gen-config-store", "data"),
+            Output("data-store", "data"), Output("liveplot-store", "data"), Output("revenue1", "value"),
+            Output("revenue2", "value"), Output("revenue3", "value")],
+    inputs=[Input("graph-update", "n_intervals"), Input("button2", "n_clicks"), Input("button1", "n_clicks")],
+    state=[State('input-box', 'value'), State("data-store", "data"), State("liveplot-store", "data"), State("gen-config-store", "data"),
            State("data-config-store", "data"),
-           State("usecase-store", "data")],)
+           State("usecase-store", "data")], )
 # @cache.memoize
 # fig1= None
 
-def update_live_graph(ts, outage_flag, data1, live1, gen_config, data_config, use_case_library):
+def update_live_graph(ts, outage_click, peak_load_click, peak_load_threshold, data1, live1, gen_config, data_config, use_case_library):
     '''
     updating the live graph
     '''
+    outage_flag = True if outage_click % 2 else False
+
+    print(f"outage_flag = {outage_flag}")
+    print(f"peak load threshold = {peak_load_threshold}")
+    print(f"peak load clicks = {peak_load_click}")
+
     def dash_fig(ts, prediction_data, actual_data, prediction_name, actual_name, **kwargs):
         dict_fig = {'linewidth': 2, 'linecolor': '#EFEDED', 'width': 600, 'height': 350,
                     'xaxis_title': 'Seconds', 'yaxis_title': 'kW'}
@@ -896,12 +896,12 @@ def update_live_graph(ts, outage_flag, data1, live1, gen_config, data_config, us
         legend_dict = dict(orientation="h", yanchor="bottom", y=1.05, xanchor="right", x=1)
         fig = go.Figure()
         fig.add_trace(go.Scatter(
-            x = [i for i in range(max(0, ts-20), (ts+1))],
-            y = [prediction_data[0]] * (min(ts,20) +1),
+            x=[i for i in range(max(0, ts - 20), (ts + 1))],
+            y=[prediction_data[0]] * (min(ts, 20) + 1),
             name=prediction_name))
         fig.add_trace(go.Scatter(
-            x = [i for i in range(max(0, ts-20), (ts+1))],
-            y = [i for i in deque(actual_data, maxlen= 20)],
+            x=[i for i in range(max(0, ts - 20), (ts + 1))],
+            y=[i for i in deque(actual_data, maxlen=20)],
             name=actual_name))
 
         # fig.add_trace(go.Scatter(
@@ -914,7 +914,7 @@ def update_live_graph(ts, outage_flag, data1, live1, gen_config, data_config, us
         #     name=actual_name))
 
         ymin, ymax = min(prediction_data + actual_data), max(prediction_data + actual_data)
-        fig.update_xaxes(range=[max(0, ts-20), ts], showline=True, linewidth=2, linecolor='#e67300', mirror=True)
+        fig.update_xaxes(range=[max(0, ts - 20), ts], showline=True, linewidth=2, linecolor='#e67300', mirror=True)
         fig.update_yaxes(range=[ymin - 20, ymax + 20], showline=True, linewidth=2, linecolor='#e67300', mirror=True)
         # fig.update_yaxes(showline=True, linewidth=2, linecolor='#e67300', mirror=True)
         fig.update_layout(paper_bgcolor=dict_fig['linecolor'], width=dict_fig['width'], height=dict_fig['height'],
@@ -972,8 +972,6 @@ def update_live_graph(ts, outage_flag, data1, live1, gen_config, data_config, us
         #     np.multiply(np.array(rt_variables['arbitrage_purchased_power_actual_rt'])[:, idx],
         #                 np.array(rt_variables['price_actual_rt'])[:, idx])) * 5 / 60)
 
-
-
         # current_peak_load_prediction = 0.0
         battery_obj.set_load_actual(battery_obj.load_predict[0])
         active_power_mismatch = battery_obj.actual_load[ts] - battery_obj.load_up[0]
@@ -981,11 +979,12 @@ def update_live_graph(ts, outage_flag, data1, live1, gen_config, data_config, us
         if outage_flag:
             check = 1
             # outage mitigation
-            active_power_mismatch  = battery_obj.actual_load[ts]
+            active_power_mismatch = battery_obj.actual_load[ts]
             # new_SoC, new_battery_setpoint, new_grid_load = battery_obj.outage_mitigation \
             #     (active_power_mismatch, battery_obj.battery_setpoints_prediction[0], SoC_temp,
             #      battery_obj.actual_load[ts])
-            new_battery_setpoint = battery_obj.change_setpoint(battery_obj.battery_setpoints_prediction[0], active_power_mismatch)
+            new_battery_setpoint = battery_obj.change_setpoint(battery_obj.battery_setpoints_prediction[0],
+                                                               active_power_mismatch)
             # check SoC
             new_SoC, new_battery_setpoint = battery_obj.check_SoC(new_battery_setpoint, SoC_temp)
             # new grid load
@@ -1021,7 +1020,7 @@ def update_live_graph(ts, outage_flag, data1, live1, gen_config, data_config, us
         battery_obj.get_apparent_power(new_grid_load, battery_obj.grid_react_power_actual[ts]))
     battery_obj.grid_power_factor_actual.append(
         battery_obj.get_power_factor(new_grid_load, battery_obj.grid_apparent_power_actual[ts]))
-    battery_obj.peak_load_actual.append(max(battery_obj.grid_load_actual[0:ts+1]))
+    battery_obj.peak_load_actual.append(max(battery_obj.grid_load_actual[0:ts + 1]))
     SoC_temp = new_SoC
 
     print(f"soc actual = {battery_obj.SoC_actual}")
@@ -1038,7 +1037,6 @@ def update_live_graph(ts, outage_flag, data1, live1, gen_config, data_config, us
     print('da surcharge' + str(battery_obj.metrics['peak_surcharge_da'][-1]))
     print('real time surcharge' + str(battery_obj.metrics['original_surcharge'][-1]))
 
-
     current_time = current_time + timedelta(seconds=+1)
 
     fig1_dict = {'linewidth': 2, 'linecolor': '#EFEDED', 'width': 500, 'height': 350,
@@ -1051,7 +1049,7 @@ def update_live_graph(ts, outage_flag, data1, live1, gen_config, data_config, us
                     "Peak Load Prediction", "Peak Load Actual", **fig1_dict)
 
     fig4 = dash_fig(ts, battery_obj.grid_react_power_prediction, battery_obj.grid_react_power_actual,
-                    "Grid Reactive Power Prediction", "Grid Reactive Power Actual",**fig1_dict)
+                    "Grid Reactive Power Prediction", "Grid Reactive Power Actual", **fig1_dict)
 
     fig5 = dash_fig(ts, battery_obj.battery_react_power_prediction, battery_obj.battery_react_power_actual,
                     "Peak Reactive Power Prediction", "Peak Reactive Power Actual")
@@ -1063,7 +1061,7 @@ def update_live_graph(ts, outage_flag, data1, live1, gen_config, data_config, us
     data["current_time"] = current_time.strftime("%Y-%m-%d %H:%M:%S")
     revenue1 = round(battery_obj.metrics['peak_surcharge_da'][-1], 2)
     revenue2 = revenue1
-    revenue3 = round(battery_obj.metrics['original_surcharge'][-1],2)
+    revenue3 = round(battery_obj.metrics['original_surcharge'][-1], 2)
 
     live = battery_obj.todict()
 
