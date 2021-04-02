@@ -19,6 +19,17 @@ import json
 import jsonpickle
 from json import JSONEncoder
 
+style = {'width': '100%', 'height': '30px', 'lineHeight': '30px', 'borderWidth': '1px', 'borderStyle': 'dashed',
+         'borderRadius': '2px', 'textAlign': 'center', 'margin': '10px', 'fontSize': '12px'}
+style = {'width': '100%', 'height': '30px', 'lineHeight': '30px', 'borderWidth': '1px', 'borderStyle': 'dashed',
+         'borderRadius': '2px', 'textAlign': 'center', 'margin': '10px', 'fontSize': '12px'}
+interval= 1000
+dcc_interval =dcc.Interval(
+                 id='graph-update',
+                 interval=interval,
+                 n_intervals=0,
+                 disabled=True,)
+
 
 def build_banner():
     return html.Div(
@@ -72,6 +83,19 @@ def init_data_config():
     return data_config
 
 
+def upload_file(id):
+    return dcc.Upload(id=id,
+               children=html.Div(
+                   ["Drag and drop or select a file"]),
+               #style=style
+                      )
+
+def dcc_date_picker():
+    return dcc.DatePickerRange(
+        start_date_placeholder_text="Start Period",
+        end_date_placeholder_text="End Period",)
+
+
 def data_upload_panel():
     return html.Div(
         id="configuration-select-menu-wrapper",
@@ -81,48 +105,21 @@ def data_upload_panel():
                 children=[
                     html.H6("Upload"),
                     html.Br(),
-                    # html.Br(),
                     html.Div(
                         id="dropdown-label",
                         children=[
                             html.Div(
                                 children=[
                                     html.Label("Load Profile Data"),
-                                    dcc.DatePickerRange(
-                                        start_date_placeholder_text="Start Period",
-                                        end_date_placeholder_text="End Period",
-                                        calendar_orientation='horizontal',
-
-                                    )
-                                ]
-                            ),
-                            html.Div(
-                                children=[
-                                    html.Label("Upload Profile Data"),
-                                    dcc.Upload(
-                                        id="upload-load-profile-data",
-                                        children=html.Div(
-                                            ["Drag and drop or select a file"]),
-                                        style={
-                                            'width': '200%',
-                                            'height': '30px',
-                                            'lineHeight': '30px',
-                                            'borderWidth': '1px',
-                                            'borderStyle': 'dashed',
-                                            'borderRadius': '2px',
-                                            'textAlign': 'center',
-                                            'margin': '10px',
-                                            'fontSize': '12px'
-                                        }
-                                    ),
+                                    dcc_date_picker(),
+                                    upload_file("upload-load-profile-data")
                                 ]
                             ),
                             html.Hr(),
-                            # html.Div(id='output-upload-cable-data'),
                         ]
                     ),
-                    html.Br(),
-                    html.Div(id='output-upload-load-profile-data'),
+                    #html.Br(),
+                    #html.Div(id='output-upload-load-profile-data'),
                     html.Br(),
                     html.Div(
                         id="dropdown-label",
@@ -130,39 +127,16 @@ def data_upload_panel():
                             html.Div(
                                 children=[
                                     html.Label("Energy Price Data"),
-                                    dcc.DatePickerRange(
-                                        start_date_placeholder_text="Start Period",
-                                        end_date_placeholder_text="End Period",
-
-                                    )
-                                ]
-                            ),
-                            html.Div(
-                                children=[
-                                    html.Label("Upload Energy Price Data"),
-                                    dcc.Upload(
-                                        id="upload-energy-price-data",
-                                        children=html.Div(["Drag and drop or click to select a file to upload."]),
-                                        style={
-                                            'width': '200%',
-                                            'height': '30px',
-                                            'lineHeight': '30px',
-                                            'borderWidth': '1px',
-                                            'borderStyle': 'dashed',
-                                            'borderRadius': '2px',
-                                            'textAlign': 'center',
-                                            'margin': '10px',
-                                            'fontSize': '12px'
-                                        }
-                                    ),
+                                    dcc_date_picker(),
+                                    upload_file("upload-energy-price-data")
                                 ]
                             ),
                             html.Hr(),
                             # html.Div(id='output-upload-cable-data'),
                         ]
                     ),
-                    html.Br(),
-                    html.Div(id='output-upload-energy-price-data'),
+                    #html.Br(),
+                    #html.Div(id='output-upload-energy-price-data'),
                     html.Br(),
                     html.Div(
                         id="dropdown-label",
@@ -170,33 +144,14 @@ def data_upload_panel():
                             html.Div(
                                 children=[
                                     html.Label("ESS Data"),
-                                ]
-                            ),
-                            html.Div(
-                                children=[
-                                    dcc.Upload(
-                                        id="upload-ess-data",
-                                        children=html.Div(["Drag and drop or click to select a file to upload."
-                                                           ]),
-                                        style={
-                                            'width': '200%',
-                                            'height': '30px',
-                                            'lineHeight': '30px',
-                                            'borderWidth': '1px',
-                                            'borderStyle': 'dashed',
-                                            'borderRadius': '2px',
-                                            'textAlign': 'center',
-                                            'margin': '10px',
-                                            'fontSize': '12px'
-                                        }
-                                    ),
+                                    upload_file("upload-ess-data")
                                 ]
                             ),
                             html.Hr(),
                             # html.Div(id='output-upload-cable-data'),
                         ]
                     ),
-                    html.Div(id='output-upload-ess-data'),
+                   # html.Div(id='output-upload-ess-data'),
 
                 ]
             ),
@@ -482,7 +437,6 @@ def configuration_panel():
                     ),
                     build_usecase_line("demand-charge-reduction", "Demand Charge Reduction", "switch_dcr", "dd_dcr",
                                        "dcr"),
-                    html.Br(),
                     build_usecase_line("power-factor-correction", "Power Factor Correction", "switch_pfc", "dd_pfc",
                                        "pfc"),
                     html.Br(),
@@ -537,14 +491,15 @@ def build_buttons_panel():
             # ),
             html.Div(
                 id="card-1",
-                children= [html.Div(dcc.Input(id='input-box', type='text')),
-                    html.Button("Peak load threshold", className="", id="button1", n_clicks=0),
-                    html.Div(id='output-container-button')
-                ],
+                children=[html.Div(dcc.Input(id='input-box', type='text')),
+                          html.Button("Peak load threshold", className="", id="button1", n_clicks=0),
+                          html.Div(id='output-container-button')
+                          ],
             ),
             html.Div(
                 id="card-2",
-                children=[ html.Button("Simulate Power Outage", className="", id="button2", n_clicks=0)],
+                children=[html.Button("Simulate Power Outage", className="", id="button2", n_clicks=0),
+                          html.Div(id='Simulate-power-button')],
             ),
             html.Div(
                 id="card-3",
@@ -556,6 +511,67 @@ def build_buttons_panel():
 
         ],
 
+    )
+
+def build_left_graph():
+    """
+    function to build left graph
+    Reference: https://plotly.com/python/subplots/
+    """
+
+    return html.Div(
+        [dcc.Graph(id="left-graph-fig", animate=True),
+         dcc_interval
+         ]
+    )
+
+def build_right_graph():
+    return html.Div(
+        [dcc.Graph(id="right-graph-fig", animate=True),
+         dcc_interval
+         ]
+    )
+
+
+def build_bottom_graph():
+    return html.Div(
+        [dcc.Graph(id="down-graph-fig", animate=True),
+         dcc_interval
+    ])
+
+
+def revenue_block():
+    return html.Div(
+        id="revenue-block",
+        children=[
+            html.H6("Revenue"),
+            html.Br(),
+            html.Div(
+                id="revenue-label1",
+                children=[
+                    html.Label("Day Ahead Estimate"),
+                    dcc.Input(id="revenue1", type='text', disabled=True),
+                ]
+            ),
+            html.Br(),
+            html.Div(
+                id="revenue-label2",
+                children=[
+                    html.Label("Actual, Not Adjusted"),
+                    dcc.Input(id="revenue2", type='text', disabled=True),
+                ]
+            ),
+
+            html.Br(),
+            html.Div(
+                id="revenue-label3",
+                children=[
+                    html.Label("Actual, Real Time Adjusted"),
+                    dcc.Input(id="revenue3", type='text', disabled=True),
+                ]
+            ),
+
+        ]
     )
 
 
@@ -585,86 +601,6 @@ def build_top_panel():
     )
 
 
-def build_left_graph():
-    """
-    function to build left graph
-    Reference: https://plotly.com/python/subplots/
-    """
-
-    return html.Div(
-        [dcc.Graph(id="left-graph-fig", animate=True),
-         dcc.Interval(
-             id='graph-update',
-             interval=5000,
-             n_intervals=0,
-             disabled=True,
-         ),
-
-         ]
-    )
-
-
-def build_right_graph():
-    """
-    Function to build right graph
-    Reference: https://plotly.com/python/line-charts/
-    """
-
-    return html.Div(
-        [dcc.Graph(id="right-graph-fig", animate=True),
-         dcc.Interval(
-             id='graph-update',
-             interval=5000,
-             n_intervals=0,
-             disabled=True,
-         ),
-
-         ]
-    )
-
-
-def revenue_block():
-    return html.Div(
-        id="revenue-block",
-        children=[
-            html.H6("Revenue"),
-            html.Br(),
-            html.Div(
-                id="revenue-label1",
-                children=[
-                    html.Label("Day Ahead Estimate"),
-                    dcc.Input(id="revenue1", type='text', disabled=True),
-                ]
-            ),
-
-            html.Br(),
-            html.Div(
-                id="revenue-label2",
-                children=[
-                    html.Label("Actual, Not Adjusted"),
-                    dcc.Input(id="revenue2", type='text', disabled=True),
-                ]
-            ),
-
-            html.Br(),
-            html.Div(
-                id="revenue-label3",
-                children=[
-                    html.Label("Actual, Real Time Adjusted"),
-                    dcc.Input(id="revenue3", type='text', disabled=True),
-                ]
-            ),
-
-        ]
-    )
-
-
-def build_bottom_graph():
-    return dcc.Graph(
-        id="down-graph-fig", animate=True,
-    )
-
-
 def build_bottom_panel():
     """
     Function to build top panel for 2 graph placeholders
@@ -674,7 +610,6 @@ def build_bottom_panel():
         id="bottom-section-container",
         className="row",
         children=[
-
             html.Div(
                 id="left-graph",
                 children=[
@@ -766,7 +701,6 @@ def serve_layout():
 
         ],
     )
-
 
 app.layout = serve_layout
 
@@ -872,13 +806,15 @@ def stop_production(n_clicks, current):
             Output("data-store", "data"), Output("liveplot-store", "data"), Output("revenue1", "value"),
             Output("revenue2", "value"), Output("revenue3", "value")],
     inputs=[Input("graph-update", "n_intervals"), Input("button2", "n_clicks"), Input("button1", "n_clicks")],
-    state=[State('input-box', 'value'), State("data-store", "data"), State("liveplot-store", "data"), State("gen-config-store", "data"),
+    state=[State('input-box', 'value'), State("data-store", "data"), State("liveplot-store", "data"),
+           State("gen-config-store", "data"),
            State("data-config-store", "data"),
            State("usecase-store", "data")], )
 # @cache.memoize
 # fig1= None
 
-def update_live_graph(ts, outage_click, peak_load_click, peak_load_threshold, data1, live1, gen_config, data_config, use_case_library):
+def update_live_graph(ts, outage_click, peak_load_click, peak_load_threshold, data1, live1, gen_config, data_config,
+                      use_case_library):
     '''
     updating the live graph
     '''
@@ -913,11 +849,15 @@ def update_live_graph(ts, outage_click, peak_load_click, peak_load_threshold, da
         #     y=[i for i in actual_data],
         #     name=actual_name))
 
-        ymin, ymax = min(prediction_data + actual_data), max(prediction_data + actual_data)
+        ymin, ymax = min([prediction_data[0]] + actual_data), max([prediction_data[0]] + actual_data)
         fig.update_xaxes(range=[max(0, ts - 20), ts], showline=True, linewidth=2, linecolor='#e67300', mirror=True)
         fig.update_yaxes(range=[ymin - 20, ymax + 20], showline=True, linewidth=2, linecolor='#e67300', mirror=True)
         # fig.update_yaxes(showline=True, linewidth=2, linecolor='#e67300', mirror=True)
-        fig.update_layout(paper_bgcolor=dict_fig['linecolor'], width=dict_fig['width'], height=dict_fig['height'],
+        # fig.update_layout(paper_bgcolor=dict_fig['linecolor'], width=dict_fig['width'], height=dict_fig['height'],
+        #                   legend=legend_dict,
+        #                   xaxis_title=dict_fig['xaxis_title'],
+        #                   yaxis_title=dict_fig['yaxis_title'])
+        fig.update_layout(paper_bgcolor=dict_fig['linecolor'],
                           legend=legend_dict,
                           xaxis_title=dict_fig['xaxis_title'],
                           yaxis_title=dict_fig['yaxis_title'])
@@ -953,6 +893,7 @@ def update_live_graph(ts, outage_click, peak_load_click, peak_load_threshold, da
         SoC_temp = data1["SoC_temp"]
 
     print("SECOND IS", ts)
+    print(f"simulation_duration {simulation_duration}")
 
     if ts < simulation_duration:
         if ts % 3600 == 0:
@@ -983,12 +924,14 @@ def update_live_graph(ts, outage_click, peak_load_click, peak_load_threshold, da
             # new_SoC, new_battery_setpoint, new_grid_load = battery_obj.outage_mitigation \
             #     (active_power_mismatch, battery_obj.battery_setpoints_prediction[0], SoC_temp,
             #      battery_obj.actual_load[ts])
-            new_battery_setpoint = battery_obj.change_setpoint(battery_obj.battery_setpoints_prediction[0],
-                                                               active_power_mismatch)
+            new_battery_setpoint = battery_obj.change_setpoint(0, active_power_mismatch)
             # check SoC
             new_SoC, new_battery_setpoint = battery_obj.check_SoC(new_battery_setpoint, SoC_temp)
             # new grid load
             new_grid_load = battery_obj.actual_load[ts] - new_battery_setpoint
+            print(f"New Battery Setpoint in outage block = {new_battery_setpoint}")
+            print(f"New grid load = {new_grid_load}")
+            print(f"New actual load = {battery_obj.actual_load[ts]}")
 
         else:
             for i in range(len(services_list) - 1):
@@ -1023,11 +966,16 @@ def update_live_graph(ts, outage_click, peak_load_click, peak_load_threshold, da
     battery_obj.peak_load_actual.append(max(battery_obj.grid_load_actual[0:ts + 1]))
     SoC_temp = new_SoC
 
+    print(f"New Battery Setpoint after outage block = {new_battery_setpoint}")
+
     print(f"soc actual = {battery_obj.SoC_actual}")
     print(f"soc prediction = {battery_obj.SoC_prediction}")
     print(f"grid load actual = {battery_obj.grid_load_actual}")
     print(f"grid peak load prediction = {battery_obj.peak_load_prediction}")
     print(f"grid peak load actual = {max(battery_obj.peak_load_actual)}")
+    print(f"Battery Setpoints Prediction = {battery_obj.battery_setpoints_prediction}")
+
+    print(f"Battery Setpoints Actual = {battery_obj.battery_setpoints_actual}")
     # print(f"grid load actual 0:ts = {battery_obj.grid_load_actual[0:ts]}")
     # print(f"grid load actual max(0:ts) = {max(battery_obj.grid_load_actual[0:ts])}")
 
@@ -1045,7 +993,7 @@ def update_live_graph(ts, outage_click, peak_load_click, peak_load_threshold, da
                     "SoC Prediction", "SoC Actual", **fig1_dict)
     fig2 = dash_fig(ts, battery_obj.grid_load_prediction, battery_obj.grid_load_actual,
                     "Grid Load Prediction", "Grid Load Actual", **fig1_dict)
-    fig3 = dash_fig(ts, [battery_obj.peak_load_prediction], battery_obj.peak_load_actual,
+    fig5 = dash_fig(ts, [battery_obj.peak_load_prediction], battery_obj.peak_load_actual,
                     "Peak Load Prediction", "Peak Load Actual", **fig1_dict)
 
     fig4 = dash_fig(ts, battery_obj.grid_react_power_prediction, battery_obj.grid_react_power_actual,
@@ -1053,6 +1001,9 @@ def update_live_graph(ts, outage_click, peak_load_click, peak_load_threshold, da
 
     fig5 = dash_fig(ts, battery_obj.battery_react_power_prediction, battery_obj.battery_react_power_actual,
                     "Peak Reactive Power Prediction", "Peak Reactive Power Actual")
+
+    fig3 = dash_fig(ts, battery_obj.battery_setpoints_prediction, battery_obj.battery_setpoints_actual,
+                    "Battery Setpoint Prediction", "Battery Setpoint Actual")
 
     data["SoC_temp"] = SoC_temp
     data["simulation_duration"] = simulation_duration
