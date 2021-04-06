@@ -21,14 +21,20 @@ from json import JSONEncoder
 
 style = {'width': '100%', 'height': '30px', 'lineHeight': '30px', 'borderWidth': '1px', 'borderStyle': 'dashed',
          'borderRadius': '2px', 'textAlign': 'center', 'margin': '10px', 'fontSize': '12px'}
-style = {'width': '100%', 'height': '30px', 'lineHeight': '30px', 'borderWidth': '1px', 'borderStyle': 'dashed',
-         'borderRadius': '2px', 'textAlign': 'center', 'margin': '10px', 'fontSize': '12px'}
+label_style = {'textAlign': 'center'}
 interval= 1000
 dcc_interval =dcc.Interval(
                  id='graph-update',
                  interval=interval,
                  n_intervals=0,
                  disabled=True,)
+
+@app.callback(
+    Output('graph-update', 'interval'),
+    [Input('submit-val', 'n_clicks')],
+    [State('update-rate-slider', 'value')])
+def update_output(n_clicks,  value):
+    return value
 
 
 def build_banner():
@@ -455,7 +461,6 @@ def configuration_panel():
 
     )
 
-
 def build_settings_tab():
     """
     Function to put together the settings tab
@@ -467,6 +472,86 @@ def build_settings_tab():
             children=[configuration_panel(), data_upload_panel()],
         )]
 
+def build_price_change_button():
+    return html.Div(
+                id="card-1",
+                children=[html.Button("Price change in load", className="", id="button1", n_clicks=0),
+                          #html.Div(id='price-change-button'),
+                          ],
+            )
+
+def build_price_change_slider():
+    return html.Div([
+        html.Label('Price Change in Percentage',style=label_style),
+                dcc.Slider(
+                    id='price-change-slider',
+                    min=-100,
+                    max=100,
+                    step= 20,
+                    value=0,
+                    updatemode='drag'
+                ),
+               # html.Div(id='slider-output-container')
+            ])
+
+def build_unscheduled_outage_button():
+    return html.Div(
+                id="card-2",
+                children=[html.Button("Unscheduled Outage", className="", id="button2", n_clicks=0),
+                          #html.Div(id='Unscheduled-outage-button'),
+                          ],
+            )
+
+def build_unschedule_outage_slider():
+    return html.Div([
+                dcc.Slider(
+                    id='unschedule-outage-slider',
+                    min=0,
+                    max=100,
+                    step=None,
+                    marks={
+                        0: '0 %',
+                        25: '25 %',
+                        50: '50 %',
+                        75: '75 %',
+                        100: '100 %'
+                    },
+                    value=100,
+                    updatemode='drag'
+                ),
+                #html.Div(id='slider-output-container')
+            ])
+def build_stop_button():
+    return html.Div(
+                id="card-3",
+                children=[
+                    #html.Button("Reset Live Updating", className="", id="button3", n_clicks=0),
+                    daq.StopButton(id="stop-button", label='Reset Live Updating', labelPosition='top',size=160, n_clicks=0),
+                ],
+            )
+
+def build_update_rate_button():
+    return html.Div(
+                id="card-0",
+                children=[
+                    html.Label('Update Rate', className=""),
+                    html.Button("update-rate", className="", id="button0", n_clicks=0),
+                          ],
+            )
+
+def build_update_rate_slider():
+    return html.Div([
+        html.Button('Update Rate', id='submit-val', n_clicks=0),
+                dcc.Input(
+                    id='update-rate-slider',
+                    type="number",
+                    min=800,
+                    max=5000,
+                    step=100,
+                    value=1000
+                ),
+                #html.Div(id='slider-output-container')
+            ])
 
 def build_buttons_panel():
     """
@@ -476,39 +561,13 @@ def build_buttons_panel():
         id="buttons-panel",
         className="row",
         children=[
-            # html.Div(
-            #     id="card-1",
-            #     children=[
-            #         html.Button(className="", id="button1", children="Arbitrage", n_clicks=0),
-            #         html.Button(className="", id="button1", children="Peak Shaving", n_clicks=0),
-            #         html.Button(className="", id="button1", children="Demand Shaping", n_clicks=0),
-            #         html.Button(className="", id="button1", children="System Capacity", n_clicks=0),
-            #         html.Button(className="", id="button1", children="Frequency Regulation", n_clicks=0),
-            #         html.Button(className="", id="button1", children="Spinning/Non-Spinning Reserve", n_clicks=0),
-            #         html.Button(className="", id="button1", children="Volt/Var", n_clicks=0),
-            #         html.Button(className="", id="button1", children="Co-optimize", n_clicks=0),
-            #     ],
-            # ),
-            html.Div(
-                id="card-1",
-                children=[html.Div(dcc.Input(id='input-box', type='text')),
-                          html.Button("Peak load threshold", className="", id="button1", n_clicks=0),
-                          html.Div(id='output-container-button')
-                          ],
-            ),
-            html.Div(
-                id="card-2",
-                children=[html.Button("Simulate Power Outage", className="", id="button2", n_clicks=0),
-                          html.Div(id='Simulate-power-button')],
-            ),
-            html.Div(
-                id="card-3",
-                children=[
-                    html.Button("Reset Live Updating", className="", id="button3", n_clicks=0),
-                    daq.StopButton(id="stop-button", size=160, n_clicks=0),
-                ],
-            ),
-
+            #build_update_rate_button(),
+            build_update_rate_slider(),
+            build_price_change_button(),
+            build_price_change_slider(),
+            build_unscheduled_outage_button(),
+            #build_unschedule_outage_slider(),
+            build_stop_button()
         ],
 
     )
@@ -806,14 +865,14 @@ def stop_production(n_clicks, current):
             Output("data-store", "data"), Output("liveplot-store", "data"), Output("revenue1", "value"),
             Output("revenue2", "value"), Output("revenue3", "value")],
     inputs=[Input("graph-update", "n_intervals"), Input("button2", "n_clicks"), Input("button1", "n_clicks")],
-    state=[State('input-box', 'value'), State("data-store", "data"), State("liveplot-store", "data"),
+    state=[State('price-change-slider', 'value'), State("data-store", "data"), State("liveplot-store", "data"),
            State("gen-config-store", "data"),
            State("data-config-store", "data"),
-           State("usecase-store", "data")], )
+           State("usecase-store", "data")])
 # @cache.memoize
 # fig1= None
 
-def update_live_graph(ts, outage_click, peak_load_click, peak_load_threshold, data1, live1, gen_config, data_config,
+def update_live_graph(ts, outage_click, peak_load_click, price_change_value, data1, live1, gen_config, data_config,
                       use_case_library):
     '''
     updating the live graph
@@ -821,11 +880,11 @@ def update_live_graph(ts, outage_click, peak_load_click, peak_load_threshold, da
     outage_flag = True if outage_click % 2 else False
 
     print(f"outage_flag = {outage_flag}")
-    print(f"peak load threshold = {peak_load_threshold}")
+    print(f"price change value = {price_change_value}")
     print(f"peak load clicks = {peak_load_click}")
 
     def dash_fig(ts, prediction_data, actual_data, prediction_name, actual_name, **kwargs):
-        dict_fig = {'linewidth': 2, 'linecolor': '#EFEDED', 'width': 600, 'height': 350,
+        dict_fig = {'linewidth': 2, 'linecolor': '#EFEDED', 'width': 600, 'height': 400,
                     'xaxis_title': 'Seconds', 'yaxis_title': 'kW'}
         if kwargs:
             dict_fig.update(kwargs)
@@ -853,14 +912,14 @@ def update_live_graph(ts, outage_click, peak_load_click, peak_load_threshold, da
         fig.update_xaxes(range=[max(0, ts - 20), ts], showline=True, linewidth=2, linecolor='#e67300', mirror=True)
         fig.update_yaxes(range=[ymin - 20, ymax + 20], showline=True, linewidth=2, linecolor='#e67300', mirror=True)
         # fig.update_yaxes(showline=True, linewidth=2, linecolor='#e67300', mirror=True)
-        # fig.update_layout(paper_bgcolor=dict_fig['linecolor'], width=dict_fig['width'], height=dict_fig['height'],
-        #                   legend=legend_dict,
-        #                   xaxis_title=dict_fig['xaxis_title'],
-        #                   yaxis_title=dict_fig['yaxis_title'])
-        fig.update_layout(paper_bgcolor=dict_fig['linecolor'],
+        fig.update_layout(paper_bgcolor=dict_fig['linecolor'], width=dict_fig['width'], height=dict_fig['height'],
                           legend=legend_dict,
                           xaxis_title=dict_fig['xaxis_title'],
                           yaxis_title=dict_fig['yaxis_title'])
+        # fig.update_layout(paper_bgcolor=dict_fig['linecolor'],
+        #                   legend=legend_dict,
+        #                   xaxis_title=dict_fig['xaxis_title'],
+        #                   yaxis_title=dict_fig['yaxis_title'])
         return fig
 
     data = {}
