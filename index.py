@@ -22,18 +22,19 @@ from json import JSONEncoder
 style = {'width': '100%', 'height': '30px', 'lineHeight': '30px', 'borderWidth': '1px', 'borderStyle': 'dashed',
          'borderRadius': '2px', 'textAlign': 'center', 'margin': '10px', 'fontSize': '12px'}
 label_style = {'textAlign': 'center'}
-interval= 1000
-dcc_interval =dcc.Interval(
-                 id='graph-update',
-                 interval=interval,
-                 n_intervals=0,
-                 disabled=True,)
+interval = 1000
+click = 0
+dcc_interval = dcc.Interval(
+    id='graph-update',
+    interval=interval,
+    n_intervals=0,
+    disabled=True, )
 
 @app.callback(
     Output('graph-update', 'interval'),
     [Input('submit-val', 'n_clicks')],
-    [State('update-rate-slider', 'value')])
-def update_output(n_clicks,  value):
+    [State('update-rate-box', 'value')])
+def update_output(n_clicks, value):
     return value
 
 
@@ -91,15 +92,16 @@ def init_data_config():
 
 def upload_file(id):
     return dcc.Upload(id=id,
-               children=html.Div(
-                   ["Drag and drop or select a file"]),
-               #style=style
+                      children=html.Div(
+                          ["Drag and drop or select a file"]),
+                      # style=style
                       )
+
 
 def dcc_date_picker():
     return dcc.DatePickerRange(
         start_date_placeholder_text="Start Period",
-        end_date_placeholder_text="End Period",)
+        end_date_placeholder_text="End Period", )
 
 
 def data_upload_panel():
@@ -124,8 +126,8 @@ def data_upload_panel():
                             html.Hr(),
                         ]
                     ),
-                    #html.Br(),
-                    #html.Div(id='output-upload-load-profile-data'),
+                    # html.Br(),
+                    # html.Div(id='output-upload-load-profile-data'),
                     html.Br(),
                     html.Div(
                         id="dropdown-label",
@@ -141,8 +143,8 @@ def data_upload_panel():
                             # html.Div(id='output-upload-cable-data'),
                         ]
                     ),
-                    #html.Br(),
-                    #html.Div(id='output-upload-energy-price-data'),
+                    # html.Br(),
+                    # html.Div(id='output-upload-energy-price-data'),
                     html.Br(),
                     html.Div(
                         id="dropdown-label",
@@ -157,7 +159,7 @@ def data_upload_panel():
                             # html.Div(id='output-upload-cable-data'),
                         ]
                     ),
-                   # html.Div(id='output-upload-ess-data'),
+                    # html.Div(id='output-upload-ess-data'),
 
                 ]
             ),
@@ -461,6 +463,7 @@ def configuration_panel():
 
     )
 
+
 def build_settings_tab():
     """
     Function to put together the settings tab
@@ -472,86 +475,161 @@ def build_settings_tab():
             children=[configuration_panel(), data_upload_panel()],
         )]
 
+
 def build_price_change_button():
     return html.Div(
-                id="card-1",
-                children=[html.Button("Price change in load", className="", id="button1", n_clicks=0),
-                          #html.Div(id='price-change-button'),
-                          ],
-            )
+        id="card-1",
+        children=[html.Button("Price change in load", className="", id="button1", n_clicks=0),
+                  # html.Div(id='price-change-button'),
+                  ],
+    )
+
 
 def build_price_change_slider():
     return html.Div([
-        html.Label('Price Change in Percentage',style=label_style),
-                dcc.Slider(
-                    id='price-change-slider',
-                    min=-100,
-                    max=100,
-                    step= 20,
-                    value=0,
-                    updatemode='drag'
-                ),
-               # html.Div(id='slider-output-container')
-            ])
+        html.Label('Price Change in Percentage', style=label_style),
+        dcc.Slider(
+            id='price-change-slider',
+            min=-100,
+            max=100,
+            step=20,
+            marks={
+                -100: '-100 %',
+                -75: '-75 %',
+                -50: '-50 %',
+                -25: '-25 %',
+                0: '0 %',
+                25: '25 %',
+                50: '50 %',
+                75: '75 %',
+                100: '100 %'
+            },
+            value=0,
+            updatemode='drag'
+        ),
+        # html.Div(id='slider-output-container')
+    ])
+
+
+def grid_load_change_slider():
+    return html.Div([
+        html.Label('Grid Load Change in Percentage', style=label_style),
+        dcc.Slider(
+            id='grid-load-change-slider',
+            min=-100,
+            max=100,
+            step=20,
+            marks={
+                -100: '-100 %',
+                -75: '-75 %',
+                -50: '-50 %',
+                -25: '-25 %',
+                0: '0 %',
+                25: '25 %',
+                50: '50 %',
+                75: '75 %',
+                100: '100 %'
+            },
+            value=0,
+            updatemode='drag'
+        ),
+        # html.Div(id='slider-output-container')
+    ])
+
 
 def build_unscheduled_outage_button():
-    return html.Div(
-                id="card-2",
-                children=[html.Button("Unscheduled Outage", className="", id="button2", n_clicks=0),
-                          #html.Div(id='Unscheduled-outage-button'),
-                          ],
-            )
-
-def build_unschedule_outage_slider():
     return html.Div([
-                dcc.Slider(
-                    id='unschedule-outage-slider',
-                    min=0,
-                    max=100,
-                    step=None,
-                    marks={
-                        0: '0 %',
-                        25: '25 %',
-                        50: '50 %',
-                        75: '75 %',
-                        100: '100 %'
-                    },
-                    value=100,
-                    updatemode='drag'
-                ),
-                #html.Div(id='slider-output-container')
-            ])
+        html.Label('Unschedule Outage', style=label_style),
+        daq.ToggleSwitch(
+        id='outage-switch',
+        label=['OFF','ON'],
+        labelPosition='bottom',
+        color='green',
+        value=False
+    ),
+                  # html.Div(id='Unscheduled-outage-button'),
+                  ],
+    )
+
+
 def build_stop_button():
     return html.Div(
-                id="card-3",
-                children=[
-                    #html.Button("Reset Live Updating", className="", id="button3", n_clicks=0),
-                    daq.StopButton(id="stop-button", label='Reset Live Updating', labelPosition='top',size=160, n_clicks=0),
-                ],
-            )
+        id="card-3",
+        children=[
+            # html.Button("Reset Live Updating", className="", id="button3", n_clicks=0),
+            daq.StopButton(id="stop-button", label='Reset Live Updating', labelPosition='top', size=160, n_clicks=0),
+        ],
+    )
+
 
 def build_update_rate_button():
     return html.Div(
-                id="card-0",
-                children=[
-                    html.Label('Update Rate', className=""),
-                    html.Button("update-rate", className="", id="button0", n_clicks=0),
-                          ],
-            )
+        id="card-0",
+        children=[
+            html.Label('Update Rate', className=""),
+            html.Button("update-rate", className="", id="button0", n_clicks=0),
+        ],
+    )
 
-def build_update_rate_slider():
+def build_update_buffer_button():
+    return html.Div([html.Button('Update Buffer Size', id='update-buffer-button', n_clicks=0),
+                     html.Div(dcc.Input(
+                         id='update-buffer',
+                         type="number",
+                         min=200,
+                         max=5000,
+                         step=100,
+                         value=2000
+                     ))
+                     ]
+    )
+
+def build_update_rate_box():
     return html.Div([
         html.Button('Update Rate', id='submit-val', n_clicks=0),
-                dcc.Input(
-                    id='update-rate-slider',
-                    type="number",
-                    min=800,
-                    max=5000,
-                    step=100,
-                    value=1000
-                ),
-                #html.Div(id='slider-output-container')
-            ])
+        html.Div(dcc.Input(
+            id='update-rate-box',
+            type="number",
+            min=800,
+            max=5000,
+            step=100,
+            value=1000
+        ))
+        # html.Div(id='slider-output-container')
+    ])
+
+
+def build_update_window_box():
+    return html.Div([
+        html.Button('Update Window', id='submit-val', n_clicks=0),
+        html.Div(dcc.Input(
+            id='update-window',
+            type="number",
+            min=20,
+            max=1000,
+            step=10,
+            value=50
+        ))
+        # html.Div(id='slider-output-container')
+    ])
+
+
+def build_dropdown_box():
+    return html.Div([
+        # html.Button('Update Rate', id='submit-val', n_clicks=0),
+        dcc.Dropdown(
+            id='fig-dropdown',
+            options=[
+                {'label': 'Grid Load', 'value': 'GL'},
+                {'label': 'Peak Load', 'value': 'PL'},
+                {'label': 'Grid Reactive', 'value': 'GR'},
+                {'label': 'Peak Reactive', 'value': 'PR'}
+            ],
+            value='GL'
+        ),
+        # html.Div(id='slider-output-container')
+    ])
+
 
 def build_buttons_panel():
     """
@@ -561,28 +639,31 @@ def build_buttons_panel():
         id="buttons-panel",
         className="row",
         children=[
-            #build_update_rate_button(),
-            build_update_rate_slider(),
-            build_price_change_button(),
+            # build_update_rate_button(),
+            build_update_rate_box(),
+            build_update_window_box(),
+            build_update_buffer_button(),
             build_price_change_slider(),
+            grid_load_change_slider(),
             build_unscheduled_outage_button(),
-            #build_unschedule_outage_slider(),
+            # build_unschedule_outage_slider(),
             build_stop_button()
         ],
 
     )
+
 
 def build_left_graph():
     """
     function to build left graph
     Reference: https://plotly.com/python/subplots/
     """
-
     return html.Div(
         [dcc.Graph(id="left-graph-fig", animate=True),
          dcc_interval
          ]
     )
+
 
 def build_right_graph():
     return html.Div(
@@ -594,9 +675,10 @@ def build_right_graph():
 
 def build_bottom_graph():
     return html.Div(
-        [dcc.Graph(id="down-graph-fig", animate=True),
+        [build_dropdown_box(),
+         dcc.Graph(id="down-graph-fig", animate=True),
          dcc_interval
-    ])
+         ])
 
 
 def revenue_block():
@@ -761,6 +843,7 @@ def serve_layout():
         ],
     )
 
+
 app.layout = serve_layout
 
 
@@ -864,62 +947,57 @@ def stop_production(n_clicks, current):
     output=[Output("right-graph-fig", "figure"), Output("left-graph-fig", "figure"), Output("down-graph-fig", "figure"),
             Output("data-store", "data"), Output("liveplot-store", "data"), Output("revenue1", "value"),
             Output("revenue2", "value"), Output("revenue3", "value")],
-    inputs=[Input("graph-update", "n_intervals"), Input("button2", "n_clicks"), Input("button1", "n_clicks")],
-    state=[State('price-change-slider', 'value'), State("data-store", "data"), State("liveplot-store", "data"),
-           State("gen-config-store", "data"),
-           State("data-config-store", "data"),
-           State("usecase-store", "data")])
+    inputs=[Input("graph-update", "n_intervals"), Input("outage-switch", "value"), Input("submit-val", "n_clicks")],
+    state=[State('price-change-slider', 'value'), State('update-window', 'value'), State('update-buffer', 'value'), State('fig-dropdown', 'value'),
+           State("data-store", "data"), State("liveplot-store", "data"), State("gen-config-store", "data"),
+           State("data-config-store", "data"), State("usecase-store", "data")])
 # @cache.memoize
 # fig1= None
 
-def update_live_graph(ts, outage_click, peak_load_click, price_change_value, data1, live1, gen_config, data_config,
+def update_live_graph(ts, outage_flag, submit_click, price_change_value, update_window, update_buffer, figdropdown, data1, live1,
+                      gen_config, data_config,
                       use_case_library):
     '''
     updating the live graph
     '''
-    outage_flag = True if outage_click % 2 else False
+    print(f"outage flag = {outage_flag}")
 
-    print(f"outage_flag = {outage_flag}")
-    print(f"price change value = {price_change_value}")
-    print(f"peak load clicks = {peak_load_click}")
-
-    def dash_fig(ts, prediction_data, actual_data, prediction_name, actual_name, **kwargs):
+    def dash_fig(ts, prediction_data, actual_data, title=None, **kwargs):
         dict_fig = {'linewidth': 2, 'linecolor': '#EFEDED', 'width': 600, 'height': 400,
                     'xaxis_title': 'Seconds', 'yaxis_title': 'kW'}
         if kwargs:
             dict_fig.update(kwargs)
         legend_dict = dict(orientation="h", yanchor="bottom", y=1.05, xanchor="right", x=1)
         fig = go.Figure()
-        fig.add_trace(go.Scatter(
-            x=[i for i in range(max(0, ts - 20), (ts + 1))],
-            y=[prediction_data[0]] * (min(ts, 20) + 1),
-            name=prediction_name))
-        fig.add_trace(go.Scatter(
-            x=[i for i in range(max(0, ts - 20), (ts + 1))],
-            y=[i for i in deque(actual_data, maxlen=20)],
-            name=actual_name))
 
         # fig.add_trace(go.Scatter(
-        #     x=[i for i in range(ts-20, ts+ 2)],
-        #     y=[prediction_data[0]] * (ts + 2),
-        #     name=prediction_name))
+        #     x=[i for i in range(max(0, ts - update_window), (ts + 1))],
+        #     y=[prediction_data[0]] * (min(ts, update_window) + 2),
+        #     name="Prediction"))
         # fig.add_trace(go.Scatter(
-        #     x=[i for i in range(len(actual_data))],
-        #     y=[i for i in actual_data],
-        #     name=actual_name))
+        #     x=[i for i in range(max(0, ts - update_window), (ts + 1))],
+        #     y=[i for i in deque(actual_data, maxlen=2000)],
+        #     name="Actual"))
+
+        fig.add_trace(go.Scatter(
+            x=[i for i in range(max(0, ts - update_buffer), (ts + 1))],
+            y=[prediction_data[0]] * (min(ts, update_buffer) + 2),
+            name="Prediction"))
+        fig.add_trace(go.Scatter(
+            x=[i for i in range(max(0, ts - update_buffer), (ts + 1))],
+            y=[i for i in deque(actual_data, maxlen=update_buffer)],
+            name="Actual"))
 
         ymin, ymax = min([prediction_data[0]] + actual_data), max([prediction_data[0]] + actual_data)
-        fig.update_xaxes(range=[max(0, ts - 20), ts], showline=True, linewidth=2, linecolor='#e67300', mirror=True)
+        fig.update_xaxes(range=[max(0, ts - update_window), ts], showline=True, linewidth=2, linecolor='#e67300',
+                         mirror=True)
         fig.update_yaxes(range=[ymin - 20, ymax + 20], showline=True, linewidth=2, linecolor='#e67300', mirror=True)
         # fig.update_yaxes(showline=True, linewidth=2, linecolor='#e67300', mirror=True)
         fig.update_layout(paper_bgcolor=dict_fig['linecolor'], width=dict_fig['width'], height=dict_fig['height'],
-                          legend=legend_dict,
+                          legend=legend_dict, showlegend=True, title=title,
                           xaxis_title=dict_fig['xaxis_title'],
                           yaxis_title=dict_fig['yaxis_title'])
-        # fig.update_layout(paper_bgcolor=dict_fig['linecolor'],
-        #                   legend=legend_dict,
-        #                   xaxis_title=dict_fig['xaxis_title'],
-        #                   yaxis_title=dict_fig['yaxis_title'])
+
         return fig
 
     data = {}
@@ -952,7 +1030,6 @@ def update_live_graph(ts, outage_click, peak_load_click, price_change_value, dat
         SoC_temp = data1["SoC_temp"]
 
     print("SECOND IS", ts)
-    print(f"simulation_duration {simulation_duration}")
 
     if ts < simulation_duration:
         if ts % 3600 == 0:
@@ -988,9 +1065,9 @@ def update_live_graph(ts, outage_click, peak_load_click, price_change_value, dat
             new_SoC, new_battery_setpoint = battery_obj.check_SoC(new_battery_setpoint, SoC_temp)
             # new grid load
             new_grid_load = battery_obj.actual_load[ts] - new_battery_setpoint
-            print(f"New Battery Setpoint in outage block = {new_battery_setpoint}")
-            print(f"New grid load = {new_grid_load}")
-            print(f"New actual load = {battery_obj.actual_load[ts]}")
+            # print(f"New Battery Setpoint in outage block = {new_battery_setpoint}")
+            # print(f"New grid load = {new_grid_load}")
+            # print(f"New actual load = {battery_obj.actual_load[ts]}")
 
         else:
             for i in range(len(services_list) - 1):
@@ -1025,16 +1102,16 @@ def update_live_graph(ts, outage_click, peak_load_click, price_change_value, dat
     battery_obj.peak_load_actual.append(max(battery_obj.grid_load_actual[0:ts + 1]))
     SoC_temp = new_SoC
 
-    print(f"New Battery Setpoint after outage block = {new_battery_setpoint}")
+    # print(f"New Battery Setpoint after outage block = {new_battery_setpoint}")
 
-    print(f"soc actual = {battery_obj.SoC_actual}")
-    print(f"soc prediction = {battery_obj.SoC_prediction}")
-    print(f"grid load actual = {battery_obj.grid_load_actual}")
-    print(f"grid peak load prediction = {battery_obj.peak_load_prediction}")
-    print(f"grid peak load actual = {max(battery_obj.peak_load_actual)}")
-    print(f"Battery Setpoints Prediction = {battery_obj.battery_setpoints_prediction}")
+    # print(f"soc actual = {battery_obj.SoC_actual}")
+    # print(f"soc prediction = {battery_obj.SoC_prediction}")
+    # print(f"grid load actual = {battery_obj.grid_load_actual}")
+    # print(f"grid peak load prediction = {battery_obj.peak_load_prediction}")
+    # print(f"grid peak load actual = {max(battery_obj.peak_load_actual)}")
+    # print(f"Battery Setpoints Prediction = {battery_obj.battery_setpoints_prediction}")
 
-    print(f"Battery Setpoints Actual = {battery_obj.battery_setpoints_actual}")
+    # print(f"Battery Setpoints Actual = {battery_obj.battery_setpoints_actual}")
     # print(f"grid load actual 0:ts = {battery_obj.grid_load_actual[0:ts]}")
     # print(f"grid load actual max(0:ts) = {max(battery_obj.grid_load_actual[0:ts])}")
 
@@ -1046,23 +1123,29 @@ def update_live_graph(ts, outage_click, peak_load_click, price_change_value, dat
 
     current_time = current_time + timedelta(seconds=+1)
 
-    fig1_dict = {'linewidth': 2, 'linecolor': '#EFEDED', 'width': 500, 'height': 350,
+    fig1_dict = {'linewidth': 2, 'linecolor': '#EFEDED', 'width': 600, 'height': 400,
                  'xaxis_title': 'Seconds', 'yaxis_title': 'kW'}
     fig1 = dash_fig(ts, battery_obj.SoC_prediction, battery_obj.SoC_actual,
-                    "SoC Prediction", "SoC Actual", **fig1_dict)
-    fig2 = dash_fig(ts, battery_obj.grid_load_prediction, battery_obj.grid_load_actual,
-                    "Grid Load Prediction", "Grid Load Actual", **fig1_dict)
-    fig5 = dash_fig(ts, [battery_obj.peak_load_prediction], battery_obj.peak_load_actual,
-                    "Peak Load Prediction", "Peak Load Actual", **fig1_dict)
+                    "SoC", **fig1_dict)
+    fig2 = dash_fig(ts, battery_obj.battery_setpoints_prediction, battery_obj.battery_setpoints_actual,
+                    "Battery Setpoint", **fig1_dict)
+    fig_pl = dash_fig(ts, [battery_obj.peak_load_prediction], battery_obj.peak_load_actual,
+                      **fig1_dict)
+    fig_gr = dash_fig(ts, battery_obj.grid_react_power_prediction, battery_obj.grid_react_power_actual,
+                      **fig1_dict)
+    fig_pr = dash_fig(ts, battery_obj.battery_react_power_prediction, battery_obj.battery_react_power_actual,
+                      **fig1_dict)
+    fig_gl = dash_fig(ts, battery_obj.grid_load_prediction, battery_obj.grid_load_actual,
+                      **fig1_dict)
 
-    fig4 = dash_fig(ts, battery_obj.grid_react_power_prediction, battery_obj.grid_react_power_actual,
-                    "Grid Reactive Power Prediction", "Grid Reactive Power Actual", **fig1_dict)
-
-    fig5 = dash_fig(ts, battery_obj.battery_react_power_prediction, battery_obj.battery_react_power_actual,
-                    "Peak Reactive Power Prediction", "Peak Reactive Power Actual")
-
-    fig3 = dash_fig(ts, battery_obj.battery_setpoints_prediction, battery_obj.battery_setpoints_actual,
-                    "Battery Setpoint Prediction", "Battery Setpoint Actual")
+    if figdropdown == "PL":
+        fig3 = fig_pl
+    elif figdropdown == "GR":
+        fig3 = fig_gr
+    elif figdropdown == "PR":
+        fig3 = fig_pr
+    else:
+        fig3 = fig_gl
 
     data["SoC_temp"] = SoC_temp
     data["simulation_duration"] = simulation_duration
