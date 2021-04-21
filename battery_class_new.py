@@ -81,6 +81,9 @@ class battery_class_new:
         self.load_up = None
         self.load_down = None
         self.price_data = None
+        self.price_predict = None
+        self.price_up = None
+        self.price_down = None
 
 
         self.battery_setpoints_prediction = [[]] * self.windowLength
@@ -108,7 +111,7 @@ class battery_class_new:
         self.actual_load = []
         self.grid_apparent_power_actual = []
         self.grid_power_factor_actual = []
-
+        self.actual_price = []
         self.metrics = {'arbitrage_revenue_da': [], 'peak_surcharge_da': [], 'arbitrage_revenue_ideal_rt': [],
                    'arbitrage_revenue_actual_rt': [], 'peak_surcharge_rt': [], 'original_surcharge': [],
                    'reg_up_rev_da': [], 'reg_down_rev_da': [], 'reg_up_rev_rt': [], 'reg_down_rev_rt': []}
@@ -174,8 +177,8 @@ class battery_class_new:
         data["actual_load"] = self.actual_load
         data["grid_apparent_power_actual"] = self.grid_apparent_power_actual
         data["grid_power_factor_actual"] = self.grid_power_factor_actual
-        
-        return data 
+        data["actual_price"] = self.actual_price
+        return data
 
 
     def fromdict(self, data):
@@ -253,7 +256,7 @@ class battery_class_new:
         self.actual_load = data["actual_load"]
         self.grid_apparent_power_actual = data["grid_apparent_power_actual"]
         self.grid_power_factor_actual = data["grid_power_factor_actual"]
-
+        self.actual_price = data["actual_price"]
 
     def copydata(self, other):
         self.use_case_dict = other.use_case_dict
@@ -421,10 +424,13 @@ class battery_class_new:
         if len(self.load_data['Time']) < self.windowLength*365:
             print("load data is not for the whole year")
 
+        print(self.PriceDataPath)
         self.price_data = pd.read_csv(self.PriceDataPath)
+        # multiply by 1e-3 to convert $/MWh to $/MVarh
+        self.price_data['Value'] = self.price_data['Value'] * 1e-3
         self.price_data['Time'] = pd.to_datetime(self.price_data['Time'].values)
         self.price_data.set_index('Time')
-
+        print(str(self.price_data['Value'][0]))
         # self.load_data = self.load_data[
         #     (self.load_data['Time'] >= self.StartTime) & (self.load_data['Time'] < self.EndTime)]
         if len(self.price_data['Time']) == 0:
@@ -452,24 +458,33 @@ class battery_class_new:
         self.grid_original_power_factor = (self.load_predict+1e-4)/(self.grid_original_apparant_power+1e-4)
 
 
-    def set_load_actual(self, load_val):
-        self.actual_load.append(load_val + (self.load_dev*np.random.randn(1)[0]*load_val*0.01)-(self.load_dev*np.random.randn(1)[0]*load_val*0.05))
+    def set_load_actual(self, load_val, diff):
+        dev = ((self.load_dev*np.random.randn(1)[0]*0.3)-(self.load_dev*np.random.randn(1)[0]*0.3))
+        # dev = 0.0
+        self.actual_load.append(load_val + diff + dev)
+        self.actual_reactive_load.append( (load_val + diff + dev)*self.load_pf)
 
-        # temp = deepcopy(DA_SW_prices)
-        # temp = np.array(temp)
-        # if self.fristRun:
-        #     self.fristRun = False
-        #     self.retail_price_forecast = (np.roll(temp, -1)).tolist()
-        # else:
-        #     deltaP = np.array(self.retail_price_forecast) - temp
-        #     a = 0.2
-        #     k = np.flip((np.arange(1, 49, 1)))
-        #     alpha = a / (k ** 0.5)
-        #     temp = np.array(self.retail_price_forecast) - alpha * deltaP
-        #
-        #     temp = (np.roll(temp, -1)).tolist()
-        #
-        #     self.retail_price_forecast = deepcopy(temp)
+    def set_hourly_price_forecast(self, current_time, forecast_time, ts):
+        """ Set the forecast price
+
+        Args:
+            Forecasted Price (float x 24): in $/kWh
+        """
+        self.price_predict = self.price_data[(self.price_data['Time'] >= current_time) & (self.price_data['Time'] < forecast_time)]['Value'].values
+        self.price_up = self.price_predict + self.price_predict*self.price_dev
+        self.price_down = self.price_predict - self.price_predict*self.price_dev
+        self.price_up[0] = self.price_predict[0]
+        self.price_down[0] = self.price_predict[0]
+
+
+    def set_price_actual(self, price_val, diff, ts):
+        if (ts%300) == 0:
+            dev = 0.025*(price_val*np.random.randn(1)[0] - price_val*np.random.randn(1)[0])
+        else:
+            dev = 0.0
+            diff = 0.0
+        self.actual_price.append(price_val + dev + diff)
+
 
     def set_SoC(self, latest_SoC):
         self.SoC_init = latest_SoC
