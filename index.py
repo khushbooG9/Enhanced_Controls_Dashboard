@@ -5,7 +5,7 @@ import io
 import dash_html_components as html
 import dash_core_components as dcc
 from dash.dependencies import Input, Output, State
-import dash_bootstrap_components as dbc
+# import dash_bootstrap_components as dbc
 from plotly.subplots import make_subplots
 import plotly.graph_objects as go
 import dash_daq as daq
@@ -1104,17 +1104,23 @@ def update_live_graph(ts, outage_flag, submit_click, price_change_value, grid_lo
     battery_obj = battery_class_new(use_case_library, gen_config, data_config)
 
     if ts == 0:
+        print('at ts=0')
         simulation_duration = int(
             (datetime.strptime(end_time, time_format) - datetime.strptime(start_time, time_format)).total_seconds())
         current_time = datetime.strptime(start_time, time_format)
+        # next_day_hourly_interval = timedelta(days=+1)
+        # day_ahead_forecast_horizon = current_time + next_day_hourly_interval
+
         services_list = list(use_case_library.keys())
         priority_list = []
         for key, value in use_case_library.items():
             priority_list.append(use_case_library[key]["priority"])
         SoC_temp = battery_obj.SoC_init
         battery_obj.get_data()
-
+        print('SoC Temp'+str(SoC_temp))
+        # price_temp = 0.0
     elif ts > 0:
+        print('at ts>0')
         battery_obj.fromdict(live1)
         simulation_duration = data1["simulation_duration"]
         current_time = datetime.strptime(data1["current_time"], "%Y-%m-%d %H:%M:%S")
@@ -1127,6 +1133,9 @@ def update_live_graph(ts, outage_flag, submit_click, price_change_value, grid_lo
     if ts < simulation_duration:
         if ts % 3600 == 0:
             battery_obj.set_hourly_load_forecast(current_time, current_time + timedelta(days=1))
+            print("just before price forecast")
+            battery_obj.set_hourly_price_forecast(current_time, current_time + timedelta(days=1), ts)
+
             battery_obj.DA_optimal_quantities()
 
         # if ((ts % battery_obj.reporting_frequency) == 0) and (ts > 1):
@@ -1143,10 +1152,18 @@ def update_live_graph(ts, outage_flag, submit_click, price_change_value, grid_lo
         #                 np.array(rt_variables['price_actual_rt'])[:, idx])) * 5 / 60)
 
         # current_peak_load_prediction = 0.0
-        battery_obj.set_load_actual(battery_obj.load_predict[0])
+        battery_obj.set_load_actual(battery_obj.load_predict[0], np.mean(np.diff(battery_obj.load_predict[0:3])) * battery_obj.hrs_to_secs )
 
-        battery_obj.actual_load[ts] = battery_obj.actual_load[ts] + battery_obj.actual_load[ts] * (
-                    grid_load_change_value / 100)
+        # if (ts % 300 == 0):
+        battery_obj.set_price_actual(battery_obj.price_predict[0], (
+                battery_obj.price_predict[1] - battery_obj.price_predict[0]) * 300 * battery_obj.hrs_to_secs, ts)
+        # else:
+            # battery_obj.actual_price.append(price_temp)
+
+        # change price and load values given there is a user input to change it
+        battery_obj.actual_price[ts] = max(0.0001, battery_obj.actual_price[ts] + battery_obj.actual_price[ts] * price_change_value / 100)
+        battery_obj.actual_load[ts] = max(0, battery_obj.actual_load[ts] + battery_obj.actual_load[ts] * (
+                    grid_load_change_value / 100))
         if outage_flag:
             check = 1
             # outage mitigation
@@ -1204,12 +1221,13 @@ def update_live_graph(ts, outage_flag, submit_click, price_change_value, grid_lo
         battery_obj.get_power_factor(new_grid_load, battery_obj.grid_apparent_power_actual[ts]))
     battery_obj.peak_load_actual.append(max(battery_obj.grid_load_actual[0:ts + 1]))
     SoC_temp = new_SoC
-
+    # price_temp = battery_obj.actual_price[ts]
     # print(f"New Battery Setpoint after outage block = {new_battery_setpoint}")
     # print(f"soc actual = {battery_obj.SoC_actual}")
     # print(f"soc prediction = {battery_obj.SoC_prediction}")
     print(f"grid load new = {new_grid_load}")
     print(f"grid load reactive = {new_grid_reactive_power}")
+    print(f"energy price = {battery_obj.actual_price}")
 
     # print(f"grid peak load prediction = {battery_obj.peak_load_prediction}")
     # print(f"grid peak load actual = {max(battery_obj.peak_load_actual)}")
@@ -1239,7 +1257,8 @@ def update_live_graph(ts, outage_flag, submit_click, price_change_value, grid_lo
     fig_obj = {"PL": [[battery_obj.peak_load_prediction], battery_obj.peak_load_actual],
                "GR": [battery_obj.grid_react_power_prediction, battery_obj.grid_react_power_actual],
                "BR": [battery_obj.battery_react_power_prediction, battery_obj.battery_react_power_actual],
-               "GI": [battery_obj.grid_load_prediction, battery_obj.grid_load_actual]}
+               "GI": [battery_obj.grid_load_prediction, battery_obj.grid_load_actual],
+               "EP": [battery_obj.price_predict, battery_obj.actual_price]}
     # fig_leftdropdown == "GI" if fig_leftdropdown is None else fig_leftdropdown
     # fig_rightdropdown == "PL" if fig_rightdropdown is None else fig_rightdropdown
     fig3 = dash_fig_multiple_yaxis(ts, fig_obj[fig_leftdropdown][0], fig_obj[fig_leftdropdown][1],

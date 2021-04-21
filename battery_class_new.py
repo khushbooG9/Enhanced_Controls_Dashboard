@@ -109,6 +109,7 @@ class battery_class_new:
         self.grid_react_power_actual = []
         self.battery_react_power_actual = []
         self.actual_load = []
+        self.actual_reactive_load = []
         self.grid_apparent_power_actual = []
         self.grid_power_factor_actual = []
         self.actual_price = []
@@ -424,8 +425,10 @@ class battery_class_new:
         if len(self.load_data['Time']) < self.windowLength*365:
             print("load data is not for the whole year")
 
-        print(self.PriceDataPath)
+        # print(self.PriceDataPath)
         self.price_data = pd.read_csv(self.PriceDataPath)
+
+        # print(str(self.price_data['Value']))
         # multiply by 1e-3 to convert $/MWh to $/MVarh
         self.price_data['Value'] = self.price_data['Value'] * 1e-3
         self.price_data['Time'] = pd.to_datetime(self.price_data['Time'].values)
