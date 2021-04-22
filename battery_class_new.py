@@ -155,6 +155,7 @@ class battery_class_new:
         data["reporting_frequency"] = self.reporting_frequency
         data["load_data"] = self.load_data.to_json()
         data["load_predict"] = self.load_predict
+        data["price_predict"] = self.price_predict
         data["load_up"] = self.load_up
         data["load_down"] = self.load_down
         data["price_data"] = self.price_data.to_json()
@@ -227,6 +228,7 @@ class battery_class_new:
 
         self.load_data = pd.read_json(data["load_data"])
         self.load_predict = data["load_predict"]
+        self.price_predict = data["price_predict"]
         self.load_up = data["load_up"]
         self.load_down = data["load_down"]
         self.price_data = pd.read_json(data["price_data"])
@@ -304,6 +306,7 @@ class battery_class_new:
 
         self.load_data = other.load_data
         self.load_predict = other.load_predict
+        self.price_predict = other.price_predict
         self.load_up = other.load_up
         self.load_down = other.load_down
         self.price_data = other.price_data
@@ -508,7 +511,6 @@ class battery_class_new:
             temp = temp + sum(m.eta_D[i] for i in self.TIME) + self.peak_price*m.p_peak + self.demand_charge_budget*m.beta_D
 
         return temp
-
 
     def con_rule_ine1_demand_chg(self, m, i):
         if self.use_case_dict["demand_charge"]["control_type"] == "opti-based":

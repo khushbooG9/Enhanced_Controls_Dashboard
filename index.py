@@ -719,7 +719,7 @@ def build_right_dropdown_box():
             value='PL'
         ),
         # html.Div(id='slider-output-container')
-    ], style={"width": '30%', "margin-left": "100px"})
+    ], style={"width": '30%', "margin-left": "150px"})
 
 
 def build_bottom_graph():
@@ -1021,9 +1021,16 @@ def update_live_graph(ts, outage_flag, submit_click, price_change_value, grid_lo
 
     def dash_fig_multiple_yaxis(ts, prediction_data, actual_data, prediction_data_2, actual_data_2, title=None,
                                 **kwargs):
+        y_axis_left_margin = 20
+        y_axis_right_margin = 20
 
         dict_fig = {'linewidth': 2, 'linecolor': '#EFEDED', 'width': 600, 'height': 400,
                     'xaxis_title': 'Seconds', 'yaxis_title': 'kW'}
+        if fig_leftdropdown == 'EP':
+            y_axis_left_margin = 0.01
+        if fig_rightdropdown == 'EP':
+            y_axis_right_margin = 0.01
+
         if kwargs:
             dict_fig.update(kwargs)
         legend_dict = dict(orientation="h", yanchor="bottom", y=1.05, xanchor="right", x=1)
@@ -1053,9 +1060,9 @@ def update_live_graph(ts, outage_flag, submit_click, price_change_value, grid_lo
         ymin_2, ymax_2 = min([prediction_data_2[0]] + actual_data_2), max([prediction_data_2[0]] + actual_data_2)
         fig.update_xaxes(range=[max(0, ts - update_window), ts], showline=True, linewidth=2, linecolor='#e67300',
                          mirror=True, title_text="Seconds")
-        fig.update_yaxes(range=[ymin - 20, ymax + 20], showline=True, linewidth=2, linecolor='#e67300',
+        fig.update_yaxes(range=[ymin - y_axis_left_margin, ymax + y_axis_left_margin], showline=True, linewidth=2, linecolor='#e67300',
                          mirror=True, secondary_y=False, title_text="kW")
-        fig.update_yaxes(range=[ymin_2 - 20, ymax_2 + 20], showline=True, linewidth=2, linecolor='#e67300',
+        fig.update_yaxes(range=[ymin_2 - y_axis_right_margin, ymax_2 + y_axis_right_margin], showline=True, linewidth=2, linecolor='#e67300',
                          mirror=True, secondary_y=True, title_text="kW")
         # fig.update_yaxes(showline=True, linewidth=2, linecolor='#e67300', mirror=True)
         fig.update_layout(paper_bgcolor=dict_fig['linecolor'], width=dict_fig['width'], height=dict_fig['height'],
@@ -1135,7 +1142,6 @@ def update_live_graph(ts, outage_flag, submit_click, price_change_value, grid_lo
             battery_obj.set_hourly_load_forecast(current_time, current_time + timedelta(days=1))
             print("just before price forecast")
             battery_obj.set_hourly_price_forecast(current_time, current_time + timedelta(days=1), ts)
-
             battery_obj.DA_optimal_quantities()
 
         # if ((ts % battery_obj.reporting_frequency) == 0) and (ts > 1):
@@ -1152,18 +1158,18 @@ def update_live_graph(ts, outage_flag, submit_click, price_change_value, grid_lo
         #                 np.array(rt_variables['price_actual_rt'])[:, idx])) * 5 / 60)
 
         # current_peak_load_prediction = 0.0
+        print(f"price predict = {battery_obj.price_predict[0]}")
         battery_obj.set_load_actual(battery_obj.load_predict[0], np.mean(np.diff(battery_obj.load_predict[0:3])) * battery_obj.hrs_to_secs )
 
         # if (ts % 300 == 0):
-        battery_obj.set_price_actual(battery_obj.price_predict[0], (
-                battery_obj.price_predict[1] - battery_obj.price_predict[0]) * 300 * battery_obj.hrs_to_secs, ts)
-        # else:
-            # battery_obj.actual_price.append(price_temp)
+        battery_obj.set_price_actual(battery_obj.price_predict[0],
+                                     (battery_obj.price_predict[1] - battery_obj.price_predict[0]) * 300 * battery_obj.hrs_to_secs, ts)
 
         # change price and load values given there is a user input to change it
         battery_obj.actual_price[ts] = max(0.0001, battery_obj.actual_price[ts] + battery_obj.actual_price[ts] * price_change_value / 100)
         battery_obj.actual_load[ts] = max(0, battery_obj.actual_load[ts] + battery_obj.actual_load[ts] * (
                     grid_load_change_value / 100))
+
         if outage_flag:
             check = 1
             # outage mitigation
@@ -1253,6 +1259,8 @@ def update_live_graph(ts, outage_flag, submit_click, price_change_value, grid_lo
                     "SoC", **fig_soc_dict)
     fig2 = dash_fig(ts, battery_obj.battery_setpoints_prediction, battery_obj.battery_setpoints_actual,
                     "Battery Setpoint", **fig_dict)
+
+    print(f"price predict = {battery_obj.price_predict}")
 
     fig_obj = {"PL": [[battery_obj.peak_load_prediction], battery_obj.peak_load_actual],
                "GR": [battery_obj.grid_react_power_prediction, battery_obj.grid_react_power_actual],
