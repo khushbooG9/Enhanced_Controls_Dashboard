@@ -476,6 +476,8 @@ def configuration_panel():
                 id="dropdown-button",
                 children=[html.Button("Update", className="", n_clicks=0), ]
             ),
+            usecase_dcr_popup(),
+            usecase_pfc_popup(),
         ]
 
     )
@@ -827,7 +829,8 @@ def build_simulation_tab():
             build_buttons_panel(),
             html.Div(
                 id="graphs-container",
-                children=[build_top_panel(), build_bottom_panel()],
+                children=[
+                    build_top_panel(), build_bottom_panel()],
             ),
         ],
     ),
@@ -842,6 +845,12 @@ def build_tabs():
         id="tabs",
         className="tabs",
         children=[
+            dcc.Store(id="usecase-store", storage_type="session", data=init_usecase()),
+            dcc.Store(id="gen-config-store", storage_type="session", data=init_gen_config()),
+            dcc.Store(id="control-config-store", storage_type="session", data=init_control_config()),
+            dcc.Store(id="data-config-store", storage_type="session", data=init_data_config()),
+            dcc.Store(id="data-store", storage_type="session", data={}),
+            dcc.Store(id="liveplot-store", storage_type="session", data={}),
             dcc.Tabs(
                 id="app-tabs",
                 value="tab2",
@@ -873,19 +882,19 @@ def serve_layout():
         id="big-app-container",
         children=[
             build_banner(),
-            dcc.Store(id="usecase-store", storage_type="session", data=init_usecase()),
-            dcc.Store(id="gen-config-store", storage_type="session", data=init_gen_config()),
-            dcc.Store(id="control-config-store", storage_type="session", data=init_control_config()),
-            dcc.Store(id="data-config-store", storage_type="session", data=init_data_config()),
-            dcc.Store(id="data-store", storage_type="session", data={}),
-            dcc.Store(id="liveplot-store", storage_type="session", data={}),
+            # dcc.Store(id="usecase-store", storage_type="session", data=init_usecase()),
+            # dcc.Store(id="gen-config-store", storage_type="session", data=init_gen_config()),
+            # dcc.Store(id="control-config-store", storage_type="session", data=init_control_config()),
+            # dcc.Store(id="data-config-store", storage_type="session", data=init_data_config()),
+            # dcc.Store(id="data-store", storage_type="session", data={}),
+            # dcc.Store(id="liveplot-store", storage_type="session", data={}),
             html.Div(
                 id="app-container",
                 children=[
                     build_tabs(),
-                    html.Div(id="app-content"),
-                    usecase_dcr_popup(),
-                    usecase_pfc_popup(),
+                    html.Div(id="app-content")
+                    # usecase_dcr_popup(),
+                    # usecase_pfc_popup(),
 
                 ],
             ),
