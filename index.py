@@ -654,11 +654,54 @@ def build_buttons_panel():
             build_unscheduled_outage_button(),
             # build_unschedule_outage_slider(),
             html.Br(),
-            build_stop_button()
+            build_stop_button(),
+            html.Br(),
+            revenue_block()
         ],
 
     )
 
+
+def build_left_dropdown_box():
+    return dcc.Dropdown(
+            id='fig-left-dropdown',
+            options=[
+                {'label': 'Grid Import', 'value': 'GI'},
+                {'label': 'Peak Load', 'value': 'PL'},
+                {'label': 'Grid Reactive', 'value': 'GR'},
+                {'label': 'Battery Reactive', 'value': 'BR'},
+                {'label': 'Power Factor', 'value': 'PF'},
+                {'label': 'Energy Price', 'value': 'EP'},
+                {'label': 'Demand', 'value': 'D'}
+            ],
+            #placeholder="Left y-axis (default = Grid Import)",
+            value='GI'
+        )
+        #html.Div([
+        # html.Button('Update Rate', id='submit-val', n_clicks=0),
+        #html.Label('Left y-axis', style=label_style),
+
+        # html.Div(id='slider-output-container')
+    #])
+        #,style=dict(width='30%'))
+
+
+def build_right_dropdown_box():
+    return dcc.Dropdown(
+            id='fig-right-dropdown',
+            options=[
+                {'label': 'Grid Import', 'value': 'GI'},
+                {'label': 'Peak Load', 'value': 'PL'},
+                {'label': 'Grid Reactive', 'value': 'GR'},
+                {'label': 'Battery Reactive', 'value': 'BR'},
+                {'label': 'Power Factor', 'value': 'PF'},
+                {'label': 'Energy Price', 'value': 'EP'},
+                {'label': 'Demand', 'value': 'D'}
+            ],
+            #placeholder="Left y-axis (default = Grid Import)",
+            value='PL'
+        )
+    #style={"width": '30%', "margin-left": "150px"})
 
 def build_left_graph():
     """
@@ -680,57 +723,16 @@ def build_right_graph():
     )
 
 
-def build_left_dropdown_box():
-    return html.Div([
-        # html.Button('Update Rate', id='submit-val', n_clicks=0),
-        html.Label('Left y-axis', style=label_style),
-        dcc.Dropdown(
-            id='fig-left-dropdown',
-            options=[
-                {'label': 'Grid Import', 'value': 'GI'},
-                {'label': 'Peak Load', 'value': 'PL'},
-                {'label': 'Grid Reactive', 'value': 'GR'},
-                {'label': 'Battery Reactive', 'value': 'BR'},
-                {'label': 'Power Factor', 'value': 'PF'},
-                {'label': 'Energy Price', 'value': 'EP'},
-                {'label': 'Demand', 'value': 'D'}
-            ],
-            #placeholder="Left y-axis (default = Grid Import)",
-            value='GI'
-        ),
-        # html.Div(id='slider-output-container')
-    ],style=dict(width='30%'))
+def build_left_bottom_graph():
+    return html.Div([build_left_dropdown_box(),
+                    dcc.Graph(id="down-left-graph", animate=True),
+                    dcc_interval])
 
 
-def build_right_dropdown_box():
-    return html.Div([
-        # html.Button('Update Rate', id='submit-val', n_clicks=0),
-        html.Label('Right y-axis', style=label_style),
-        dcc.Dropdown(
-            id='fig-right-dropdown',
-            options=[
-                {'label': 'Grid Import', 'value': 'GI'},
-                {'label': 'Peak Load', 'value': 'PL'},
-                {'label': 'Grid Reactive', 'value': 'GR'},
-                {'label': 'Battery Reactive', 'value': 'BR'},
-                {'label': 'Power Factor', 'value': 'PF'},
-                {'label': 'Energy Price', 'value': 'EP'},
-                {'label': 'Demand', 'value': 'D'}
-            ],
-            #placeholder="Right y-axis (default = Peak Load)",
-            value='PL'
-        ),
-        # html.Div(id='slider-output-container')
-    ], style={"width": '30%', "margin-left": "150px"})
-
-
-def build_bottom_graph():
-    return html.Div([html.Div(id="dropdown", className="row",
-        children=[build_left_dropdown_box(), build_right_dropdown_box()],
-                              style= dict(display='flex'),),
-                     dcc.Graph(id="down-graph-fig", animate=True),
-                     dcc_interval
-                     ])
+def build_right_bottom_graph():
+    return html.Div([build_right_dropdown_box(),
+                     dcc.Graph(id="down-right-graph", animate=True),
+                     dcc_interval])
 
 
 def revenue_block():
@@ -746,7 +748,7 @@ def revenue_block():
                     dcc.Input(id="revenue1", type='text', disabled=True),
                 ]
             ),
-            html.Br(),
+            #html.Br(),
             html.Div(
                 id="revenue-label2",
                 children=[
@@ -755,7 +757,7 @@ def revenue_block():
                 ]
             ),
 
-            html.Br(),
+            #html.Br(),
             html.Div(
                 id="revenue-label3",
                 children=[
@@ -796,7 +798,7 @@ def build_top_panel():
 
 def build_bottom_panel():
     """
-    Function to build top panel for 2 graph placeholders
+    Function to build bottom panel for 2 graph placeholders
     TBD
     """
     return html.Div(
@@ -804,15 +806,15 @@ def build_bottom_panel():
         className="row",
         children=[
             html.Div(
-                id="left-graph",
+                id="left-bottom-graph",
                 children=[
-                    build_bottom_graph(),
+                    build_left_bottom_graph(),
                 ]
             ),
             html.Div(
-                id="bottom-panel-container",
+                id="right-bottom-graph",
                 children=[
-                    revenue_block(),
+                    build_right_bottom_graph(),
                 ]
             ),
         ],
@@ -842,15 +844,12 @@ def build_tabs():
     Function to build both the tabs
     """
     return html.Div(
-        id="tabs",
-        className="tabs",
-        children=[
-            dcc.Store(id="usecase-store", storage_type="session", data=init_usecase()),
-            dcc.Store(id="gen-config-store", storage_type="session", data=init_gen_config()),
-            dcc.Store(id="control-config-store", storage_type="session", data=init_control_config()),
-            dcc.Store(id="data-config-store", storage_type="session", data=init_data_config()),
-            dcc.Store(id="data-store", storage_type="session", data={}),
-            dcc.Store(id="liveplot-store", storage_type="session", data={}),
+        [dcc.Store(id="usecase-store", storage_type="session", data=init_usecase()),
+         dcc.Store(id="gen-config-store", storage_type="session", data=init_gen_config()),
+         dcc.Store(id="control-config-store", storage_type="session", data=init_control_config()),
+         dcc.Store(id="data-config-store", storage_type="session", data=init_data_config()),
+         dcc.Store(id="data-store", storage_type="session", data={}),
+         dcc.Store(id="liveplot-store", storage_type="session", data={}),
             dcc.Tabs(
                 id="app-tabs",
                 value="tab2",
@@ -882,23 +881,13 @@ def serve_layout():
         id="big-app-container",
         children=[
             build_banner(),
-            # dcc.Store(id="usecase-store", storage_type="session", data=init_usecase()),
-            # dcc.Store(id="gen-config-store", storage_type="session", data=init_gen_config()),
-            # dcc.Store(id="control-config-store", storage_type="session", data=init_control_config()),
-            # dcc.Store(id="data-config-store", storage_type="session", data=init_data_config()),
-            # dcc.Store(id="data-store", storage_type="session", data={}),
-            # dcc.Store(id="liveplot-store", storage_type="session", data={}),
             html.Div(
                 id="app-container",
                 children=[
                     build_tabs(),
                     html.Div(id="app-content")
-                    # usecase_dcr_popup(),
-                    # usecase_pfc_popup(),
-
                 ],
             ),
-
         ],
     )
 
@@ -944,7 +933,6 @@ def update_click_output1(button_click, close_click):
 
     if ctx.triggered:
         prop_id = ctx.triggered[0]["prop_id"].split(".")[0]
-        # print(prop_id)
         if prop_id == "pfc" and button_click != 0:
             return {"display": "block"}
 
@@ -1002,8 +990,8 @@ def stop_production(n_clicks, current):
 
 
 @app.callback(
-    output=[Output("right-graph-fig", "figure"), Output("left-graph-fig", "figure"), Output("down-graph-fig", "figure"),
-            Output("data-store", "data"), Output("liveplot-store", "data"), Output("revenue1", "value"),
+    output=[Output("right-graph-fig", "figure"), Output("left-graph-fig", "figure"), Output("down-left-graph", "figure"),
+            Output("down-right-graph", "figure"), Output("data-store", "data"), Output("liveplot-store", "data"), Output("revenue1", "value"),
             Output("revenue2", "value"), Output("revenue3", "value")],
     inputs=[Input("graph-update", "n_intervals"), Input("outage-switch", "value"), Input("submit-val", "n_clicks")],
     state=[State('price-change-slider', 'value'), State('grid-load-change-slider', 'value'),
@@ -1030,15 +1018,9 @@ def update_live_graph(ts, outage_flag, submit_click, price_change_value, grid_lo
 
     def dash_fig_multiple_yaxis(ts, prediction_data, actual_data, prediction_data_2, actual_data_2, title=None,
                                 **kwargs):
-        y_axis_left_margin = 20
-        y_axis_right_margin = 20
 
         dict_fig = {'linewidth': 2, 'linecolor': '#EFEDED', 'width': 600, 'height': 400,
                     'xaxis_title': 'Seconds', 'yaxis_title': 'kW'}
-        if fig_leftdropdown == 'EP':
-            y_axis_left_margin = 0.01
-        if fig_rightdropdown == 'EP':
-            y_axis_right_margin = 0.01
 
         if kwargs:
             dict_fig.update(kwargs)
@@ -1067,6 +1049,8 @@ def update_live_graph(ts, outage_flag, submit_click, price_change_value, grid_lo
 
         ymin, ymax = min([prediction_data[0]] + actual_data), max([prediction_data[0]] + actual_data)
         ymin_2, ymax_2 = min([prediction_data_2[0]] + actual_data_2), max([prediction_data_2[0]] + actual_data_2)
+        y_axis_left_margin, y_axis_right_margin = abs(ymin*0.1), abs(ymin_2*0.2)
+
         fig.update_xaxes(range=[max(0, ts - update_window), ts], showline=True, linewidth=2, linecolor='#e67300',
                          mirror=True, title_text="Seconds")
         fig.update_yaxes(range=[ymin - y_axis_left_margin, ymax + y_axis_left_margin], showline=True, linewidth=2, linecolor='#e67300',
@@ -1095,11 +1079,23 @@ def update_live_graph(ts, outage_flag, submit_click, price_change_value, grid_lo
             y=[i for i in deque(actual_data, maxlen=update_buffer)],
             name="Actual"))
 
+        if title == "SoC":
+            fig.add_shape(type="line", x0=-2, y0=90, x1=ts+4, y1=90,
+                          line=dict(color="LightSeaGreen", dash="dashdot",))
+            fig.add_shape(type="line", x0=-2, y0=10, x1=ts + 4, y1=10,
+                          line=dict(color="MediumPurple", dash="dashdot", ))
+
         ymin, ymax = min([prediction_data[0]] + actual_data), max([prediction_data[0]] + actual_data)
+        margin = abs(ymin * 0.1)
 
         fig.update_xaxes(range=[max(0, ts - update_window), ts], showline=True, linewidth=2, linecolor='#e67300',
                          mirror=True)
-        fig.update_yaxes(range=[ymin - 20, ymax + 20], showline=True, linewidth=2, linecolor='#e67300', mirror=True)
+        if title == "SoC":
+            ymin, ymax = 0, 100
+        else:
+            ymin, ymax = ymin-margin, ymax+ margin
+
+        fig.update_yaxes(range=[ymin, ymax], showline=True, linewidth=2, linecolor='#e67300', mirror=True)
         # fig.update_yaxes(showline=True, linewidth=2, linecolor='#e67300', mirror=True)
         fig.update_layout(paper_bgcolor=dict_fig['linecolor'], width=dict_fig['width'], height=dict_fig['height'],
                           legend=legend_dict, showlegend=True, title=title,
@@ -1262,25 +1258,32 @@ def update_live_graph(ts, outage_flag, submit_click, price_change_value, grid_lo
 
     fig_dict = {'linewidth': 2, 'linecolor': '#EFEDED', 'width': 600, 'height': 400,
                 'xaxis_title': 'Seconds', 'yaxis_title': 'kW'}
+    fig_pf_dict = {'linewidth': 2, 'linecolor': '#EFEDED', 'width': 600, 'height': 400,
+                'xaxis_title': 'Seconds', 'yaxis_title': '-'}
+    fig_price_dict = {'linewidth': 2, 'linecolor': '#EFEDED', 'width': 600, 'height': 400,
+                'xaxis_title': 'Seconds', 'yaxis_title': '$/kWh'}
     fig_soc_dict = {'linewidth': 2, 'linecolor': '#EFEDED', 'width': 600, 'height': 400,
-                    'xaxis_title': 'Seconds', 'yaxis_title': 'kWh'}
-    fig1 = dash_fig(ts, battery_obj.SoC_prediction, battery_obj.SoC_actual,
+                    'xaxis_title': 'Seconds', 'yaxis_title': '%'}
+    fig1 = dash_fig(ts, [x * (100/ battery_obj.rated_kWh) for x in battery_obj.SoC_prediction],
+                    [y * (100/ battery_obj.rated_kWh) for y in battery_obj.SoC_actual],
                     "SoC", **fig_soc_dict)
-    fig2 = dash_fig(ts, battery_obj.battery_setpoints_prediction, battery_obj.battery_setpoints_actual,
+
+    fig2 = dash_fig(ts, battery_obj.battery_setpoints_prediction,
+                    battery_obj.battery_setpoints_actual,
                     "Battery Setpoint", **fig_dict)
 
     print(f"price predict = {battery_obj.price_predict}")
 
-    fig_obj = {"PL": [[battery_obj.peak_load_prediction], battery_obj.peak_load_actual],
-               "GR": [battery_obj.grid_react_power_prediction, battery_obj.grid_react_power_actual],
-               "BR": [battery_obj.battery_react_power_prediction, battery_obj.battery_react_power_actual],
-               "GI": [battery_obj.grid_load_prediction, battery_obj.grid_load_actual],
-               "EP": [battery_obj.price_predict, battery_obj.actual_price]}
-    # fig_leftdropdown == "GI" if fig_leftdropdown is None else fig_leftdropdown
-    # fig_rightdropdown == "PL" if fig_rightdropdown is None else fig_rightdropdown
-    fig3 = dash_fig_multiple_yaxis(ts, fig_obj[fig_leftdropdown][0], fig_obj[fig_leftdropdown][1],
-                                   fig_obj[fig_rightdropdown][0], fig_obj[fig_rightdropdown][1], **fig_dict)
+    fig_obj = {"PL": [[battery_obj.peak_load_prediction], battery_obj.peak_load_actual, fig_dict],
+               "GR": [battery_obj.grid_react_power_prediction, battery_obj.grid_react_power_actual, fig_dict],
+               "BR": [battery_obj.battery_react_power_prediction, battery_obj.battery_react_power_actual, fig_dict],
+               "GI": [battery_obj.grid_load_prediction, battery_obj.grid_load_actual, fig_dict],
+               "EP": [battery_obj.price_predict, battery_obj.actual_price, fig_price_dict],
+               "PF": [battery_obj.grid_power_factor_prediction, battery_obj.grid_power_factor_actual, fig_pf_dict]}
 
+    fig3 = dash_fig(ts, fig_obj[fig_leftdropdown][0], fig_obj[fig_leftdropdown][1], **fig_obj[fig_leftdropdown][2])
+
+    fig4 = dash_fig(ts, fig_obj[fig_rightdropdown][0], fig_obj[fig_rightdropdown][1], **fig_obj[fig_leftdropdown][2])
 
     data["SoC_temp"] = SoC_temp
     data["simulation_duration"] = simulation_duration
@@ -1293,7 +1296,7 @@ def update_live_graph(ts, outage_flag, submit_click, price_change_value, grid_lo
 
     live = battery_obj.todict()
 
-    return [fig1, fig2, fig3, data, live, revenue1, revenue2, revenue3]
+    return [fig1, fig2, fig3, fig4, data, live, revenue1, revenue2, revenue3]
 
 
 if __name__ == '__main__':
