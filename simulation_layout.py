@@ -90,6 +90,20 @@ def build_unscheduled_outage_button():
     ],
     )
 
+def build_external_signal_button():
+    return html.Div([
+        html.Label('Regulation Signal', style=label_style),
+        daq.ToggleSwitch(
+            id='external-switch',
+            label=['OFF', 'ON'],
+            labelPosition='bottom',
+            color='green',
+            value=False
+        ),
+        # html.Div(id='Unscheduled-outage-button'),
+    ],
+    )
+
 
 def build_stop_button():
     return html.Div(
@@ -172,7 +186,8 @@ def build_buttons_panel():
             grid_load_change_slider(),
             html.Br(),
             build_unscheduled_outage_button(),
-            # build_unschedule_outage_slider(),
+            html.Br(),
+            build_external_signal_button(),
             html.Br(),
             revenue_block(),
             #html.Br(),

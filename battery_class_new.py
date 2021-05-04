@@ -45,6 +45,8 @@ class battery_class_new:
         self.SimulationDays = gen_dict["SimulationDays"]
         self.FacilityLoadDataPath = data_dict["FacilityLoadDataPath"]
         self.PriceDataPath = data_dict["PriceDataPath"]
+        self.ResPriceDataPath = data_dict["ReservePriceDataPath"]
+        self.regSignalDataPath = data_dict["regSignalDataPath"]
         self.rated_inverter_kVA = gen_dict["rated_inverter_kVA"]
         self.rated_kW = gen_dict["rated_kW"]
         self.inv_eta = gen_dict["inv_eta"]
@@ -85,7 +87,14 @@ class battery_class_new:
         self.price_up = None
         self.price_down = None
 
-
+        self.res_price_data = None
+        self.res_price_predict_up = None
+        self.res_price_predict_up_max = None
+        self.res_price_predict_up_min = None
+        self.res_price_predict_down = None
+        self.res_price_predict_down_max = None
+        self.res_price_predict_down_min = None
+        self.reg_signal_data = None
         self.battery_setpoints_prediction = [[]] * self.windowLength
         self.SoC_prediction = [[]] * self.windowLength
         self.peak_load_prediction = None
@@ -103,6 +112,10 @@ class battery_class_new:
         self.grid_original_power_factor = [[]] * self.windowLength
 
         self.battery_setpoints_actual = []
+        self.battery_res_up_cap_actual = []
+        self.battery_res_down_cap_actual = []
+        self.actual_reg_signal = []
+
         self.SoC_actual = []
         self.peak_load_actual = []
         self.grid_load_actual = []
@@ -180,6 +193,9 @@ class battery_class_new:
         data["grid_apparent_power_actual"] = self.grid_apparent_power_actual
         data["grid_power_factor_actual"] = self.grid_power_factor_actual
         data["actual_price"] = self.actual_price
+        data["battery_res_up_cap_actual"] = self.battery_res_up_cap_actual
+        data["battery_res_down_cap_actual"] = self.battery_res_down_cap_actual
+        data["actual_reg_signal"] = self.actual_reg_signal
         return data
 
 
@@ -261,6 +277,11 @@ class battery_class_new:
         self.grid_power_factor_actual = data["grid_power_factor_actual"]
         self.actual_price = data["actual_price"]
 
+        self.battery_res_up_cap_actual = data["battery_res_up_cap_actual"]
+        self.battery_res_down_cap_actual = data["battery_res_down_cap_actual"]
+        self.actual_reg_signal = data["actual_reg_signal"]
+
+
     def copydata(self, other):
         self.use_case_dict = other.use_case_dict
         self.name = other.name
@@ -337,7 +358,9 @@ class battery_class_new:
         self.actual_load = other.actual_load
         self.grid_apparent_power_actual = other.grid_apparent_power_actual
         self.grid_power_factor_actual = other.grid_power_factor_actual
-
+        self.battery_res_up_cap_actual = other.battery_res_up_cap_actual
+        self.battery_res_up_cap_actual = other.battery_res_down_cap_actual
+        self.actual_reg_signal = other.actual_reg_signal
     def change_setpoint(self, old_setpoint, mismatch):
         new_battery_setpoint = min(self.rated_kW, max(-self.rated_kW, old_setpoint + mismatch))
 
@@ -436,7 +459,7 @@ class battery_class_new:
         self.price_data['Value'] = self.price_data['Value'] * 1e-3
         self.price_data['Time'] = pd.to_datetime(self.price_data['Time'].values)
         self.price_data.set_index('Time')
-        print(str(self.price_data['Value'][0]))
+        # print(str(self.price_data['Value'][0]))
         # self.load_data = self.load_data[
         #     (self.load_data['Time'] >= self.StartTime) & (self.load_data['Time'] < self.EndTime)]
         if len(self.price_data['Time']) == 0:
@@ -444,6 +467,25 @@ class battery_class_new:
         if len(self.price_data['Time']) < self.windowLength * 365:
             print("load data is not for the whole year")
 
+        self.res_price_data = pd.read_csv(self.ResPriceDataPath)
+        self.res_price_data['Value'] = self.res_price_data['Value'] * 1e-3
+        self.res_price_data['Time'] = pd.to_datetime(self.res_price_data['Time'].values)
+        self.res_price_data.set_index('Time')
+
+        # self.load_data = self.load_data[
+        #     (self.load_data['Time'] >= self.StartTime) & (self.load_data['Time'] < self.EndTime)]
+        if len(self.res_price_data['Time']) == 0:
+            print("load data is not in the StartTime and EndTime range")
+        if len(self.res_price_data['Time']) < self.windowLength * 365:
+            print("load data is not for the whole year")
+
+        self.reg_signal_data = pd.read_csv(self.regSignalDataPath)
+        self.reg_signal_data['Time'] = pd.to_datetime(self.reg_signal_data['Time'].values)
+        self.reg_signal_data['Time'] = self.reg_signal_data.Time.dt.strftime('%H:%M:%S')
+        # self.reg_signal_data['Hour'] =  self.reg_signal_data.Time.dt.hour
+        # self.reg_signal_data['Minute'] = self.reg_signal_data.Time.dt.minute
+        # self.reg_signal_data['Second'] = self.reg_signal_data.Time.dt.second
+        self.reg_signal_data.set_index('Time')
 
     def set_hourly_load_forecast(self, current_time, forecast_time):
         """ Set the f_DA attribute
@@ -483,6 +525,7 @@ class battery_class_new:
         self.price_down[0] = self.price_predict[0]
 
 
+
     def set_price_actual(self, price_val, diff, ts):
         if (ts%300) == 0:
             dev = 0.025*(price_val*np.random.randn(1)[0] - price_val*np.random.randn(1)[0])
@@ -490,6 +533,17 @@ class battery_class_new:
             dev = 0.0
             diff = 0.0
         self.actual_price.append(price_val + dev + diff)
+
+    def get_reg_signal(self, current_time, ts):
+        t = current_time.strftime('%H:%M:%S')
+        # forecast_time = timedelta(seconds=+4)
+        # self.reg_signal_data.loc[(self.reg_signal_data['Hour'] == 0) & ((self.reg_signal_data['Minute'] == 0)) & (
+        # (self.reg_signal_data['Second'] == 0))]
+        try:
+            self.actual_reg_signal.append(self.reg_signal_data[(self.reg_signal_data['Time'] == t)]['Value'].values[0])
+            # self.actual_reg_signal.append(self.reg_signal_data[(self.reg_signal_data['Time'] >= t) & (self.reg_signal_data['Time'] < t)]['Value'].values)
+        except:
+            self.actual_reg_signal.append(self.actual_reg_signal[ts-1])
 
 
     def set_SoC(self, latest_SoC):

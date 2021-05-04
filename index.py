@@ -291,7 +291,7 @@ def stop_production(n_clicks, current):
     output=[Output("right-graph-fig", "figure"), Output("left-graph-fig", "figure"), Output("down-left-graph", "figure"),
             Output("down-right-graph", "figure"), Output("data-store", "data"), Output("liveplot-store", "data"), Output("revenue1", "value"),
             Output("revenue2", "value"), Output("revenue3", "value")],
-    inputs=[Input("graph-update", "n_intervals"), Input("outage-switch", "value"), Input("submit-val", "n_clicks")],
+    inputs=[Input("graph-update", "n_intervals"), Input("outage-switch", "value"),  Input("external-switch", "value"), Input("submit-val", "n_clicks")],
     state=[State('price-change-slider', 'value'), State('grid-load-change-slider', 'value'),
            State('update-window', 'value'), State('fig-left-dropdown', 'value'), State('fig-right-dropdown', 'value'),
            State("data-store", "data"), State("liveplot-store", "data"), State("gen-config-store", "data"),
@@ -299,7 +299,7 @@ def stop_production(n_clicks, current):
 # @cache.memoize
 # fig1= None
 
-def update_live_graph(ts, outage_flag, submit_click, price_change_value, grid_load_change_value, update_window,
+def update_live_graph(ts, outage_flag, external_signal_flag, submit_click, price_change_value, grid_load_change_value, update_window,
                       fig_leftdropdown, fig_rightdropdown, data1, live1,
                       gen_config, data_config,
                       use_case_library):
@@ -417,7 +417,8 @@ def update_live_graph(ts, outage_flag, submit_click, price_change_value, grid_lo
     start_time = gen_config['StartTime']
     end_time = gen_config['EndTime']
     battery_obj = battery_class_new(use_case_library, gen_config, data_config)
-
+    new_reserve_up_cap = 600 # kW/5 minutes
+    new_reserve_down_cap = 600 # kW/5 minutes
     if ts == 0:
         print('at ts=0')
         simulation_duration = int(
@@ -478,6 +479,7 @@ def update_live_graph(ts, outage_flag, submit_click, price_change_value, grid_lo
         battery_obj.actual_load[ts] = max(0, battery_obj.actual_load[ts] + battery_obj.actual_load[ts] * (
                     grid_load_change_value / 100))
 
+        current_reg_signal = battery_obj.get_reg_signal(current_time, ts)
         if outage_flag:
             check = 1
             # outage mitigation
@@ -496,6 +498,31 @@ def update_live_graph(ts, outage_flag, submit_click, price_change_value, grid_lo
             reactive_power_mismatch = battery_obj.load_pf * active_power_mismatch
             new_battery_reactive_power = -reactive_power_mismatch
             new_grid_reactive_power = 0.0
+        elif external_signal_flag:
+            print("external flag signal on")
+            print(f"current_reg_signal = {current_reg_signal}")
+            if new_reserve_down_cap < 0.0:
+                # below the complicated 0.5/(5*60) comes from conversion of capacity to power
+                # 0.5 comes from the fact the signal is coming every 2 second, (5*60) because capacity is given for every 5 minutes
+                new_battery_setpoint = battery_obj.change_setpoint(new_battery_setpoint,
+                                                                   current_reg_signal * new_reserve_down_cap * (1 / (5 * 60)))
+                # new_battery_setpoint = battery_obj.change_setpoint(new_battery_setpoint,
+                #                                                    battery_obj.actual_reg_signal[ts] * new_reserve_down_cap/(battery_obj.res_eta_down*60/5))
+
+                new_SoC, new_battery_setpoint = battery_obj.check_SoC(new_battery_setpoint, new_SoC)
+                # print(str(current_time) + "-->" + " Regulation Signal: " + str(
+                #     battery_obj.actual_reg_signal[ts] * new_reserve_down_cap*(0.5/(5*60)))+ ': reg_down_cap: ' + str(new_reserve_down_cap) + 'batt_sp' + str(new_battery_setpoint))
+
+            elif new_reserve_down_cap > 0.0:
+                new_battery_setpoint = battery_obj.change_setpoint(new_battery_setpoint,
+                                                                   new_reserve_down_cap * new_reserve_up_cap * (1 / (5 * 60)))
+                # new_battery_setpoint = battery_obj.change_setpoint(new_battery_setpoint,
+                #                                                    battery_obj.actual_reg_signal[ts] * new_reserve_up_cap/(battery_obj.res_eta_up*60/5))
+                new_SoC, new_battery_setpoint = battery_obj.check_SoC(new_battery_setpoint, new_SoC)
+                # print(str(current_time) + "-->" + " Regulation Signal: " + str(
+                #     battery_obj.actual_reg_signal[ts] * new_reserve_up_cap *(0.5/(5*60))) + ': reg_up_cap: ' + str(new_reserve_up_cap) + 'batt_sp' + str(new_battery_setpoint))
+
+
         else:
             active_power_mismatch = battery_obj.actual_load[ts] - battery_obj.load_up[0]
             reactive_power_mismatch = battery_obj.load_pf * active_power_mismatch
