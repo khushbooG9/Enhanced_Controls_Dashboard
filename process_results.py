@@ -12,9 +12,18 @@ from matplotlib import rc
 from collections import defaultdict
 font = {'family' : 'normal',
         'weight' : 'normal',
-        'size'   : 18}
+        'size'   : 28}
 
 rc('font', **font)
+
+# import matplotlib
+# matplotlib.use("pgf")
+# matplotlib.rcParams.update({
+#     "pgf.texsystem": "pdflatex",
+#     'font.family': 'serif',
+#     'text.usetex': True,
+#     'pgf.rcfonts': False,
+# })
 
 import json
 
@@ -202,7 +211,7 @@ def plot_continous(plot_1_variables_da, plot_1_variables_rt, da_data, rt_data, n
 
 
 
-def plot_side_by_side(plot_1_variables_da, plot_1_variables_rt, da_data, rt_data, no_of_files, fig_name):
+def plot_side_by_side(plot_1_variables_da, plot_1_variables_rt, da_data, rt_data, no_of_files, fig_name, legend_names_da, legend_names_rt, days_to_plot):
 
     df_rt = pd.DataFrame(columns=plot_1_variables_rt)
     df_rt.set_index('Time')
@@ -235,6 +244,9 @@ def plot_side_by_side(plot_1_variables_da, plot_1_variables_rt, da_data, rt_data
             y_da_array_flat = np.reshape(y_da_array, -1)
             df_da.loc[x_array_flat, plot_1_variables_da[i]] = y_da_array_flat
 
+    check_plots = 1
+    customdate = datetime(2019, 1, 1, 12, 0)
+    x = [customdate + timedelta(seconds=i) for i in range(len(df_da['Time'].values))]
     skip_next = False
     fig, ax = plt.subplots(figsize=(19.20,10.80))
 
@@ -242,42 +254,57 @@ def plot_side_by_side(plot_1_variables_da, plot_1_variables_rt, da_data, rt_data
 
         if plot_1_variables_da[i+1] == 'price_predict_da' or plot_1_variables_da[i+1] == 'reg_price_predict_up' or  plot_1_variables_da[i+1] == 'reg_price_predict_down':
             axsec = ax.twinx()
-            axsec.plot(df_da['Time'].values, df_da[plot_1_variables_da[i+1]].values, label=plot_1_variables_da[i+1], color = 'grey',  linestyle='-.', linewidth=4.0)
-            axsec.plot(df_da['Time'].values, df_rt[plot_1_variables_rt[i+1]].values, label=plot_1_variables_rt[i+1], color = 'grey', linewidth=3.0)
+            # axsec.plot(df_da['Time'].values, df_da[plot_1_variables_da[i+1]].values, label=legend_names_da[i+1], color = 'grey',  linestyle='-.', linewidth=4.0)
+            # axsec.plot(df_da['Time'].values, df_rt[plot_1_variables_rt[i+1]].values, label=legend_names_rt[i+1], color = 'grey', linewidth=3.0)
+            axsec.plot(x, df_da[plot_1_variables_da[i + 1]].values, label=legend_names_da[i + 1],
+                       color='grey', linestyle='-.', linewidth=5.0)
+            axsec.plot(x, df_rt[plot_1_variables_rt[i + 1]].values, label=legend_names_rt[i + 1],
+                       color='grey', linewidth=4.0)
             axsec.set_ylabel('$/kWh')
             axsec.legend(loc='lower right')
         else:
             if plot_1_variables_da[i + 1] == 'reg_up_cap_da':
 
-                x = idx_array_flat
+                #x = idx_array_flat
                 y1 = (np.array(df_da['battery_setpoints_da'].values) + np.array(df_da[plot_1_variables_da[i + 1]].values)*5/60).tolist()
                 y2 = (np.array(df_da['battery_setpoints_da'].values) + np.array(-df_da[plot_1_variables_da[i + 2]].values)*5/60).tolist()
-                plt.fill_between(x, y1, y2, label='reg_capacity_da', facecolor="tab:brown", edgecolor='blue', alpha=0.5)
+                # plt.fill_between(x, y1, y2, label='reg_capacity_da', facecolor="tab:brown", edgecolor='blue', alpha=0.5)
+                plt.fill_between(x, y1, y2, label=legend_names_da[i + 1], facecolor="tab:brown", edgecolor='blue', alpha=0.5)
+
                 y1 = (np.array(df_rt['battery_setpoints_rt'].values) + np.array(df_rt[plot_1_variables_rt[i + 1]].values)*5/60).tolist()
                 y2 = (np.array(df_rt['battery_setpoints_rt'].values) + np.array(-df_rt[plot_1_variables_rt[i + 2]].values)*5/60).tolist()
-                plt.fill_between(x, y1, y2, label='reg_capacity_rt', facecolor="tab:brown", edgecolor='black', alpha=0.2)
+                # plt.fill_between(x, y1, y2, label='reg_capacity_rt', facecolor="tab:brown", edgecolor='black', alpha=0.2)
+                plt.fill_between(x, y1, y2, label=legend_names_rt[i + 1], facecolor="tab:brown", edgecolor='black', alpha=0.2)
 
                 skip_next = True
 
 
             elif skip_next is False:
                 if plot_1_variables_da[i + 1] == 'peak_load_da':
-                    ax.plot(df_da['Time'].values, np.max(df_da[plot_1_variables_da[i + 1]].values)*np.ones(len(df_da['Time'])),
-                           label=plot_1_variables_da[i + 1], linestyle='-.', linewidth=4.0)
-                    ax.plot(df_da['Time'].values,
+                    # ax.plot(df_da['Time'].values, np.max(df_da[plot_1_variables_da[i + 1]].values)*np.ones(len(df_da['Time'])),
+                    #        label=legend_names_da[i+1], linestyle='-.', linewidth=4.0)
+                    # ax.plot(df_da['Time'].values,
+                    #         np.max(df_rt[plot_1_variables_rt[i + 1]].values) * np.ones(len(df_rt['Time'])),
+                    #         label=legend_names_rt[i+1], linestyle='-.', linewidth=3.0)
+                    ax.plot(x,
+                            np.max(df_da[plot_1_variables_da[i + 1]].values) * np.ones(len(df_da['Time'])),
+                            label=legend_names_da[i + 1], linestyle='-.', linewidth=5.0)
+                    ax.plot(x,
                             np.max(df_rt[plot_1_variables_rt[i + 1]].values) * np.ones(len(df_rt['Time'])),
-                            label=plot_1_variables_rt[i + 1], linestyle='-.', linewidth=3.0)
+                            label=legend_names_rt[i + 1], linestyle='-.', linewidth=4.0)
                 else:
-                    ax.plot(df_da['Time'].values, df_da[plot_1_variables_da[i+1]].values, label=plot_1_variables_da[i+1], linestyle='-.', linewidth=4.0 )
-                    ax.plot(df_da['Time'].values, df_rt[plot_1_variables_rt[i+1]].values, label=plot_1_variables_rt[i+1], linewidth=3.0)
+                    # ax.plot(df_da['Time'].values, df_da[plot_1_variables_da[i+1]].values, label=legend_names_da[i+1], linestyle='-.', linewidth=4.0 )
+                    # ax.plot(df_da['Time'].values, df_rt[plot_1_variables_rt[i+1]].values, label=legend_names_rt[i+1], linewidth=3.0)
+                    ax.plot(x, df_da[plot_1_variables_da[i+1]].values, label=legend_names_da[i+1], linestyle='-.', linewidth=5.0 )
+                    ax.plot(x, df_rt[plot_1_variables_rt[i+1]].values, label=legend_names_rt[i+1], linewidth=4.0)
             else:
                 skip_next = False
     if plot_1_variables_da[len(plot_1_variables_da)-1] == 'SoC_da':
         ax.set_ylabel('kWh')
     elif plot_1_variables_da[len(plot_1_variables_da)-1] == 'grid_pf_da':
         ax.set_ylabel('cos(phi)')
-        ax.set_ylim(0.75, 1.01)
-    elif plot_1_variables_da[len(plot_1_variables_da)-1] == 'react_grid_da':
+        ax.set_ylim(0.95, 1.01)
+    elif plot_1_variables_da[len(plot_1_variables_da)-1] == 'react_batt_da':
         ax.set_ylabel('kVar')
     else:
         ax.set_ylabel('kW')
@@ -286,7 +313,9 @@ def plot_side_by_side(plot_1_variables_da, plot_1_variables_rt, da_data, rt_data
     # axsec.set_ylim(0.005, 0.04)
     ax.grid(True)
     # axsec.grid(True)
-    plt.savefig(fig_name + '_' + str(plot_1_variables_rt[1]) +'DA_vs_RT_high_demand_chg_priority_day.png')
+    plt.gcf().autofmt_xdate()
+    plt.savefig(fig_name + '_' + str(days_to_plot) + str(plot_1_variables_rt[1]) +'DA_vs_RT_high_demand_chg_priority_day.png', dpi=300)
+    # plt.savefig(fig_name + '_' + str(plot_1_variables_rt[1]) + 'DA_vs_RT.pgf')
 
     # plt.show()
 
@@ -366,134 +395,104 @@ for k in range(len(metrics_idx)):
     df_results[metrics_idx[k]] = arr.reshape(-1)
 
 
-# barplot1_names = ['DA Surcharge', 'RT Surcharge', 'RT Surcharge Loss']
-# barplot1_vals = [max(df_results[metrics_idx[5]])-max(df_results[metrics_idx[1]]), max(df_results[metrics_idx[5]])-max(df_results[metrics_idx[4]].values), max(df_results[metrics_idx[1]].values)-max(df_results[metrics_idx[4]].values)]
+# arbitrage_da = sum(df_results[metrics_idx[0]])
+# arbitrage_rt = sum(df_results[metrics_idx[3]].values)
+# arbitrage_diff = sum(df_results[metrics_idx[3]].values)-sum(df_results[metrics_idx[0]].values)
 
-# barplot2_names = ['DA Arbitrage', 'RT Arbitrage', 'RT Arbitrage Loss']
-barplot2_vals = [sum(df_results[metrics_idx[0]]), sum(df_results[metrics_idx[3]].values), sum(df_results[metrics_idx[3]].values)-sum(df_results[metrics_idx[0]].values)]
 
-# barplot2_names = ['DA Reg Cap', 'RT Reg Cap', 'RT Arbitrage Loss']
-barplot3_vals = [sum(df_results[metrics_idx[6]])+sum(df_results[metrics_idx[7]]), sum(df_results[metrics_idx[8]].values)+sum(df_results[metrics_idx[9]].values), sum(df_results[metrics_idx[8]].values)+sum(df_results[metrics_idx[9]].values)-sum(df_results[metrics_idx[6]].values)-sum(df_results[metrics_idx[7]].values)]
+arbitrage_da = sum(df_results[metrics_idx[0]])
+arbitrage_rt = sum(df_results[metrics_idx[3]].values)
+arbitrage_diff = sum(df_results[metrics_idx[3]].values)-sum(df_results[metrics_idx[0]].values)
 
-barplot1_vals = [max(df_results[metrics_idx[5]]), max(df_results[metrics_idx[4]]), max(df_results[metrics_idx[5]].values)-max(df_results[metrics_idx[4]].values)]
+res_da = sum(df_results[metrics_idx[6]])+sum(df_results[metrics_idx[7]])
+res_rt = sum(df_results[metrics_idx[8]].values)+sum(df_results[metrics_idx[9]].values)
+res_diff = sum(df_results[metrics_idx[8]].values)+sum(df_results[metrics_idx[9]].values)-sum(df_results[metrics_idx[6]].values)-sum(df_results[metrics_idx[7]].values)
 
-peak_load = (np.array(barplot1_vals)/6).tolist()
+# I saw literature on peak demand charge range from 1.5 to 6 $/kW, so just picking a smaller value now as compared to 6 kW based on which the simulation was run
+surcharge_da = max(df_results[metrics_idx[1]])*2.5/6
+surcharge_rt = max(df_results[metrics_idx[4]])*2.5/6
+surcharge_diff = max(df_results[metrics_idx[1]].values)*2.5/6-max(df_results[metrics_idx[4]].values)*2.5/6
+
+total_da = arbitrage_da + res_da - surcharge_da
+total_rt = arbitrage_rt + res_rt - surcharge_rt
+print('arbitrage_da_rev'+str(arbitrage_da) + ', arbitrage_rt_rev' + str(arbitrage_rt) + ', arbitrage_diff' + str(arbitrage_diff))
+print('res_da_rev'+str(res_da) + ', arbitrage_rt_rev' + str(res_rt) + ', res_diff' + str(res_diff))
+print('surcharge_da'+str(surcharge_da) + ', surcharge_rt' + str(surcharge_rt) + ', surcharge_diff' + str(surcharge_rt))
+
+print('total_da_rev = ' + str(total_da) + ', total_rt_rev = ' + str(total_rt) + ' rev_diff' + str(total_rt-total_da))
+
+barplot2_vals = [arbitrage_da, arbitrage_rt, arbitrage_diff]
+
+barplot1_vals = [surcharge_da, surcharge_rt, surcharge_diff]
+
+barplot3_vals = [res_da, res_rt, res_diff]
 
 barWidth=0.25
 br1 = np.arange(len(barplot1_vals))
 br2 = [x - barWidth for x in br1]
 br3 = [x + barWidth for x in br1]
 
-# fig = plt.subplots(figsize =(12, 8))
-#
-# b1 = plt.bar(br1, barplot1_vals, color='r', width=barWidth, edgecolor= 'grey')
-# b2 = plt.bar(br2, barplot2_vals, color='g', width=barWidth, edgecolor= 'grey')
-# b3 = plt.bar(br3, barplot3_vals, color='b', width=barWidth, edgecolor= 'grey')
-#
-# # plt.xlabel('Ti', fontweight='bold')
-# plt.ylabel('$', fontweight='bold')
-# plt.xticks([r + barWidth/2 for r in range(len(barplot1_vals))],
-#            ['DA', 'RT', 'Diff.'])
-# plt.legend((b1[0], b2[0], b3[0]), ('Peak Chg.', 'Arbitrage Rev.', 'Reserve Cap. Rev.'))
-# plt.grid(True)
-# plt.savefig(fig_name + '_metrics' + 'DA_vs_RT_high_multiservices.png')
-# plt.show()
 labels = ['DA', 'RT', 'Diff.']
 x = np.arange(len(labels))
 
 fig, ax = plt.subplots(figsize =(12, 8), nrows=1, ncols=3)
 
-ax[0].bar(x, barplot1_vals, color='r', width=barWidth, edgecolor= 'grey', label='Peak Chg.')
-ax[1].bar(x, barplot2_vals, color='g', width=barWidth, edgecolor= 'grey', label='Arbitrage Rev.')
-ax[2].bar(x, barplot3_vals, color='b', width=barWidth, edgecolor= 'grey', label='Reserve Cap Rev.')
+ax[0].bar(x, barplot1_vals, color='r', width=barWidth, edgecolor= 'grey', label='Demand Charge')
+ax[1].bar(x, barplot2_vals, color='g', width=barWidth, edgecolor= 'grey', label='Energy Arbitrage')
+ax[2].bar(x, barplot3_vals, color='b', width=barWidth, edgecolor= 'grey', label='Energy Res/Reg')
 ax[0].set_ylabel('$', fontweight='bold')
 ax[0].set_xticks(x)
 ax[0].set_xticklabels(labels)
-ax[0].legend(loc='upper right')
+ax[0].legend(loc='best')
 ax[1].set_xticks(x)
 ax[1].set_xticklabels(labels)
-ax[1].legend(loc='upper right')
+ax[1].legend(loc='best')
 ax[2].set_xticks(x)
 ax[2].set_xticklabels(labels)
-ax[2].legend(loc='upper right')
+ax[2].legend(loc='best')
 ax[0].grid(True)
 ax[1].grid(True)
 ax[2].grid(True)
 plt.savefig(fig_name + '_metrics' + 'DA_vs_RT_high_sep_multiservices.png')
+# plt.savefig(fig_name + '_metrics' + 'DA_vs_RT_high_sep_multiservices.pgf')
 # plt.show()
 
 # ===================== plots to check optimization results ===============
 
 plot_1_variables_da = ['Time', 'battery_setpoints_da', 'reg_up_cap_da',  'reg_down_cap_da', 'arbitrage_purchased_power_da']#, 'reg_price_predict_up']#, 'reg_price_predict_down']
 plot_1_variables_rt = ['Time', 'battery_setpoints_rt', 'reg_up_cap_rt',  'reg_down_cap_rt', 'arbitrage_purchased_power_actual_rt']#, 'reg_price_up_rt']#, 'reg_price_down_rt']
+legend_names_da = ['-', 'ESS Set-Point DA', 'ESS Res DA', 'ESS Res DA', 'ESS Arb DA']
+legend_names_rt = ['-', 'ESS Set-Point RT', 'ESS Res RT', 'ESS Res RT', 'ESS Arb RT']
 
-plot_side_by_side(plot_1_variables_da, plot_1_variables_rt, da_data, rt_data, no_of_data_files, fig_name)
+plot_side_by_side(plot_1_variables_da, plot_1_variables_rt, da_data, rt_data, no_of_data_files, fig_name, legend_names_da, legend_names_rt,days_to_plot)
 
-# plot_1_variables_da = ['Time', 'battery_setpoints_da', 'arbitrage_purchased_power_da',  'price_predict_da']
-# plot_1_variables_rt = ['Time', 'battery_setpoints_rt', 'arbitrage_purchased_power_actual_rt',  'price_actual_rt']
-
-# plot_1_variables_da = ['Time', 'arbitrage_purchased_power_da', 'arbitrage_purchased_power_da']
-# plot_1_variables_rt = ['Time', 'arbitrage_purchased_power_ideal_rt', 'arbitrage_purchased_power_actual_rt']
-
-
-# plot_side_by_side(plot_1_variables_da, plot_1_variables_rt, da_data, rt_data, no_of_data_files, fig_name)
-#
-plot_1_variables_da = ['Time', 'grid_load_da', 'peak_load_da']
-plot_1_variables_rt = ['Time', 'grid_load_rt',  'peak_load_rt']
-
-plot_side_by_side(plot_1_variables_da, plot_1_variables_rt, da_data, rt_data, no_of_data_files, fig_name)
 
 plot_1_variables_da = ['Time', 'total_load_predict_da', 'peak_load_da', 'grid_load_da']
 plot_1_variables_rt = ['Time', 'total_load_actual_rt',  'peak_load_rt', 'grid_load_rt']
-#
-#
-plot_side_by_side(plot_1_variables_da, plot_1_variables_rt, da_data, rt_data, no_of_data_files, fig_name)
-# #
+legend_names_da = ['-', 'Total Load DA', 'Peak Load DA', 'Grid Load DA']
+legend_names_rt = ['-', 'Total Load RT', 'Peak Load RT', 'Grid Load RT']
+
+
+plot_side_by_side(plot_1_variables_da, plot_1_variables_rt, da_data, rt_data, no_of_data_files, fig_name, legend_names_da, legend_names_rt, days_to_plot)
+# # #
 plot_1_variables_da = ['Time', 'grid_pf_da']
 plot_1_variables_rt = ['Time', 'grid_pf_rt']
-
-plot_side_by_side(plot_1_variables_da, plot_1_variables_rt, da_data, rt_data, no_of_data_files, fig_name)
+legend_names_da = ['-', 'Grid PF DA']
+legend_names_rt = ['-', 'Grid PF RT']
+plot_side_by_side(plot_1_variables_da, plot_1_variables_rt, da_data, rt_data, no_of_data_files, fig_name, legend_names_da, legend_names_rt, days_to_plot)
 # #
 plot_1_variables_da = ['Time', 'react_grid_da', 'react_batt_da']
 plot_1_variables_rt = ['Time', 'react_grid_rt', 'react_batt_rt']
-#
-plot_side_by_side(plot_1_variables_da, plot_1_variables_rt, da_data, rt_data, no_of_data_files, fig_name)
-#
+legend_names_da = ['-', 'Grid React DA', 'ESS React DA']
+legend_names_rt = ['-', 'Grid React RT', 'ESS React RT']
+plot_side_by_side(plot_1_variables_da, plot_1_variables_rt, da_data, rt_data, no_of_data_files, fig_name, legend_names_da, legend_names_rt, days_to_plot)
+# #
 plot_1_variables_da = ['Time', 'SoC_da']
 plot_1_variables_rt = ['Time', 'SoC_rt']
-plot_side_by_side(plot_1_variables_da, plot_1_variables_rt, da_data, rt_data, no_of_data_files, fig_name)
+legend_names_da = ['-', 'ESS SoC DA']
+legend_names_rt = ['-', 'ESS SoC RT']
+plot_side_by_side(plot_1_variables_da, plot_1_variables_rt, da_data, rt_data, no_of_data_files, fig_name, legend_names_da, legend_names_rt, days_to_plot)
 
-#
-# #
-# plot_2_variables_da = ['Time', 'SoC_da']
-# plot_2_variables_rt = ['Time', 'SoC_rt']
-# plot_continous(plot_2_variables_da, plot_2_variables_rt, da_data, rt_data, no_of_data_files, fig_name)
-#
-# plot_3_variables_da = ['Time', 'react_grid_da',  'react_batt_da']
-# plot_3_variables_rt =  ['Time', 'react_grid_rt',  'react_batt_rt']
-# plot_continous(plot_3_variables_da, plot_3_variables_rt, da_data, rt_data, no_of_data_files, fig_name)
-#
-# plot_4_variables_da = ['Time', 'grid_pf_da']
-# plot_4_variables_rt = ['Time', 'grid_pf_rt']
-# plot_continous(plot_4_variables_da, plot_4_variables_rt, da_data, rt_data, no_of_data_files, fig_name)
-#
-
-#
-# plot_3_variables_comp = ['Time','battery_setpoints_da', 'battery_setpoints_rt']
-# plot_4_variables_comp = ['Time','grid_load_da', 'grid_load_rt']
-
-
-#
-# plot_1_variables_da = ['battery_setpoints_da', 'grid_load_da', 'total_load_predict_da', 'peak_load_da']
-# plot_1_variables_rt = ['battery_setpoints_rt', 'grid_load_rt', 'total_load_actual_rt', 'peak_load_rt']
-# plot_side_by_side(plot_1_variables_da, plot_1_variables_rt, da_data, rt_data, len(ts))
-#
-# plot_single(plot_1_variables_da, plot_1_variables_rt, da_data, rt_data, len(ts))
-
-# plot_continous(plot_1_variables_da, plot_1_variables_rt, da_data, rt_data, len(ts))
-#
-# plot_continous(plot_2_variables_da, plot_2_variables_rt, da_data, rt_data, len(ts))
-#
 
 plt.show()
 
