@@ -632,8 +632,8 @@ __________________________________________________*/
   border-bottom: white solid 0.8rem;
   flex: 1 1;
   padding: 2rem;
-  max-width: 60%;
-  width: 60%
+  /*max-width: 60%;
+  width: 60%*/
 }
 
 #button1, #button2, #button3, #button4, #button5 ,#button1-life, #button1-temp, #button1-load, #button1-ess {
@@ -818,8 +818,8 @@ __________________________________________________*/
   }
 
   #buttons-panel {
-    max-width: 50%;
-    width: 50%;
+    max-width: 100%;
+    width: 100%;
   }
 
   #graphs-container {

@@ -500,7 +500,11 @@ class battery_class_new:
         return apparent_power
 
     def get_power_factor(self, p,s):
-        pf = (abs(p)+1e-6)/(s+1e-6)
+        p_modified =  (abs(p)+1e-6)
+        s_modified =  (s+1e-6)
+        print(f"p_modified = {p_modified}")
+        print(f"s_modified = {s_modified}")
+        pf = p_modified/s_modified
         return pf
     def obj_rule(self, m):
         temp = 0
