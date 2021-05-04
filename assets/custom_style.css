@@ -151,17 +151,17 @@ body {
 }
 
 #bottom-section-container {
-  display: flex;
+  /*display: flex;
   flex-direction: row;
   flex-wrap: wrap;
   border-top: white solid 0.8rem;
   border-bottom: white solid 0.8rem; 
   justify-content: flex-end;
-  align-items: flex-end;
- /* height: 40rem;
+  align-items: flex-end;*/
+  height: 40rem;
   flex-direction: row;
   display: flex;
-  max-width: 100%;*/
+  max-width: 100%;
 }
 
 
@@ -187,7 +187,7 @@ body {
 #right-graph {
   height: 100%;
   margin: 0;
-  border-left: white solid 0.8rem;
+  /*border-left: white solid 0.8rem;*/
   flex: 1 1 auto;
 }
 
@@ -388,19 +388,20 @@ body {
 }*/
 
 #revenue-block {
-  width: 120%;
+  width: 100%;
   box-sizing: content-box;
   display: flex;
-  flex-direction: column;
-  background-color:  #ffcc99;
+  flex-direction: row;
   justify-content: space-evenly;
   align-items: flex-start;
   border: 2px solid #e67300;
-  display: inline-block;
+  /*background-color:  #ffcc99;
+  /*
+  /*display: inline-block;*/
   margin: 15px;
   padding: 2%;
-  max-width: 95%;
-  
+  max-width: 90%;
+  font-weight: 100;
 }
 
 #revenue-label, #load-label1, #load-label2, #profile-label1, #profile-label2, #profile-label3 {
@@ -451,6 +452,7 @@ body {
   margin: 10% auto;
   padding: 10px 15px;
 }
+
 #markdown-panela, #markdown-panel2a, #markdown-panel3a, #markdown-panel4a {
   display: flex;
   flex-direction: row;
@@ -630,7 +632,8 @@ __________________________________________________*/
   border-bottom: white solid 0.8rem;
   flex: 1 1;
   padding: 2rem;
-  max-width: 100%;
+  max-width: 60%;
+  width: 60%
 }
 
 #button1, #button2, #button3, #button4, #button5 ,#button1-life, #button1-temp, #button1-load, #button1-ess {
@@ -815,7 +818,8 @@ __________________________________________________*/
   }
 
   #buttons-panel {
-    max-width: 100%;
+    max-width: 50%;
+    width: 50%;
   }
 
   #graphs-container {
