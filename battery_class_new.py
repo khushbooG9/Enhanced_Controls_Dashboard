@@ -172,6 +172,7 @@ class battery_class_new:
         data["load_up"] = self.load_up
         data["load_down"] = self.load_down
         data["price_data"] = self.price_data.to_json()
+        data["reg_signal data"] = self.reg_signal_data.to_json()
         data["battery_setpoints_prediction"] = self.battery_setpoints_prediction
         data["SoC_prediction"] = self.SoC_prediction
         data["peak_load_prediction"] = self.peak_load_prediction
@@ -248,7 +249,7 @@ class battery_class_new:
         self.load_up = data["load_up"]
         self.load_down = data["load_down"]
         self.price_data = pd.read_json(data["price_data"])
-
+        self.reg_signal_data = pd.read_json(data["reg_signal data"])
 
         self.battery_setpoints_prediction = data["battery_setpoints_prediction"]
         self.SoC_prediction = data["SoC_prediction"]
@@ -331,6 +332,7 @@ class battery_class_new:
         self.load_up = other.load_up
         self.load_down = other.load_down
         self.price_data = other.price_data
+        self.reg_signal_data = other.reg_signal_data
 
 
         self.battery_setpoints_prediction = other.battery_setpoints_prediction
@@ -361,6 +363,7 @@ class battery_class_new:
         self.battery_res_up_cap_actual = other.battery_res_up_cap_actual
         self.battery_res_up_cap_actual = other.battery_res_down_cap_actual
         self.actual_reg_signal = other.actual_reg_signal
+
     def change_setpoint(self, old_setpoint, mismatch):
         new_battery_setpoint = min(self.rated_kW, max(-self.rated_kW, old_setpoint + mismatch))
 
@@ -535,15 +538,22 @@ class battery_class_new:
         self.actual_price.append(price_val + dev + diff)
 
     def get_reg_signal(self, current_time, ts):
+        print(f"current time = {current_time}")
         t = current_time.strftime('%H:%M:%S')
+        print(f"current time t = {t}")
+        print(f"reg signal data = {self.reg_signal_data}")
         # forecast_time = timedelta(seconds=+4)
         # self.reg_signal_data.loc[(self.reg_signal_data['Hour'] == 0) & ((self.reg_signal_data['Minute'] == 0)) & (
         # (self.reg_signal_data['Second'] == 0))]
         try:
+            print(f"self.reg_signal_data['Time'] == t = {self.reg_signal_data[(self.reg_signal_data['Time'] == t)]}")
             self.actual_reg_signal.append(self.reg_signal_data[(self.reg_signal_data['Time'] == t)]['Value'].values[0])
             # self.actual_reg_signal.append(self.reg_signal_data[(self.reg_signal_data['Time'] >= t) & (self.reg_signal_data['Time'] < t)]['Value'].values)
         except:
             self.actual_reg_signal.append(self.actual_reg_signal[ts-1])
+
+        print(f"value = {self.actual_reg_signal}")
+        print(f"self.actual_reg_signal = {self.actual_reg_signal[ts]}")
 
 
     def set_SoC(self, latest_SoC):
@@ -554,10 +564,8 @@ class battery_class_new:
         return apparent_power
 
     def get_power_factor(self, p,s):
-        p_modified =  (abs(p)+1e-6)
-        s_modified =  (s+1e-6)
-        print(f"p_modified = {p_modified}")
-        print(f"s_modified = {s_modified}")
+        p_modified = (abs(p)+1e-6)
+        s_modified = (s+1e-6)
         pf = p_modified/s_modified
         return pf
     def obj_rule(self, m):
@@ -630,7 +638,6 @@ class battery_class_new:
             return m.SoC[i] == self.SoC_init - m.p_batt[i]
         else:
             return m.SoC[i] == m.SoC[i-1] - m.p_batt[i]
-
 
 
     def DA_optimal_quantities(self):

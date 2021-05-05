@@ -303,15 +303,8 @@ def update_live_graph(ts, outage_flag, external_signal_flag, submit_click, price
                       fig_leftdropdown, fig_rightdropdown, data1, live1,
                       gen_config, data_config,
                       use_case_library):
-    '''
-    updating the live graph
-    '''
-    #print(f"outage flag = {outage_flag}")
-    #print(f"price change value = {price_change_value}")
-    #print(f"grid load change value = {grid_load_change_value}")
+
     update_buffer = 2000
-    #print(f"left dropdown = {fig_leftdropdown}")
-    #print(f"right dropdown = {fig_rightdropdown}")
 
     def dash_fig_multiple_yaxis(ts, prediction_data, actual_data, prediction_data_2, actual_data_2, title=None,
                                 **kwargs):
@@ -509,7 +502,7 @@ def update_live_graph(ts, outage_flag, external_signal_flag, submit_click, price
                 # new_battery_setpoint = battery_obj.change_setpoint(new_battery_setpoint,
                 #                                                    battery_obj.actual_reg_signal[ts] * new_reserve_down_cap/(battery_obj.res_eta_down*60/5))
 
-                new_SoC, new_battery_setpoint = battery_obj.check_SoC(new_battery_setpoint, new_SoC)
+                new_SoC, new_battery_setpoint = battery_obj.check_SoC(new_battery_setpoint, SoC_temp)
                 # print(str(current_time) + "-->" + " Regulation Signal: " + str(
                 #     battery_obj.actual_reg_signal[ts] * new_reserve_down_cap*(0.5/(5*60)))+ ': reg_down_cap: ' + str(new_reserve_down_cap) + 'batt_sp' + str(new_battery_setpoint))
 
@@ -518,10 +511,15 @@ def update_live_graph(ts, outage_flag, external_signal_flag, submit_click, price
                                                                    new_reserve_down_cap * new_reserve_up_cap * (1 / (5 * 60)))
                 # new_battery_setpoint = battery_obj.change_setpoint(new_battery_setpoint,
                 #                                                    battery_obj.actual_reg_signal[ts] * new_reserve_up_cap/(battery_obj.res_eta_up*60/5))
-                new_SoC, new_battery_setpoint = battery_obj.check_SoC(new_battery_setpoint, new_SoC)
+                new_SoC, new_battery_setpoint = battery_obj.check_SoC(new_battery_setpoint, SoC_temp)
                 # print(str(current_time) + "-->" + " Regulation Signal: " + str(
                 #     battery_obj.actual_reg_signal[ts] * new_reserve_up_cap *(0.5/(5*60))) + ': reg_up_cap: ' + str(new_reserve_up_cap) + 'batt_sp' + str(new_battery_setpoint))
 
+            active_power_mismatch = battery_obj.actual_load[ts]
+            new_grid_load = battery_obj.actual_load[ts] - new_battery_setpoint
+            reactive_power_mismatch = battery_obj.load_pf * active_power_mismatch
+            new_battery_reactive_power = -reactive_power_mismatch
+            new_grid_reactive_power = 0.0
 
         else:
             active_power_mismatch = battery_obj.actual_load[ts] - battery_obj.load_up[0]
