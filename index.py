@@ -163,12 +163,7 @@ def build_tabs():
 
 def serve_layout():
     return html.Div(
-        [dcc.Store(id="usecase-store", storage_type="session", data=init_usecase()),
-        dcc.Store(id="gen-config-store", storage_type="session", data=init_gen_config()),
-        dcc.Store(id="control-config-store", storage_type="session", data=init_control_config()),
-        dcc.Store(id="data-config-store", storage_type="session", data=init_data_config()),
-        dcc.Store(id="data-store", storage_type="session"),
-        dcc.Store(id="liveplot-store", storage_type="session"),
+        [
         html.Div(
         id="big-app-container",
         children=[
@@ -176,12 +171,12 @@ def serve_layout():
             html.Div(
                 id="app-container",
                 children=[
-                    # dcc.Store(id="usecase-store", storage_type="session", data=init_usecase()),
-                    # dcc.Store(id="gen-config-store", storage_type="session", data=init_gen_config()),
-                    # dcc.Store(id="control-config-store", storage_type="session", data=init_control_config()),
-                    # dcc.Store(id="data-config-store", storage_type="session", data=init_data_config()),
-                    # dcc.Store(id="data-store", storage_type="session"),
-                    # dcc.Store(id="liveplot-store", storage_type="session"),
+                    dcc.Store(id="usecase-store", storage_type="session", data=init_usecase()),
+                    dcc.Store(id="gen-config-store", storage_type="session", data=init_gen_config()),
+                    dcc.Store(id="control-config-store", storage_type="session", data=init_control_config()),
+                    dcc.Store(id="data-config-store", storage_type="session", data=init_data_config()),
+                    dcc.Store(id="data-store", storage_type="session"),
+                    dcc.Store(id="liveplot-store", storage_type="session"),
                     build_tabs(),
                     html.Div(id="app-content")
                 ],
@@ -410,8 +405,8 @@ def update_live_graph(ts, outage_flag, external_signal_flag, submit_click, price
     start_time = gen_config['StartTime']
     end_time = gen_config['EndTime']
     battery_obj = battery_class_new(use_case_library, gen_config, data_config)
-    new_reserve_up_cap = 600 # kW/5 minutes
-    new_reserve_down_cap = 600 # kW/5 minutes
+    new_reserve_up_cap = 100 # kW/5 minutes
+    new_reserve_down_cap = 100 # kW/5 minutes
     if ts == 0:
         print('at ts=0')
         simulation_duration = int(

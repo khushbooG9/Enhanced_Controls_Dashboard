@@ -538,10 +538,7 @@ class battery_class_new:
         self.actual_price.append(price_val + dev + diff)
 
     def get_reg_signal(self, current_time, ts):
-        print(f"current time = {current_time}")
         t = current_time.strftime('%H:%M:%S')
-        print(f"current time t = {t}")
-        print(f"reg signal data = {self.reg_signal_data}")
         # forecast_time = timedelta(seconds=+4)
         # self.reg_signal_data.loc[(self.reg_signal_data['Hour'] == 0) & ((self.reg_signal_data['Minute'] == 0)) & (
         # (self.reg_signal_data['Second'] == 0))]
