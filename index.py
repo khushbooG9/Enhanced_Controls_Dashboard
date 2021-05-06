@@ -410,8 +410,8 @@ def update_live_graph(ts, outage_flag, external_signal_flag, submit_click, price
     start_time = gen_config['StartTime']
     end_time = gen_config['EndTime']
     battery_obj = battery_class_new(use_case_library, gen_config, data_config)
-    new_reserve_up_cap = 600 # kW/5 minutes
-    new_reserve_down_cap = 600 # kW/5 minutes
+    new_reserve_cap = 100 # kW/5 minutes
+    #new_reserve_down_cap = 100 # kW/5 minutes
     if ts == 0:
         print('at ts=0')
         simulation_duration = int(
@@ -472,7 +472,11 @@ def update_live_graph(ts, outage_flag, external_signal_flag, submit_click, price
         battery_obj.actual_load[ts] = max(0, battery_obj.actual_load[ts] + battery_obj.actual_load[ts] * (
                     grid_load_change_value / 100))
 
-        current_reg_signal = battery_obj.get_reg_signal(current_time, ts)
+        battery_obj.get_reg_signal(current_time, ts)
+        current_reg_signal = battery_obj.actual_reg_signal[ts]
+
+        print(f"current_reg_signal = {current_reg_signal}")
+
         if outage_flag:
             check = 1
             # outage mitigation
@@ -491,59 +495,59 @@ def update_live_graph(ts, outage_flag, external_signal_flag, submit_click, price
             reactive_power_mismatch = battery_obj.load_pf * active_power_mismatch
             new_battery_reactive_power = -reactive_power_mismatch
             new_grid_reactive_power = 0.0
-        elif external_signal_flag:
-            print("external flag signal on")
-            print(f"current_reg_signal = {current_reg_signal}")
-            if new_reserve_down_cap < 0.0:
-                # below the complicated 0.5/(5*60) comes from conversion of capacity to power
-                # 0.5 comes from the fact the signal is coming every 2 second, (5*60) because capacity is given for every 5 minutes
-                new_battery_setpoint = battery_obj.change_setpoint(new_battery_setpoint,
-                                                                   current_reg_signal * new_reserve_down_cap * (1 / (5 * 60)))
-                # new_battery_setpoint = battery_obj.change_setpoint(new_battery_setpoint,
-                #                                                    battery_obj.actual_reg_signal[ts] * new_reserve_down_cap/(battery_obj.res_eta_down*60/5))
 
-                new_SoC, new_battery_setpoint = battery_obj.check_SoC(new_battery_setpoint, SoC_temp)
-                # print(str(current_time) + "-->" + " Regulation Signal: " + str(
-                #     battery_obj.actual_reg_signal[ts] * new_reserve_down_cap*(0.5/(5*60)))+ ': reg_down_cap: ' + str(new_reserve_down_cap) + 'batt_sp' + str(new_battery_setpoint))
-
-            elif new_reserve_down_cap > 0.0:
-                new_battery_setpoint = battery_obj.change_setpoint(new_battery_setpoint,
-                                                                   new_reserve_down_cap * new_reserve_up_cap * (1 / (5 * 60)))
-                # new_battery_setpoint = battery_obj.change_setpoint(new_battery_setpoint,
-                #                                                    battery_obj.actual_reg_signal[ts] * new_reserve_up_cap/(battery_obj.res_eta_up*60/5))
-                new_SoC, new_battery_setpoint = battery_obj.check_SoC(new_battery_setpoint, SoC_temp)
-                # print(str(current_time) + "-->" + " Regulation Signal: " + str(
-                #     battery_obj.actual_reg_signal[ts] * new_reserve_up_cap *(0.5/(5*60))) + ': reg_up_cap: ' + str(new_reserve_up_cap) + 'batt_sp' + str(new_battery_setpoint))
-
-            active_power_mismatch = battery_obj.actual_load[ts]
-            new_grid_load = battery_obj.actual_load[ts] - new_battery_setpoint
-            reactive_power_mismatch = battery_obj.load_pf * active_power_mismatch
-            new_battery_reactive_power = -reactive_power_mismatch
-            new_grid_reactive_power = 0.0
+    #
+            # active_power_mismatch = battery_obj.actual_load[ts] - battery_obj.load_up[0]
+            # new_grid_load = battery_obj.actual_load[ts] - new_battery_setpoint
+            # reactive_power_mismatch = battery_obj.load_pf * active_power_mismatch
+            # new_battery_reactive_power = -reactive_power_mismatch
+            # new_grid_reactive_power = 0.0
 
         else:
             active_power_mismatch = battery_obj.actual_load[ts] - battery_obj.load_up[0]
             reactive_power_mismatch = battery_obj.load_pf * active_power_mismatch
-            for i in range(len(services_list) - 1):
-                service_priority = services_list[priority_list.index(i + 1)]
-                if service_priority == "demand_charge":
-                    # check demand charge reduction in real-time
-                    new_SoC, new_battery_setpoint, new_grid_load = battery_obj.rtc_demand_charge_reduction \
-                        (i, active_power_mismatch, battery_obj.battery_setpoints_prediction[0], SoC_temp,
-                         battery_obj.actual_load[ts])
+            if external_signal_flag:
+                print("external flag signal on")
+                # if new_reserve_down_cap < 0.0:
+                # below the complicated 0.5/(5*60) comes from conversion of capacity to power
+                # 0.5 comes from the fact the signal is coming every 2 second, (5*60) because capacity is given for every 5 minutes
+                new_battery_setpoint = battery_obj.change_setpoint(battery_obj.battery_setpoints_actual[ts-1],
+                                                                   current_reg_signal * new_reserve_cap * (
+                                                                               1 / (5 * 60)))
 
-                elif service_priority == "power_factor_correction":
-                    if i == 0:  # highest priority
-                        pass
+                new_SoC, new_battery_setpoint = battery_obj.check_SoC(new_battery_setpoint, SoC_temp)
+                active_power_mismatch = battery_obj.actual_load[ts] - battery_obj.load_up[0]
+                new_grid_load = battery_obj.actual_load[ts] - new_battery_setpoint
+                reactive_power_mismatch = battery_obj.load_pf * active_power_mismatch
+                battery_ratio = (1 - battery_obj.battery_react_power_prediction[0] / (
+                        battery_obj.grid_react_power_prediction[0] + battery_obj.battery_react_power_prediction[
+                    0]))
 
-                    else:
-                        battery_ratio = (1 - battery_obj.battery_react_power_prediction[0] / (
-                                battery_obj.grid_react_power_prediction[0] + battery_obj.battery_react_power_prediction[
-                            0]))
+                new_battery_reactive_power = battery_obj.battery_react_power_prediction[
+                                                 0] + battery_ratio * reactive_power_mismatch
+                new_grid_reactive_power = battery_obj.load_pf * new_grid_load + new_battery_reactive_power
 
-                        new_battery_reactive_power = battery_obj.battery_react_power_prediction[
-                                                         0] + battery_ratio * reactive_power_mismatch
-                        new_grid_reactive_power = battery_obj.load_pf * new_grid_load + new_battery_reactive_power
+            else:
+                for i in range(len(services_list) - 1):
+                    service_priority = services_list[priority_list.index(i + 1)]
+                    if service_priority == "demand_charge":
+                        # check demand charge reduction in real-time
+                        new_SoC, new_battery_setpoint, new_grid_load = battery_obj.rtc_demand_charge_reduction \
+                            (i, active_power_mismatch, battery_obj.battery_setpoints_prediction[0], SoC_temp,
+                             battery_obj.actual_load[ts])
+
+                    elif service_priority == "power_factor_correction":
+                        if i == 0:  # highest priority
+                            pass
+
+                        else:
+                            battery_ratio = (1 - battery_obj.battery_react_power_prediction[0] / (
+                                    battery_obj.grid_react_power_prediction[0] + battery_obj.battery_react_power_prediction[
+                                0]))
+
+                            new_battery_reactive_power = battery_obj.battery_react_power_prediction[
+                                                             0] + battery_ratio * reactive_power_mismatch
+                            new_grid_reactive_power = battery_obj.load_pf * new_grid_load + new_battery_reactive_power
 
     battery_obj.SoC_actual.append(SoC_temp)
     battery_obj.battery_setpoints_actual.append(new_battery_setpoint)
