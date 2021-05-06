@@ -339,8 +339,8 @@ case_name = 'multi_services'
 # fig_name = folder_name + case_name
 days_to_plot = 31
 ts = [str(i) for i in np.arange(86400, 86400*days_to_plot, 86400)]
-robustness = 'Nby2_nom'
-res_per_MW = '5'
+robustness = 'N_nom'
+res_per_MW = '1'
 
 no_of_data_files = len(ts)
 
