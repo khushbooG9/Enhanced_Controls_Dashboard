@@ -543,14 +543,14 @@ class battery_class_new:
         # self.reg_signal_data.loc[(self.reg_signal_data['Hour'] == 0) & ((self.reg_signal_data['Minute'] == 0)) & (
         # (self.reg_signal_data['Second'] == 0))]
         try:
-            print(f"self.reg_signal_data['Time'] == t = {self.reg_signal_data[(self.reg_signal_data['Time'] == t)]}")
+            #print(f"self.reg_signal_data['Time'] == t = {self.reg_signal_data[(self.reg_signal_data['Time'] == t)]}")
             self.actual_reg_signal.append(self.reg_signal_data[(self.reg_signal_data['Time'] == t)]['Value'].values[0])
             # self.actual_reg_signal.append(self.reg_signal_data[(self.reg_signal_data['Time'] >= t) & (self.reg_signal_data['Time'] < t)]['Value'].values)
         except:
             self.actual_reg_signal.append(self.actual_reg_signal[ts-1])
 
-        print(f"value = {self.actual_reg_signal}")
-        print(f"self.actual_reg_signal = {self.actual_reg_signal[ts]}")
+        #print(f"value = {self.actual_reg_signal}")
+        #print(f"self.actual_reg_signal = {self.actual_reg_signal[ts]}")
 
 
     def set_SoC(self, latest_SoC):

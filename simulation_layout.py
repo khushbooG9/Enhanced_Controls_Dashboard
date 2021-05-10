@@ -189,8 +189,10 @@ def build_buttons_panel():
             html.Br(),
             build_external_signal_button(),
             html.Br(),
-            revenue_block(),
             #html.Br(),
+            ess_parameter_block_1(),
+            ess_parameter_block_2(),
+            revenue_block(),
             build_stop_button(),
         ],
     )
@@ -292,6 +294,66 @@ def revenue_block():
 
         ])])
 
+
+def ess_parameter_block_1():
+    return html.Div(
+        [html.Label("ESS Parameter", style=label_style),
+        html.Div(
+        id="ess-parameter-block",
+        className= "row",
+        children=[
+            #html.Br(),
+            html.Div([html.Label("Max SoC %", style=label_style_1),
+                      dcc.Input( id='max-soc',
+                                type="number",
+                                min=50,
+                                max=100,
+                                step=10,
+                                value=90,
+                                style={"width": '70%'}
+                            )]),
+
+            html.Div([html.Label("Min SOC %", style=label_style_1),
+                      dcc.Input( id='min-soc',
+                                type="number",
+                                min=0,
+                                max=50,
+                                step=10,
+                                value=10,
+                                style={"width": '70%'}
+                            )]),
+
+        ])])
+
+
+def ess_parameter_block_2():
+    return html.Div(
+        [#html.Label("ESS Parameter", style=label_style),
+        html.Div(
+        id="ess-parameter-block",
+        className= "row",
+        children=[
+            html.Div([html.Label("Energy Capacity kWh", style=label_style_1),
+                      dcc.Input(id='energy-capacity',
+                                type="number",
+                                min=100,
+                                max=2000,
+                                step=100,
+                                value=1500,
+                                style={"width": '70%'}
+                                )]),
+
+            html.Div([html.Label("Max Power kW", style=label_style_1),
+                      dcc.Input(id='max-power',
+                                type="number",
+                                min=100,
+                                max=1000,
+                                step=50,
+                                value=750,
+                                style={"width": '70%'}
+                                )]),
+
+        ])])
 
 def build_top_panel():
     """

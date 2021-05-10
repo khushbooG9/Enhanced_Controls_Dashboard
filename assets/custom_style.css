@@ -404,6 +404,20 @@ body {
   font-weight: 100;
 }
 
+#ess-parameter-block {
+  width: 100%;
+  box-sizing: content-box;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-evenly;
+  align-items: flex-start;
+  border: 2px solid #e67300;
+  margin: 15px;
+  padding: 2%;
+  max-width: 90%;
+  font-weight: 100;
+}
+
 #revenue-label, #load-label1, #load-label2, #profile-label1, #profile-label2, #profile-label3 {
   display: flex;
   flex-direction: row;
