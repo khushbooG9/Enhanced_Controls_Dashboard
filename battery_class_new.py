@@ -363,6 +363,7 @@ class battery_class_new:
         self.battery_res_up_cap_actual = other.battery_res_up_cap_actual
         self.battery_res_up_cap_actual = other.battery_res_down_cap_actual
         self.actual_reg_signal = other.actual_reg_signal
+        self.actual_price = other.actual_price
 
     def change_setpoint(self, old_setpoint, mismatch):
         new_battery_setpoint = min(self.rated_kW, max(-self.rated_kW, old_setpoint + mismatch))
