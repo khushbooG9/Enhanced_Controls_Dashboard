@@ -282,53 +282,6 @@ def update_live_graph(ts, outage_flag, external_signal_flag, submit_click, price
 
     update_buffer = 2000
 
-    def dash_fig_multiple_yaxis(ts, prediction_data, actual_data, prediction_data_2, actual_data_2, title=None,
-                                **kwargs):
-
-        dict_fig = {'linewidth': 2, 'linecolor': '#EFEDED', 'width': 600, 'height': 400,
-                    'xaxis_title': 'Seconds', 'yaxis_title': 'kW'}
-
-        if kwargs:
-            dict_fig.update(kwargs)
-        legend_dict = dict(orientation="h", yanchor="bottom", y=1.05, xanchor="right", x=1)
-        # fig = go.Figure()
-        fig = make_subplots(specs=[[{"secondary_y": True}]])
-        fig.add_trace(go.Scatter(
-            x=[i for i in range(max(0, ts - update_buffer), (ts + 1))],
-            y=[prediction_data[0]] * (min(ts, update_buffer) + 2),
-            name="Prediction", mode='lines + markers'), secondary_y=False)
-
-        fig.add_trace(go.Scatter(
-            x=[i for i in range(max(0, ts - update_buffer), (ts + 1))],
-            y=[prediction_data_2[0]] * (min(ts, update_buffer) + 2),
-            name="Prediction", mode='lines'), secondary_y=True)
-
-        fig.add_trace(go.Scatter(
-            x=[i for i in range(max(0, ts - update_buffer), (ts + 1))],
-            y=[i for i in deque(actual_data, maxlen=update_buffer)],
-            name="Actual",mode='lines + markers'), secondary_y=False)
-
-        fig.add_trace(go.Scatter(
-            x=[i for i in range(max(0, ts - update_buffer), (ts + 1))],
-            y=[i for i in deque(actual_data_2, maxlen=update_buffer)],
-            name="Actual", mode='lines'), secondary_y=True)
-
-        ymin, ymax = min([prediction_data[0]] + actual_data), max([prediction_data[0]] + actual_data)
-        ymin_2, ymax_2 = min([prediction_data_2[0]] + actual_data_2), max([prediction_data_2[0]] + actual_data_2)
-        y_axis_left_margin, y_axis_right_margin = abs(ymin*0.1), abs(ymin_2*0.2)
-
-        fig.update_xaxes(range=[max(0, ts - update_window), ts], showline=True, linewidth=2, linecolor='#e67300',
-                         mirror=True, title_text="Seconds")
-        fig.update_yaxes(range=[ymin - y_axis_left_margin, ymax + y_axis_left_margin], showline=True, linewidth=2, linecolor='#e67300',
-                         mirror=True, secondary_y=False, title_text="kW")
-        fig.update_yaxes(range=[ymin_2 - y_axis_right_margin, ymax_2 + y_axis_right_margin], showline=True, linewidth=2, linecolor='#e67300',
-                         mirror=True, secondary_y=True, title_text="kW")
-        # fig.update_yaxes(showline=True, linewidth=2, linecolor='#e67300', mirror=True)
-        fig.update_layout(paper_bgcolor=dict_fig['linecolor'], width=dict_fig['width'], height=dict_fig['height'],
-                          legend=legend_dict, showlegend=True, title=title)
-
-        return fig
-
     def dash_fig(ts, prediction_data, actual_data, title=None, **kwargs):
         dict_fig = {'linewidth': 2, 'linecolor': '#EFEDED', 'width': 600, 'height': 400,
                     'xaxis_title': 'Seconds', 'yaxis_title': 'kW'}
@@ -386,8 +339,8 @@ def update_live_graph(ts, outage_flag, external_signal_flag, submit_click, price
     start_time = gen_config['StartTime']
     end_time = gen_config['EndTime']
     #gen_config['bat_capacity_kWh'] = ess_capacity
-    #gen_config['rated_kW'] = max_power
-    #gen_config['reserve_soc'] = ess_soc_min_limit/100
+    gen_config['rated_kW'] = max_power
+    gen_config['reserve_soc'] = ess_soc_min_limit/100
     battery_obj = battery_class_new(use_case_library, gen_config, data_config)
     new_reserve_up_cap = 100 # kW/5 minutes
     new_reserve_down_cap = 100 # kW/5 minutes
