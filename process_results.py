@@ -335,9 +335,9 @@ posfile_da = "_da"
 posfile_rt = "_rt"
 posfile_results = "_results"
 folder_name = 'results_pictures\\'
-case_name = 'multi_services'
+case_name = 'paper_figs'
 # fig_name = folder_name + case_name
-days_to_plot = 31
+days_to_plot = 2
 ts = [str(i) for i in np.arange(86400, 86400*days_to_plot, 86400)]
 robustness = 'N_nom'
 res_per_MW = '1'
@@ -464,35 +464,43 @@ plot_1_variables_rt = ['Time', 'battery_setpoints_rt', 'reg_up_cap_rt',  'reg_do
 legend_names_da = ['-', 'ESS Set-Point DA', 'ESS Res DA', 'ESS Res DA', 'ESS Arb DA']
 legend_names_rt = ['-', 'ESS Set-Point RT', 'ESS Res RT', 'ESS Res RT', 'ESS Arb RT']
 
-plot_side_by_side(plot_1_variables_da, plot_1_variables_rt, da_data, rt_data, no_of_data_files, fig_name, legend_names_da, legend_names_rt,days_to_plot)
-
-
-plot_1_variables_da = ['Time', 'total_load_predict_da', 'peak_load_da', 'grid_load_da']
-plot_1_variables_rt = ['Time', 'total_load_actual_rt',  'peak_load_rt', 'grid_load_rt']
-legend_names_da = ['-', 'Total Load DA', 'Peak Load DA', 'Grid Load DA']
-legend_names_rt = ['-', 'Total Load RT', 'Peak Load RT', 'Grid Load RT']
-
-
 plot_side_by_side(plot_1_variables_da, plot_1_variables_rt, da_data, rt_data, no_of_data_files, fig_name, legend_names_da, legend_names_rt, days_to_plot)
+
+# plot_1_variables_da = ['Time', 'battery_setpoints_da']#, 'reg_price_predict_up']#, 'reg_price_predict_down']
+# plot_1_variables_rt = ['Time', 'battery_setpoints_rt']#, 'reg_price_up_rt']#, 'reg_price_down_rt']
+# legend_names_da = ['-', 'ESS Set-Point DA', 'ESS Res DA']
+# legend_names_rt = ['-', 'ESS Set-Point RT', 'ESS Res RT']
+
+# plot_side_by_side(plot_1_variables_da, plot_1_variables_rt, da_data, rt_data, no_of_data_files, fig_name, legend_names_da, legend_names_rt,days_to_plot)
+
+
+#
+# plot_1_variables_da = ['Time', 'total_load_predict_da', 'peak_load_da', 'grid_load_da']
+# plot_1_variables_rt = ['Time', 'total_load_actual_rt',  'peak_load_rt', 'grid_load_rt']
+# legend_names_da = ['-', 'Total Load DA', 'Peak Load DA', 'Grid Load DA']
+# legend_names_rt = ['-', 'Total Load RT', 'Peak Load RT', 'Grid Load RT']
+#
+#
+# plot_side_by_side(plot_1_variables_da, plot_1_variables_rt, da_data, rt_data, no_of_data_files, fig_name, legend_names_da, legend_names_rt, days_to_plot)
+# # # #
+# plot_1_variables_da = ['Time', 'grid_pf_da']
+# plot_1_variables_rt = ['Time', 'grid_pf_rt']
+# legend_names_da = ['-', 'Grid PF DA']
+# legend_names_rt = ['-', 'Grid PF RT']
+# plot_side_by_side(plot_1_variables_da, plot_1_variables_rt, da_data, rt_data, no_of_data_files, fig_name, legend_names_da, legend_names_rt, days_to_plot)
 # # #
-plot_1_variables_da = ['Time', 'grid_pf_da']
-plot_1_variables_rt = ['Time', 'grid_pf_rt']
-legend_names_da = ['-', 'Grid PF DA']
-legend_names_rt = ['-', 'Grid PF RT']
-plot_side_by_side(plot_1_variables_da, plot_1_variables_rt, da_data, rt_data, no_of_data_files, fig_name, legend_names_da, legend_names_rt, days_to_plot)
-# #
-plot_1_variables_da = ['Time', 'react_grid_da', 'react_batt_da']
-plot_1_variables_rt = ['Time', 'react_grid_rt', 'react_batt_rt']
-legend_names_da = ['-', 'Grid React DA', 'ESS React DA']
-legend_names_rt = ['-', 'Grid React RT', 'ESS React RT']
-plot_side_by_side(plot_1_variables_da, plot_1_variables_rt, da_data, rt_data, no_of_data_files, fig_name, legend_names_da, legend_names_rt, days_to_plot)
-# #
-plot_1_variables_da = ['Time', 'SoC_da']
-plot_1_variables_rt = ['Time', 'SoC_rt']
-legend_names_da = ['-', 'ESS SoC DA']
-legend_names_rt = ['-', 'ESS SoC RT']
-plot_side_by_side(plot_1_variables_da, plot_1_variables_rt, da_data, rt_data, no_of_data_files, fig_name, legend_names_da, legend_names_rt, days_to_plot)
-
+# plot_1_variables_da = ['Time', 'react_grid_da', 'react_batt_da']
+# plot_1_variables_rt = ['Time', 'react_grid_rt', 'react_batt_rt']
+# legend_names_da = ['-', 'Grid React DA', 'ESS React DA']
+# legend_names_rt = ['-', 'Grid React RT', 'ESS React RT']
+# plot_side_by_side(plot_1_variables_da, plot_1_variables_rt, da_data, rt_data, no_of_data_files, fig_name, legend_names_da, legend_names_rt, days_to_plot)
+# # #
+# plot_1_variables_da = ['Time', 'SoC_da']
+# plot_1_variables_rt = ['Time', 'SoC_rt']
+# legend_names_da = ['-', 'ESS SoC DA']
+# legend_names_rt = ['-', 'ESS SoC RT']
+# plot_side_by_side(plot_1_variables_da, plot_1_variables_rt, da_data, rt_data, no_of_data_files, fig_name, legend_names_da, legend_names_rt, days_to_plot)
+#
 
 plt.show()
 
