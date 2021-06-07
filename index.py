@@ -30,6 +30,7 @@ from plotly.subplots import make_subplots
 def update_output(n_clicks, value):
     return value
 
+
 def build_banner():
     return html.Div(
         id="banner",
@@ -265,7 +266,8 @@ def stop_production(n_clicks, current):
     output=[Output("right-graph-fig", "figure"), Output("left-graph-fig", "figure"), Output("down-left-graph", "figure"),
             Output("down-right-graph", "figure"), Output("data-store", "data"), Output("liveplot-store", "data"), Output("revenue1", "value"),
             Output("revenue2", "value"), Output("revenue3", "value")],
-    inputs=[Input("graph-update", "n_intervals"), Input("outage-switch", "value"),  Input("external-switch", "value"), Input("submit-val", "n_clicks")],
+    inputs=[Input("graph-update", "n_intervals"), Input("outage-switch", "value"),  Input("external-switch", "value"), Input("submit-val", "n_clicks"),
+            Input('start-time', 'value')],
     state=[State('price-change-slider', 'value'), State('grid-load-change-slider', 'value'),
            State('update-window', 'value'), State('fig-left-dropdown', 'value'), State('fig-right-dropdown', 'value'),
            State('max-soc', 'value'), State('min-soc', 'value'), State('energy-capacity', 'value'),
@@ -275,7 +277,7 @@ def stop_production(n_clicks, current):
 # fig1= None
 
 
-def update_live_graph(ts, outage_flag, external_signal_flag, submit_click, price_change_value, grid_load_change_value, update_window,
+def update_live_graph(ts, outage_flag, external_signal_flag, submit_click, fig_start_time, price_change_value, grid_load_change_value, update_window,
                       fig_leftdropdown, fig_rightdropdown, ess_soc_max_limit, ess_soc_min_limit, ess_capacity, max_power,  data1, live1,
                       gen_config, data_config,
                       use_case_library):
@@ -300,25 +302,28 @@ def update_live_graph(ts, outage_flag, external_signal_flag, submit_click, price
 
         if title == "SoC":
             fig.add_shape(type="line", x0=-2, y0=ess_soc_max_limit, x1=ts+4, y1=ess_soc_max_limit,
-                          line=dict(color="LightSeaGreen", dash="dashdot",))
+                          line=dict(color="LightSeaGreen", dash="dashdot"))
             fig.add_shape(type="line", x0=-2, y0=ess_soc_min_limit, x1=ts + 4, y1=ess_soc_min_limit,
-                          line=dict(color="MediumPurple", dash="dashdot", ))
-            # fig.add_trace(go.Scatter(
-            #     x=[ts, ts], y=[10, 90],
-            #     text=["Min",
-            #           "Max"],
-            #     mode="text",
-            # ))
-
+                          line=dict(color="MediumPurple", dash="dashdot"))
         ymin, ymax = min([prediction_data[0]] + actual_data), max([prediction_data[0]] + actual_data)
         margin = abs(ymin * 0.1)
 
-        fig.update_xaxes(range=[max(0, ts - update_window), ts], showline=True, linewidth=2, linecolor='#e67300',
+        fig.update_xaxes(range=[max(fig_start_time, ts - update_window), ts], showline=True, linewidth=2, linecolor='#e67300',
                          mirror=True)
         if title == "SoC":
             ymin, ymax = 0, 100
         else:
             ymin, ymax = ymin-margin, ymax+ margin
+
+        # fig.add_annotation(x=max(fig_start_time, ts - update_window), y=ymin,
+        #                    text="Start Time",
+        #                    showarrow=False,
+        #                    yshift=-50)
+        # fig.add_annotation(x=max(fig_start_time, ts - update_window), y=ymin,
+        #                    text="Stop Time",
+        #                    showarrow=False,
+        #                    yshift=-50,
+        #                    xshift= 450)
 
         fig.update_yaxes(range=[ymin, ymax], showline=True, linewidth=2, linecolor='#e67300', mirror=True)
         # fig.update_yaxes(showline=True, linewidth=2, linecolor='#e67300', mirror=True)

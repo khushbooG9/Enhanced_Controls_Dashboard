@@ -165,10 +165,10 @@ def build_data_resolution_box():
         dcc.Input(
             id='update-data-resolution-box',
             type="number",
-            min=800,
-            max=5000,
-            step=100,
-            value=1000
+            min=1,
+            max=3600,
+            step=60,
+            value=1
         ),
         html.Button('Data Resolution', id='submit-val', n_clicks=0),
         # html.Div(id='slider-output-container')
@@ -178,12 +178,12 @@ def build_data_resolution_box():
 def build_start_timer_box():
     return html.Div([
         dcc.Input(
-            id='update-start-timer-box',
+            id='start-time',
             type="number",
             min=0,
             max=5000,
             step=1,
-            value=1
+            value=0
         ),
         html.Button('Start Time', id='submit-val', n_clicks=0),
         # html.Div(id='slider-output-container')
@@ -198,7 +198,7 @@ def build_update_window_box():
             min=20,
             max=1000,
             step=10,
-            value=50
+            value=120
         ),
         html.Button('Update Window', id='submit-val', n_clicks=0),
         # html.Div(id='slider-output-container')
@@ -211,7 +211,7 @@ def build_update_boxes():
         className="row",
         children=[
             html.Div(id="data_resolution", children=[build_data_resolution_box()]),
-            html.Div(id="start-time", children=[ build_start_timer_box()]),
+            html.Div(id="start-timer", children=[ build_start_timer_box()]),
             html.Div(id="rate", children=[build_update_rate_box()]),
             html.Div(id="window", children=[build_update_window_box()]),
             html.Div(id="controller-update-rate", children=[build_controller_update_rate_box()]),
