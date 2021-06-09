@@ -247,6 +247,10 @@ def stop_production(n_clicks, current):
     return not current, "stop" if current else "start"
 
 
+def list_conversion (a):
+    return [j for i in [[x]*3600 for x in a] for j in i]
+
+
 # @app.callback(
 #     [Output("Simulate Power Outage", "disabled"), Output("Power-Outage-button", "buttonText")],
 #     [Input("", "n_clicks")],
@@ -286,6 +290,10 @@ def update_live_graph(ts, outage_flag, external_signal_flag, submit_click, fig_s
             dict_fig.update(kwargs)
         legend_dict = dict(orientation="h", yanchor="bottom", y=1.05, xanchor="right", x=1)
         fig = go.Figure()
+        # fig.add_trace(go.Scatter(
+        #     x=[i for i in range(0, update_buffer)],
+        #     y=[prediction_data[0]] * update_buffer,
+        #     name="Prediction"))
         fig.add_trace(go.Scatter(
             x=[i for i in range(max(0, ts - update_buffer), (ts + 1))],
             y=[prediction_data[0]] * (min(ts, update_buffer) + 2),
@@ -507,8 +515,6 @@ def update_live_graph(ts, outage_flag, external_signal_flag, submit_click, fig_s
 
     print(f"price predict = {battery_obj.price_predict}")
     peak_load_prediction = [battery_obj.peak_load_prediction] * 24 * 3600
-    def list_conversion (a):
-        return [j for i in [[x]*3600 for x in a] for j in i]
 
     fig_obj = {"PL": [peak_load_prediction, battery_obj.peak_load_actual, fig_dict],
                "GR": [battery_obj.grid_react_power_prediction, battery_obj.grid_react_power_actual, fig_reactive_dict],
