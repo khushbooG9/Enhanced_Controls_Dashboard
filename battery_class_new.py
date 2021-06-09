@@ -540,17 +540,16 @@ class battery_class_new:
 
     def get_reg_signal(self, current_time, ts):
         t = current_time.strftime('%H:%M:%S')
-        # forecast_time = timedelta(seconds=+4)
-        # self.reg_signal_data.loc[(self.reg_signal_data['Hour'] == 0) & ((self.reg_signal_data['Minute'] == 0)) & (
-        # (self.reg_signal_data['Second'] == 0))]
         try:
             #print(f"self.reg_signal_data['Time'] == t = {self.reg_signal_data[(self.reg_signal_data['Time'] == t)]}")
             self.actual_reg_signal.append(self.reg_signal_data[(self.reg_signal_data['Time'] == t)]['Value'].values[0])
-            # self.actual_reg_signal.append(self.reg_signal_data[(self.reg_signal_data['Time'] >= t) & (self.reg_signal_data['Time'] < t)]['Value'].values)
+            #self.actual_reg_signal.append(self.reg_signal_data[(self.reg_signal_data['Time'] >= t) & (self.reg_signal_data['Time'] < t)]['Value'].values)
         except:
-            self.actual_reg_signal.append(self.actual_reg_signal[ts-1])
+            #self.actual_reg_signal.append(self.actual_reg_signal[ts-1])
+            self.actual_reg_signal.append(self.actual_reg_signal[-1])
 
-        #print(f"value = {self.actual_reg_signal}")
+        return self.actual_reg_signal[-1]
+        #print(f"value = {self.actual_reg_signal[-1]}")
         #print(f"self.actual_reg_signal = {self.actual_reg_signal[ts]}")
 
 

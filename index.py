@@ -2,8 +2,6 @@ from app import *
 from setting_layout import *
 from simulation_layout import *
 import dash
-import base64
-import io
 import dash_html_components as html
 import dash_core_components as dcc
 from dash.dependencies import Input, Output, State
@@ -15,9 +13,7 @@ import dash_table
 import pandas as pd
 from battery_class_new import *
 from sim_runner_no_dashboard import *
-# from BatteryClass import *
 from collections import deque
-import random
 import json
 import jsonpickle
 from json import JSONEncoder
@@ -282,8 +278,7 @@ def update_live_graph(ts, outage_flag, external_signal_flag, submit_click, fig_s
                       gen_config, data_config,
                       use_case_library):
 
-    update_buffer = 2000
-
+    update_buffer = 3600*24
     def dash_fig(ts, prediction_data, actual_data, title=None, **kwargs):
         dict_fig = {'linewidth': 2, 'linecolor': '#EFEDED', 'width': 600, 'height': 400,
                     'xaxis_title': 'Seconds', 'yaxis_title': 'kW'}
@@ -295,6 +290,10 @@ def update_live_graph(ts, outage_flag, external_signal_flag, submit_click, fig_s
             x=[i for i in range(max(0, ts - update_buffer), (ts + 1))],
             y=[prediction_data[0]] * (min(ts, update_buffer) + 2),
             name="Prediction"))
+        # fig.add_trace(go.Scatter(
+        #     x=[i for i in range(max(0, ts - update_buffer), (ts + 1))],
+        #     y=[i for i in deque(prediction_data, maxlen=update_buffer)],
+        #     name="Prediction"))
         fig.add_trace(go.Scatter(
             x=[i for i in range(max(0, ts - update_buffer), (ts + 1))],
             y=[i for i in deque(actual_data, maxlen=update_buffer)],
@@ -305,15 +304,16 @@ def update_live_graph(ts, outage_flag, external_signal_flag, submit_click, fig_s
                           line=dict(color="LightSeaGreen", dash="dashdot"))
             fig.add_shape(type="line", x0=-2, y0=ess_soc_min_limit, x1=ts + 4, y1=ess_soc_min_limit,
                           line=dict(color="MediumPurple", dash="dashdot"))
-        ymin, ymax = min([prediction_data[0]] + actual_data), max([prediction_data[0]] + actual_data)
-        margin = abs(ymin * 0.1)
+        ymin, ymax = min([prediction_data[0]] + actual_data[max(fig_start_time, ts - update_window):ts]), max([prediction_data[0]] + actual_data)
+        min_margin = abs(ymin * 0.1)
+        max_margin = abs(ymin * 0.1)
 
         fig.update_xaxes(range=[max(fig_start_time, ts - update_window), ts], showline=True, linewidth=2, linecolor='#e67300',
                          mirror=True)
         if title == "SoC":
             ymin, ymax = 0, 100
         else:
-            ymin, ymax = ymin-margin, ymax+ margin
+            ymin, ymax = ymin - min_margin, ymax + max_margin
 
         # fig.add_annotation(x=max(fig_start_time, ts - update_window), y=ymin,
         #                    text="Start Time",
@@ -343,12 +343,13 @@ def update_live_graph(ts, outage_flag, external_signal_flag, submit_click, fig_s
     time_format = '%Y-%m-%d %H:%M:%S'
     start_time = gen_config['StartTime']
     end_time = gen_config['EndTime']
-    #gen_config['bat_capacity_kWh'] = ess_capacity
+    # gen_config['bat_capacity_kWh'] = ess_capacity
     gen_config['rated_kW'] = max_power
-    gen_config['reserve_soc'] = ess_soc_min_limit/100
+    gen_config['reserve_soc'] = ess_soc_min_limit / 100
     battery_obj = battery_class_new(use_case_library, gen_config, data_config)
-    new_reserve_up_cap = 100 # kW/5 minutes
-    new_reserve_down_cap = 100 # kW/5 minutes
+    new_reserve_up_cap = 500  # kW/5 minutes
+    new_reserve_down_cap = 500  # kW/5 minutes
+
     if ts == 0:
         print('at ts=0')
         simulation_duration = int(
@@ -405,59 +406,30 @@ def update_live_graph(ts, outage_flag, external_signal_flag, submit_click, fig_s
                                      (battery_obj.price_predict[1] - battery_obj.price_predict[0]) * 300 * battery_obj.hrs_to_secs, ts)
 
         # change price and load values given there is a user input to change it
-        battery_obj.actual_price[ts] = max(0.0001, battery_obj.actual_price[ts] + battery_obj.actual_price[ts] * price_change_value / 100)
-        battery_obj.actual_load[ts] = max(0, battery_obj.actual_load[ts] + battery_obj.actual_load[ts] * (
+        new_actual_price = max(0.0001, battery_obj.actual_price[-1] + battery_obj.actual_price[-1] * price_change_value / 100)
+        new_actual_load = max(0, battery_obj.actual_load[-1] + battery_obj.actual_load[-1] * (
                     grid_load_change_value / 100))
 
         current_reg_signal = battery_obj.get_reg_signal(current_time, ts)
+        print(f"current reg signal = {current_reg_signal}")
         if outage_flag:
             check = 1
             # outage mitigation
-            active_power_mismatch = battery_obj.actual_load[ts]
-            # new_SoC, new_battery_setpoint, new_grid_load = battery_obj.outage_mitigation \
-            #     (active_power_mismatch, battery_obj.battery_setpoints_prediction[0], SoC_temp,
-            #      battery_obj.actual_load[ts])
+            active_power_mismatch = new_actual_load
             new_battery_setpoint = battery_obj.change_setpoint(0, active_power_mismatch)
-            # check SoC
             new_SoC, new_battery_setpoint = battery_obj.check_SoC(new_battery_setpoint, SoC_temp)
-            # new grid load
-            new_grid_load = battery_obj.actual_load[ts] - new_battery_setpoint
-            # print(f"New Battery Setpoint in outage block = {new_battery_setpoint}")
-            # print(f"New grid load = {new_grid_load}")
-            # print(f"New actual load = {battery_obj.actual_load[ts]}")
-            reactive_power_mismatch = battery_obj.load_pf * active_power_mismatch
-            new_battery_reactive_power = -reactive_power_mismatch
-            new_grid_reactive_power = 0.0
-        elif external_signal_flag:
-            if new_reserve_down_cap < 0.0:
-                # below the complicated 0.5/(5*60) comes from conversion of capacity to power
-                # 0.5 comes from the fact the signal is coming every 2 second, (5*60) because capacity is given for every 5 minutes
-                new_battery_setpoint = battery_obj.change_setpoint(new_battery_setpoint,
-                                                                   current_reg_signal * new_reserve_down_cap * (1 / (5 * 60)))
-                # new_battery_setpoint = battery_obj.change_setpoint(new_battery_setpoint,
-                #                                                    battery_obj.actual_reg_signal[ts] * new_reserve_down_cap/(battery_obj.res_eta_down*60/5))
-
-                new_SoC, new_battery_setpoint = battery_obj.check_SoC(new_battery_setpoint, SoC_temp)
-                # print(str(current_time) + "-->" + " Regulation Signal: " + str(
-                #     battery_obj.actual_reg_signal[ts] * new_reserve_down_cap*(0.5/(5*60)))+ ': reg_down_cap: ' + str(new_reserve_down_cap) + 'batt_sp' + str(new_battery_setpoint))
-
-            elif new_reserve_down_cap > 0.0:
-                new_battery_setpoint = battery_obj.change_setpoint(new_battery_setpoint,
-                                                                   new_reserve_down_cap * new_reserve_up_cap * (1 / (5 * 60)))
-                # new_battery_setpoint = battery_obj.change_setpoint(new_battery_setpoint,
-                #                                                    battery_obj.actual_reg_signal[ts] * new_reserve_up_cap/(battery_obj.res_eta_up*60/5))
-                new_SoC, new_battery_setpoint = battery_obj.check_SoC(new_battery_setpoint, SoC_temp)
-                # print(str(current_time) + "-->" + " Regulation Signal: " + str(
-                #     battery_obj.actual_reg_signal[ts] * new_reserve_up_cap *(0.5/(5*60))) + ': reg_up_cap: ' + str(new_reserve_up_cap) + 'batt_sp' + str(new_battery_setpoint))
-
-            active_power_mismatch = battery_obj.actual_load[ts]
-            new_grid_load = battery_obj.actual_load[ts] - new_battery_setpoint
+            new_grid_load = new_actual_load - new_battery_setpoint
             reactive_power_mismatch = battery_obj.load_pf * active_power_mismatch
             new_battery_reactive_power = -reactive_power_mismatch
             new_grid_reactive_power = 0.0
 
         else:
-            active_power_mismatch = battery_obj.actual_load[ts] - battery_obj.load_up[0]
+            active_power_mismatch = new_actual_load
+            new_grid_load = new_actual_load - new_battery_setpoint
+            reactive_power_mismatch = battery_obj.load_pf * active_power_mismatch
+            new_battery_reactive_power = -reactive_power_mismatch
+            new_grid_reactive_power = 0.0
+            active_power_mismatch = new_actual_load - battery_obj.load_up[0]
             reactive_power_mismatch = battery_obj.load_pf * active_power_mismatch
             for i in range(len(services_list) - 1):
                 service_priority = services_list[priority_list.index(i + 1)]
@@ -465,7 +437,7 @@ def update_live_graph(ts, outage_flag, external_signal_flag, submit_click, fig_s
                     # check demand charge reduction in real-time
                     new_SoC, new_battery_setpoint, new_grid_load = battery_obj.rtc_demand_charge_reduction \
                         (i, active_power_mismatch, battery_obj.battery_setpoints_prediction[0], SoC_temp,
-                         battery_obj.actual_load[ts])
+                         new_actual_load)
 
                 elif service_priority == "power_factor_correction":
                     if i == 0:  # highest priority
@@ -480,10 +452,24 @@ def update_live_graph(ts, outage_flag, external_signal_flag, submit_click, fig_s
                                                          0] + battery_ratio * reactive_power_mismatch
                         new_grid_reactive_power = battery_obj.load_pf * new_grid_load + new_battery_reactive_power
 
+            if external_signal_flag:
+                if new_reserve_down_cap < 0.0:
+                    new_battery_setpoint = battery_obj.change_setpoint(new_battery_setpoint,
+                                                                       current_reg_signal * new_reserve_down_cap * (
+                                                                                   1 / (5 * 60)))
+                    new_SoC, new_battery_setpoint = battery_obj.check_SoC(new_battery_setpoint, SoC_temp)
+
+                elif new_reserve_down_cap > 0.0:
+                    new_battery_setpoint = battery_obj.change_setpoint(new_battery_setpoint,
+                                                                       current_reg_signal * new_reserve_up_cap * (
+                                                                                   1 / (5 * 60)))
+                    new_SoC, new_battery_setpoint = battery_obj.check_SoC(new_battery_setpoint, SoC_temp)
+
     battery_obj.SoC_actual.append(SoC_temp)
     battery_obj.battery_setpoints_actual.append(new_battery_setpoint)
     battery_obj.grid_load_actual.append(new_grid_load)
     battery_obj.battery_react_power_actual.append(new_battery_reactive_power)
+    battery_obj.actual_load.append(new_actual_load)
 
     # battery_obj.grid_react_power_actual.append(battery_obj.load_pf * new_grid_load + new_battery_reactive_power)
 
@@ -492,28 +478,15 @@ def update_live_graph(ts, outage_flag, external_signal_flag, submit_click, fig_s
     battery_obj.grid_apparent_power_actual.append(new_grid_apparent_power)
     new_power_factor = battery_obj.get_power_factor(new_grid_load, new_grid_apparent_power)
     battery_obj.grid_power_factor_actual.append(new_power_factor)
-    battery_obj.peak_load_actual.append(max(battery_obj.grid_load_actual[0:ts + 1]))
+    battery_obj.peak_load_actual.append(max(battery_obj.grid_load_actual[0:ts+1]))
     SoC_temp = new_SoC
-    # price_temp = battery_obj.actual_price[ts]
-    # print(f"New Battery Setpoint after outage block = {new_battery_setpoint}")
-    # print(f"soc actual = {battery_obj.SoC_actual}")
-    # print(f"soc prediction = {battery_obj.SoC_prediction}")
-    # print(f"grid peak load prediction = {battery_obj.peak_load_prediction}")
-    # print(f"grid peak load actual = {max(battery_obj.peak_load_actual)}")
-    # print(f"Battery Setpoints Prediction = {battery_obj.battery_setpoints_prediction}")
-
-    # print(f"Battery Setpoints Actual = {battery_obj.battery_setpoints_actual}")
-    # print(f"grid load actual 0:ts = {battery_obj.grid_load_actual[0:ts]}")
-    # print(f"grid load actual max(0:ts) = {max(battery_obj.grid_load_actual[0:ts])}")
-
     battery_obj.metrics['peak_surcharge_da'].append(battery_obj.peak_load_prediction * battery_obj.peak_price)
     battery_obj.metrics['original_surcharge'].append(max(battery_obj.peak_load_actual) * battery_obj.peak_price)
 
     # print('da surcharge' + str(battery_obj.metrics['peak_surcharge_da'][-1]))
     # print('real time surcharge' + str(battery_obj.metrics['original_surcharge'][-1]))
-
+    ln = len(battery_obj.peak_load_actual)
     current_time = current_time + timedelta(seconds=+1)
-
     fig_dict = {'linewidth': 2, 'linecolor': '#EFEDED', 'width': 600, 'height': 400,
                 'xaxis_title': 'Seconds', 'yaxis_title': 'kW'}
     fig_pf_dict = {'linewidth': 2, 'linecolor': '#EFEDED', 'width': 600, 'height': 400,
@@ -524,26 +497,29 @@ def update_live_graph(ts, outage_flag, external_signal_flag, submit_click, fig_s
                 'xaxis_title': 'Seconds', 'yaxis_title': 'kVAR'}
     fig_soc_dict = {'linewidth': 2, 'linecolor': '#EFEDED', 'width': 600, 'height': 400,
                     'xaxis_title': 'Seconds', 'yaxis_title': '%'}
-    fig1 = dash_fig(ts, [x * (100/ battery_obj.rated_kWh) for x in battery_obj.SoC_prediction],
+    fig1 = dash_fig(ln, [x * (100/ battery_obj.rated_kWh) for x in battery_obj.SoC_prediction],
                     [y * (100/ battery_obj.rated_kWh) for y in battery_obj.SoC_actual],
                     "SoC", **fig_soc_dict)
 
-    fig2 = dash_fig(ts, battery_obj.battery_setpoints_prediction,
+    fig2 = dash_fig(ln, battery_obj.battery_setpoints_prediction,
                     battery_obj.battery_setpoints_actual,
                     "Battery Setpoint", **fig_dict)
 
     print(f"price predict = {battery_obj.price_predict}")
+    peak_load_prediction = [battery_obj.peak_load_prediction] * 24 * 3600
+    def list_conversion (a):
+        return [j for i in [[x]*3600 for x in a] for j in i]
 
-    fig_obj = {"PL": [[battery_obj.peak_load_prediction], battery_obj.peak_load_actual, fig_dict],
+    fig_obj = {"PL": [peak_load_prediction, battery_obj.peak_load_actual, fig_dict],
                "GR": [battery_obj.grid_react_power_prediction, battery_obj.grid_react_power_actual, fig_reactive_dict],
                "BR": [battery_obj.battery_react_power_prediction, battery_obj.battery_react_power_actual, fig_reactive_dict],
                "GI": [battery_obj.grid_load_prediction, battery_obj.grid_load_actual, fig_dict],
                "EP": [battery_obj.price_predict, battery_obj.actual_price, fig_price_dict],
                "PF": [battery_obj.grid_power_factor_prediction, battery_obj.grid_power_factor_actual, fig_pf_dict]}
 
-    fig3 = dash_fig(ts, fig_obj[fig_leftdropdown][0], fig_obj[fig_leftdropdown][1], **fig_obj[fig_leftdropdown][2])
 
-    fig4 = dash_fig(ts, fig_obj[fig_rightdropdown][0], fig_obj[fig_rightdropdown][1], **fig_obj[fig_rightdropdown][2])
+    fig3 = dash_fig(ln, fig_obj[fig_leftdropdown][0], fig_obj[fig_leftdropdown][1], **fig_obj[fig_leftdropdown][2])
+    fig4 = dash_fig(ln, fig_obj[fig_rightdropdown][0], fig_obj[fig_rightdropdown][1], **fig_obj[fig_rightdropdown][2])
 
     data["SoC_temp"] = SoC_temp
     data["simulation_duration"] = simulation_duration
