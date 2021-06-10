@@ -49,22 +49,6 @@ while ts < simulation_duration:
             #print("just before price forecast")
             battery_obj.set_hourly_price_forecast(current_time, current_time + timedelta(days=1), ts)
             battery_obj.DA_optimal_quantities()
-
-        # if ((ts % battery_obj.reporting_frequency) == 0) and (ts > 1):
-        #     idx = np.arange(0, 3600, 300)
-        # battery_obj.metrics['Time'].append(ts)
-        # battery_obj.metrics['arbitrage_revenue_da'].append(np.sum(
-        #     np.multiply(np.array(da_variables['arbitrage_purchased_power_da'])[:, 0],
-        #                 np.array(da_variables['price_predict_da'])[:, 0])))
-        # metrics['arbitrage_revenue_ideal_rt'].append(np.sum(
-        #     np.multiply(np.array(rt_variables['arbitrage_purchased_power_ideal_rt'])[:, idx],
-        #                 np.array(rt_variables['price_actual_rt'])[:, idx])) * 5 / 60)
-        # metrics['arbitrage_revenue_actual_rt'].append(np.sum(
-        #     np.multiply(np.array(rt_variables['arbitrage_purchased_power_actual_rt'])[:, idx],
-        #                 np.array(rt_variables['price_actual_rt'])[:, idx])) * 5 / 60)
-
-        # current_peak_load_prediction = 0.0
-        #print(f"price predict = {battery_obj.price_predict[0]}")
         battery_obj.set_load_actual(battery_obj.load_predict[0], np.mean(np.diff(battery_obj.load_predict[0:3])) * battery_obj.hrs_to_secs )
 
         # if (ts % 300 == 0):

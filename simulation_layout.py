@@ -1,6 +1,7 @@
 import dash_html_components as html
 import dash_core_components as dcc
 import dash_daq as daq
+import plotly.graph_objects as go
 
 style = {'width': '100%', 'height': '30px', 'lineHeight': '30px', 'borderWidth': '1px', 'borderStyle': 'dashed',
          'borderRadius': '2px', 'textAlign': 'center', 'margin': '10px', 'fontSize': '12px'}
@@ -190,6 +191,21 @@ def build_start_timer_box():
     ])
 
 
+def build_stop_timer_box():
+    return html.Div([
+        dcc.Input(
+            id='stop-time',
+            type="number",
+            min=0,
+            max=3600*24,
+            step=1,
+            value=0
+        ),
+        html.Button('Stop Time', id='submit-val', n_clicks=0),
+        # html.Div(id='slider-output-container')
+    ])
+
+
 def build_update_window_box():
     return html.Div([
         dcc.Input(
@@ -212,6 +228,7 @@ def build_update_boxes():
         children=[
             html.Div(id="data_resolution", children=[build_data_resolution_box()]),
             html.Div(id="start-timer", children=[ build_start_timer_box()]),
+            html.Div(id="stop-timer", children=[build_stop_timer_box()]),
             html.Div(id="rate", children=[build_update_rate_box()]),
             html.Div(id="window", children=[build_update_window_box()]),
             html.Div(id="controller-update-rate", children=[build_controller_update_rate_box()]),
@@ -278,6 +295,7 @@ def build_right_dropdown_box():
             value='PL',
         )
     #style={"width": '30%', "margin-left": "150px"})
+
 
 def build_left_graph():
     """

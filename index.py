@@ -160,6 +160,7 @@ def serve_layout():
             ),
         ],
     )])
+
 app.layout = serve_layout
 
 @app.callback(
@@ -254,7 +255,7 @@ def list_conversion (a):
             Output("down-right-graph", "figure"), Output("data-store", "data"), Output("liveplot-store", "data"), Output("revenue1", "value"),
             Output("revenue2", "value"), Output("revenue3", "value")],
     inputs=[Input("graph-update", "n_intervals"), Input("outage-switch", "value"),  Input("external-switch", "value"), Input("submit-val", "n_clicks"),
-            Input('start-time', 'value')],
+            Input('start-time', 'value'), Input('stop-time', 'value')],
     state=[State('price-change-slider', 'value'), State('grid-load-change-slider', 'value'),
            State('update-window', 'value'), State('fig-left-dropdown', 'value'), State('fig-right-dropdown', 'value'),
            State('max-soc', 'value'), State('min-soc', 'value'), State('energy-capacity', 'value'),
@@ -263,14 +264,12 @@ def list_conversion (a):
 # @cache.memoize
 # fig1= None
 
-
-def update_live_graph(ts, outage_flag, external_signal_flag, submit_click, fig_start_time, price_change_value, grid_load_change_value, update_window,
+def update_live_graph(ts, outage_flag, external_signal_flag, submit_click, fig_start_time, fig_stop_time, price_change_value, grid_load_change_value, update_window,
                       fig_leftdropdown, fig_rightdropdown, ess_soc_max_limit, ess_soc_min_limit, ess_capacity, max_power,  data1, live1,
                       gen_config, data_config,
                       use_case_library):
 
     update_buffer = 3600*24
-
     def dash_fig(ts, prediction_data, actual_data, title=None, **kwargs):
         dict_fig = {'linewidth': 2, 'linecolor': '#EFEDED', 'width': 600, 'height': 400,
                     'xaxis_title': 'Seconds', 'yaxis_title': 'kW'}
@@ -282,14 +281,14 @@ def update_live_graph(ts, outage_flag, external_signal_flag, submit_click, fig_s
         #     x=[i for i in range(0, 3600)],
         #     y=[prediction_data[0]] * 3600,
         #     name="Prediction"))
-        fig.add_trace(go.Scatter(
-            x=[i for i in range(max(0, ts - update_buffer), (ts + 1))],
-            y=[prediction_data[0]] * (min(ts, update_buffer) + 2),
-            name="Prediction"))
         # fig.add_trace(go.Scatter(
         #     x=[i for i in range(max(0, ts - update_buffer), (ts + 1))],
-        #     y=[i for i in deque(prediction_data, maxlen=update_buffer)],
+        #     y=[prediction_data[0]] * (min(ts, update_buffer) + 2),
         #     name="Prediction"))
+        fig.add_trace(go.Scatter(
+            x=[i*3600 for i in range(0, len(prediction_data))],
+            y= prediction_data,
+            name="Prediction"))
         fig.add_trace(go.Scatter(
             x=[i for i in range(max(0, ts - update_buffer), (ts + 1))],
             y=[i for i in deque(actual_data, maxlen=update_buffer)],
@@ -304,7 +303,7 @@ def update_live_graph(ts, outage_flag, external_signal_flag, submit_click, fig_s
         min_margin = abs(ymin * 0.15)
         max_margin = abs(ymin * 0.15)
 
-        fig.update_xaxes(range=[max(fig_start_time, ts - update_window), ts], showline=True, linewidth=2, linecolor='#e67300',
+        fig.update_xaxes(range=[max(fig_start_time, ts - update_window), max(ts, fig_stop_time)], showline=True, linewidth=2, linecolor='#e67300',
                          mirror=True)
         if title == "SoC":
             ymin, ymax = 0, 100
@@ -502,7 +501,7 @@ def update_live_graph(ts, outage_flag, external_signal_flag, submit_click, fig_s
                     "Battery Setpoint", **fig_dict)
 
     print(f"price predict = {battery_obj.price_predict}")
-    peak_load_prediction = [battery_obj.peak_load_prediction] * 24 * 3600
+    peak_load_prediction = [battery_obj.peak_load_prediction] * 24
 
     fig_obj = {"PL": [peak_load_prediction, battery_obj.peak_load_actual, fig_dict],
                "GR": [battery_obj.grid_react_power_prediction, battery_obj.grid_react_power_actual, fig_reactive_dict],
