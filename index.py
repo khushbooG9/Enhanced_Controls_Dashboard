@@ -160,9 +160,7 @@ def serve_layout():
             ),
         ],
     )])
-
 app.layout = serve_layout
-
 
 @app.callback(
     output=[Output("app-content", "children")],
@@ -251,17 +249,6 @@ def list_conversion (a):
     return [j for i in [[x]*3600 for x in a] for j in i]
 
 
-# @app.callback(
-#     [Output("Simulate Power Outage", "disabled"), Output("Power-Outage-button", "buttonText")],
-#     [Input("", "n_clicks")],
-#     #[State("graph-update", "disabled")],
-# )
-# def power_outage(n_clicks, current):
-#     if n_clicks == 0:
-#         return True, "start"
-#     return not current, "stop" if current else "start"
-
-
 @app.callback(
     output=[Output("right-graph-fig", "figure"), Output("left-graph-fig", "figure"), Output("down-left-graph", "figure"),
             Output("down-right-graph", "figure"), Output("data-store", "data"), Output("liveplot-store", "data"), Output("revenue1", "value"),
@@ -283,6 +270,7 @@ def update_live_graph(ts, outage_flag, external_signal_flag, submit_click, fig_s
                       use_case_library):
 
     update_buffer = 3600*24
+
     def dash_fig(ts, prediction_data, actual_data, title=None, **kwargs):
         dict_fig = {'linewidth': 2, 'linecolor': '#EFEDED', 'width': 600, 'height': 400,
                     'xaxis_title': 'Seconds', 'yaxis_title': 'kW'}
@@ -291,8 +279,8 @@ def update_live_graph(ts, outage_flag, external_signal_flag, submit_click, fig_s
         legend_dict = dict(orientation="h", yanchor="bottom", y=1.05, xanchor="right", x=1)
         fig = go.Figure()
         # fig.add_trace(go.Scatter(
-        #     x=[i for i in range(0, update_buffer)],
-        #     y=[prediction_data[0]] * update_buffer,
+        #     x=[i for i in range(0, 3600)],
+        #     y=[prediction_data[0]] * 3600,
         #     name="Prediction"))
         fig.add_trace(go.Scatter(
             x=[i for i in range(max(0, ts - update_buffer), (ts + 1))],
@@ -312,9 +300,9 @@ def update_live_graph(ts, outage_flag, external_signal_flag, submit_click, fig_s
                           line=dict(color="LightSeaGreen", dash="dashdot"))
             fig.add_shape(type="line", x0=-2, y0=ess_soc_min_limit, x1=ts + 4, y1=ess_soc_min_limit,
                           line=dict(color="MediumPurple", dash="dashdot"))
-        ymin, ymax = min([prediction_data[0]] + actual_data[max(fig_start_time, ts - update_window):ts]), max([prediction_data[0]] + actual_data)
-        min_margin = abs(ymin * 0.1)
-        max_margin = abs(ymin * 0.1)
+        ymin, ymax = min([prediction_data[0]] + actual_data[max(fig_start_time, ts - update_window):ts]), max([prediction_data[0]] + actual_data[max(fig_start_time, ts - update_window):ts])
+        min_margin = abs(ymin * 0.15)
+        max_margin = abs(ymin * 0.15)
 
         fig.update_xaxes(range=[max(fig_start_time, ts - update_window), ts], showline=True, linewidth=2, linecolor='#e67300',
                          mirror=True)
@@ -351,7 +339,7 @@ def update_live_graph(ts, outage_flag, external_signal_flag, submit_click, fig_s
     time_format = '%Y-%m-%d %H:%M:%S'
     start_time = gen_config['StartTime']
     end_time = gen_config['EndTime']
-    # gen_config['bat_capacity_kWh'] = ess_capacity
+    #gen_config['bat_capacity_kWh'] = ess_capacity
     gen_config['rated_kW'] = max_power
     gen_config['reserve_soc'] = ess_soc_min_limit / 100
     battery_obj = battery_class_new(use_case_library, gen_config, data_config)
