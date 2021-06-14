@@ -190,23 +190,24 @@ if __name__ == "__main__":
             if battery_obj.use_case_dict['reserves_placement']['control_type'] == 'opti-based':
                 battery_obj.set_hourly_res_price_forecast(current_time, day_ahead_forecast_horizon, ts)
 
-            print("Solving the Day-Ahead Optimization Problem")
+            # print("Solving the Day-Ahead Optimization Problem")
 
             if ts > 0:
                 battery_obj.set_SoC(battery_obj.SoC_actual[ts-1])
 
             battery_obj.DA_optimal_quantities()
 
-            print("Battery-Setpoints (kW) -> "+str(battery_obj.battery_setpoints_prediction))
+            # print("Battery-Setpoints (kW) -> "+str(battery_obj.battery_setpoints_prediction))
             if battery_obj.use_case_dict['reserves_placement']['control_type'] == 'opti-based':
-                print("Battery-Res Up (kWh) -> "+str(battery_obj.battery_res_up_prediction))
-                print("Battery-Res Down (kWh) -> "+str(battery_obj.battery_res_down_prediction))
+                cc = 1
+                # print("Battery-Res Up (kWh) -> "+str(battery_obj.battery_res_up_prediction))
+                # print("Battery-Res Down (kWh) -> "+str(battery_obj.battery_res_down_prediction))
 
-            print("Battery-SoC (kWh)-> "+str(battery_obj.SoC_prediction))
-            print("PeakLoad (kW) -> "+str(battery_obj.peak_load_prediction))
-            print("GridLoad (kW) -> "+str(battery_obj.grid_load_prediction))
-            print("GridReact (kVar) -> "+str(battery_obj.grid_react_power_prediction))
-            print("BattReact (kVar) -> "+str(battery_obj.battery_react_power_prediction))
+            # print("Battery-SoC (kWh)-> "+str(battery_obj.SoC_prediction))
+            # print("PeakLoad (kW) -> "+str(battery_obj.peak_load_prediction))
+            # print("GridLoad (kW) -> "+str(battery_obj.grid_load_prediction))
+            # print("GridReact (kVar) -> "+str(battery_obj.grid_react_power_prediction))
+            # print("BattReact (kVar) -> "+str(battery_obj.battery_react_power_prediction))
             # print("ResPriceUp ($/kWh) -> "+str(battery_obj.res_price_predict_up))
             # print("ResPriceDown ($/kWh) -> "+str(battery_obj.res_price_predict_down))
 
@@ -481,7 +482,7 @@ if __name__ == "__main__":
         top_priority_service_request = services_list[priority_list.index(1)]
 
         if (top_priority_service_request == "demand_charge"):
-            print("Demand Charge is the highest priority")
+            # print("Demand Charge is the highest priority")
             if new_grid_load > battery_obj.peak_load_prediction:
                 # print("demand charge is the top prioirity but the peak load is getting violated")
                 # adjust battery power setpoint and see whether the adjusted power is even physically possible
