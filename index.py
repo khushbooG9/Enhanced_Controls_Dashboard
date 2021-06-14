@@ -301,7 +301,7 @@ def update_live_graph(ts, outage_flag, external_signal_flag, submit_click, fig_s
                           line=dict(color="MediumPurple", dash="dashdot"))
         ymin, ymax = min([prediction_data[0]] + actual_data[max(fig_start_time, ts - update_window):ts]), max([prediction_data[0]] + actual_data[max(fig_start_time, ts - update_window):ts])
         min_margin = abs(ymin * 0.15)
-        max_margin = abs(ymin * 0.15)
+        max_margin = abs(ymax * 0.15)
 
         fig.update_xaxes(range=[max(fig_start_time, ts - update_window), max(ts, fig_stop_time)], showline=True, linewidth=2, linecolor='#e67300',
                          mirror=True)
