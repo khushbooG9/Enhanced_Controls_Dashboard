@@ -212,7 +212,7 @@ def build_update_window_box():
             id='update-window',
             type="number",
             min=20,
-            max=1000,
+            max=3600*24,
             step=10,
             value=120
         ),

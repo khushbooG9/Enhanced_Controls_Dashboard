@@ -529,4 +529,4 @@ def update_live_graph(ts, outage_flag, external_signal_flag, submit_click, fig_s
 
 
 if __name__ == '__main__':
-    app.run_server(debug=True, port=8051)
+    app.run_server(debug=False, port=8051)
