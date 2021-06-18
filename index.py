@@ -5,9 +5,9 @@ import dash
 import dash_html_components as html
 import dash_core_components as dcc
 from dash.dependencies import Input, Output, State
-# import dash_bootstrap_components as dbc
 from plotly.subplots import make_subplots
 import plotly.graph_objects as go
+from datetime import datetime as dt, timedelta as td
 import dash_daq as daq
 import dash_table
 import pandas as pd
@@ -15,9 +15,7 @@ from battery_class_new import *
 from sim_runner_no_dashboard import *
 from collections import deque
 import json
-import jsonpickle
-from json import JSONEncoder
-from plotly.subplots import make_subplots
+
 
 @app.callback(
     Output('graph-update', 'interval'),
@@ -270,65 +268,6 @@ def update_live_graph(ts, outage_flag, external_signal_flag, submit_click, fig_s
                       use_case_library):
 
     update_buffer = 3600*24
-    def dash_fig(ts, prediction_data, actual_data, title=None, **kwargs):
-        dict_fig = {'linewidth': 2, 'linecolor': '#EFEDED', 'width': 600, 'height': 400,
-                    'xaxis_title': 'Seconds', 'yaxis_title': 'kW'}
-        if kwargs:
-            dict_fig.update(kwargs)
-        legend_dict = dict(orientation="h", yanchor="bottom", y=1.05, xanchor="right", x=1)
-        fig = go.Figure()
-        # fig.add_trace(go.Scatter(
-        #     x=[i for i in range(0, 3600)],
-        #     y=[prediction_data[0]] * 3600,
-        #     name="Prediction"))
-        # fig.add_trace(go.Scatter(
-        #     x=[i for i in range(max(0, ts - update_buffer), (ts + 1))],
-        #     y=[prediction_data[0]] * (min(ts, update_buffer) + 2),
-        #     name="Prediction"))
-        fig.add_trace(go.Scatter(
-            x=[i*3600 for i in range(0, len(prediction_data))],
-            y= prediction_data,
-            name="Prediction"))
-        fig.add_trace(go.Scatter(
-            x=[i for i in range(max(0, ts - update_buffer), (ts + 1))],
-            y=[i for i in deque(actual_data, maxlen=update_buffer)],
-            name="Actual"))
-
-        if title == "SoC":
-            fig.add_shape(type="line", x0=-2, y0=ess_soc_max_limit, x1=ts+4, y1=ess_soc_max_limit,
-                          line=dict(color="LightSeaGreen", dash="dashdot"))
-            fig.add_shape(type="line", x0=-2, y0=ess_soc_min_limit, x1=ts + 4, y1=ess_soc_min_limit,
-                          line=dict(color="MediumPurple", dash="dashdot"))
-        ymin, ymax = min([prediction_data[0]] + actual_data[max(fig_start_time, ts - update_window):ts]), max([prediction_data[0]] + actual_data[max(fig_start_time, ts - update_window):ts])
-        min_margin = abs(ymin * 0.15)
-        max_margin = abs(ymax * 0.15)
-
-        fig.update_xaxes(range=[max(fig_start_time, ts - update_window), max(ts, fig_stop_time)], showline=True, linewidth=2, linecolor='#e67300',
-                         mirror=True)
-        if title == "SoC":
-            ymin, ymax = 0, 100
-        else:
-            ymin, ymax = ymin - min_margin, ymax + max_margin
-
-        # fig.add_annotation(x=max(fig_start_time, ts - update_window), y=ymin,
-        #                    text="Start Time",
-        #                    showarrow=False,
-        #                    yshift=-50)
-        # fig.add_annotation(x=max(fig_start_time, ts - update_window), y=ymin,
-        #                    text="Stop Time",
-        #                    showarrow=False,
-        #                    yshift=-50,
-        #                    xshift= 450)
-
-        fig.update_yaxes(range=[ymin, ymax], showline=True, linewidth=2, linecolor='#e67300', mirror=True)
-        # fig.update_yaxes(showline=True, linewidth=2, linecolor='#e67300', mirror=True)
-        fig.update_layout(paper_bgcolor=dict_fig['linecolor'], width=dict_fig['width'], height=dict_fig['height'],
-                          legend=legend_dict, showlegend=True, title=title,
-                          xaxis_title=dict_fig['xaxis_title'],
-                          yaxis_title=dict_fig['yaxis_title'])
-
-        return fig
-
     data = {}
     new_battery_setpoint = 0.0
     new_grid_load = 0.0
@@ -337,7 +276,10 @@ def update_live_graph(ts, outage_flag, external_signal_flag, submit_click, fig_s
     new_battery_reactive_power = 0.0
     time_format = '%Y-%m-%d %H:%M:%S'
     start_time = gen_config['StartTime']
+    start_time = datetime.strptime(start_time, time_format)
+    print(f"start time = {start_time}")
     end_time = gen_config['EndTime']
+    end_time = datetime.strptime(end_time, time_format)
     #gen_config['bat_capacity_kWh'] = ess_capacity
     gen_config['rated_kW'] = max_power
     gen_config['reserve_soc'] = ess_soc_min_limit / 100
@@ -347,9 +289,8 @@ def update_live_graph(ts, outage_flag, external_signal_flag, submit_click, fig_s
 
     if ts == 0:
         print('at ts=0')
-        simulation_duration = int(
-            (datetime.strptime(end_time, time_format) - datetime.strptime(start_time, time_format)).total_seconds())
-        current_time = datetime.strptime(start_time, time_format)
+        simulation_duration = int((end_time - start_time).total_seconds())
+        current_time = start_time
         # next_day_hourly_interval = timedelta(days=+1)
         # day_ahead_forecast_horizon = current_time + next_day_hourly_interval
 
@@ -372,6 +313,60 @@ def update_live_graph(ts, outage_flag, external_signal_flag, submit_click, fig_s
 
     print("SECOND IS", ts)
 
+    def dash_fig(ts, prediction_data, actual_data, title=None, **kwargs):
+        dict_fig = {'linewidth': 2, 'linecolor': '#EFEDED', 'width': 600, 'height': 400,
+                    'xaxis_title': 'Seconds', 'yaxis_title': 'kW'}
+        if kwargs:
+            dict_fig.update(kwargs)
+        legend_dict = dict(orientation="h", yanchor="bottom", y=1.05, xanchor="right", x=1)
+        fig = go.Figure()
+        fig.add_trace(go.Scatter(
+            x=[i*3600 for i in range(0, len(prediction_data))],
+            y= prediction_data,
+            name="Prediction"))
+        fig.add_trace(go.Scatter(
+            x=[i for i in range(max(0, ts - update_buffer), (ts + 1))],
+            y=[i for i in deque(actual_data, maxlen=update_buffer)],
+            name="Actual"))
+
+        if title == "SoC":
+            fig.add_shape(type="line", x0=-2, y0=ess_soc_max_limit, x1=ts+4, y1=ess_soc_max_limit,
+                          line=dict(color="LightSeaGreen", dash="dashdot"))
+            fig.add_shape(type="line", x0=-2, y0=ess_soc_min_limit, x1=ts + 4, y1=ess_soc_min_limit,
+                          line=dict(color="MediumPurple", dash="dashdot"))
+        ymin, ymax = min([prediction_data[0]] + actual_data[max(fig_start_time, ts - update_window):ts]), max([prediction_data[0]] + actual_data[max(fig_start_time, ts - update_window):ts])
+        min_margin = abs(ymin * 0.15)
+        max_margin = abs(ymax * 0.15)
+
+        start_interval_figure = max(fig_start_time, ts - update_window)
+        stop_interval_figure = max(ts, fig_stop_time)
+
+        fig.update_xaxes(range=[start_interval_figure, stop_interval_figure], showline=True, linewidth=2, linecolor='#e67300',
+                         mirror=True)
+        if title == "SoC":
+            ymin, ymax = 0, 100
+        else:
+            ymin, ymax = ymin - min_margin, ymax + max_margin
+
+        fig.add_annotation(x=start_interval_figure, y=ymin,
+                           text=str((start_time + td(seconds=start_interval_figure)).time()),
+                           showarrow=False,
+                           yshift=-50)
+        fig.add_annotation(x=start_interval_figure, y=ymin,
+                           text=str((start_time + td(seconds=stop_interval_figure)).time()),
+                           showarrow=False,
+                           yshift=-50,
+                           xshift= 450)
+
+        fig.update_yaxes(range=[ymin, ymax], showline=True, linewidth=2, linecolor='#e67300', mirror=True)
+        # fig.update_yaxes(showline=True, linewidth=2, linecolor='#e67300', mirror=True)
+        fig.update_layout(paper_bgcolor=dict_fig['linecolor'], width=dict_fig['width'], height=dict_fig['height'],
+                          legend=legend_dict, showlegend=True, title=title,
+                          xaxis_title=dict_fig['xaxis_title'],
+                          yaxis_title=dict_fig['yaxis_title'])
+
+        return fig
+
     if ts < simulation_duration:
         if ts % 3600 == 0:
             battery_obj.set_hourly_load_forecast(current_time, current_time + timedelta(days=1))
@@ -379,21 +374,6 @@ def update_live_graph(ts, outage_flag, external_signal_flag, submit_click, fig_s
             battery_obj.set_hourly_price_forecast(current_time, current_time + timedelta(days=1), ts)
             battery_obj.DA_optimal_quantities()
 
-        # if ((ts % battery_obj.reporting_frequency) == 0) and (ts > 1):
-        #     idx = np.arange(0, 3600, 300)
-        # battery_obj.metrics['Time'].append(ts)
-        # battery_obj.metrics['arbitrage_revenue_da'].append(np.sum(
-        #     np.multiply(np.array(da_variables['arbitrage_purchased_power_da'])[:, 0],
-        #                 np.array(da_variables['price_predict_da'])[:, 0])))
-        # metrics['arbitrage_revenue_ideal_rt'].append(np.sum(
-        #     np.multiply(np.array(rt_variables['arbitrage_purchased_power_ideal_rt'])[:, idx],
-        #                 np.array(rt_variables['price_actual_rt'])[:, idx])) * 5 / 60)
-        # metrics['arbitrage_revenue_actual_rt'].append(np.sum(
-        #     np.multiply(np.array(rt_variables['arbitrage_purchased_power_actual_rt'])[:, idx],
-        #                 np.array(rt_variables['price_actual_rt'])[:, idx])) * 5 / 60)
-
-        # current_peak_load_prediction = 0.0
-        #print(f"price predict = {battery_obj.price_predict[0]}")
         battery_obj.set_load_actual(battery_obj.load_predict[0], np.mean(np.diff(battery_obj.load_predict[0:3])) * battery_obj.hrs_to_secs )
 
         # if (ts % 300 == 0):
@@ -500,7 +480,7 @@ def update_live_graph(ts, outage_flag, external_signal_flag, submit_click, fig_s
                     battery_obj.battery_setpoints_actual,
                     "Battery Setpoint", **fig_dict)
 
-    print(f"price predict = {battery_obj.price_predict}")
+    #print(f"price predict = {battery_obj.price_predict}")
     peak_load_prediction = [battery_obj.peak_load_prediction] * 24
 
     fig_obj = {"PL": [peak_load_prediction, battery_obj.peak_load_actual, fig_dict],
