@@ -261,10 +261,17 @@ def build_buttons_panel():
         ],
     )
 
-
-def build_left_dropdown_box():
+def build_common_dropdown_box(id: str, default_value:str):
+    """
+    id: the html element that is created such that you can style/use javascript to manipulate
+        (MUST BE UNIQUE ACROSS ALL ELEMENTS ON THE PAGE)
+    default_value: the default value of the form submittion element one of .
+    """
+    options = ["GI", "PL", "GR", "BR", "PF", "EP", "D"]
+    if default_value not in options:
+        raise ValueError(f'Invalid option specified must be one of ({",".join(options)})')
     return dcc.Dropdown(
-            id='fig-left-dropdown',
+            id=id, # 'fig-left-dropdown',
             options=[
                 {'label': 'Grid Import', 'value': 'GI'},
                 {'label': 'Peak Load', 'value': 'PL'},
@@ -275,26 +282,42 @@ def build_left_dropdown_box():
                 {'label': 'Demand', 'value': 'D'}
             ],
             #placeholder="Left y-axis (default = Grid Import)",
-            value='GI'
+            value=default_value # 'GI'
         )
 
+# def build_left_dropdown_box():
+#     return dcc.Dropdown(
+#             id='fig-left-dropdown',
+#             options=[
+#                 {'label': 'Grid Import', 'value': 'GI'},
+#                 {'label': 'Peak Load', 'value': 'PL'},
+#                 {'label': 'Grid Reactive', 'value': 'GR'},
+#                 {'label': 'Battery Reactive', 'value': 'BR'},
+#                 {'label': 'Power Factor', 'value': 'PF'},
+#                 {'label': 'Energy Price', 'value': 'EP'},
+#                 {'label': 'Demand', 'value': 'D'}
+#             ],
+#             #placeholder="Left y-axis (default = Grid Import)",
+#             value='GI'
+#         )
 
-def build_right_dropdown_box():
-    return dcc.Dropdown(
-            id='fig-right-dropdown',
-            options=[
-                {'label': 'Grid Import', 'value': 'GI'},
-                {'label': 'Peak Load', 'value': 'PL'},
-                {'label': 'Grid Reactive', 'value': 'GR'},
-                {'label': 'Battery Reactive', 'value': 'BR'},
-                {'label': 'Power Factor', 'value': 'PF'},
-                {'label': 'Energy Price', 'value': 'EP'},
-                {'label': 'Demand', 'value': 'D'}
-            ],
-            #placeholder="Left y-axis (default = Grid Import)",
-            value='PL',
-        )
-    #style={"width": '30%', "margin-left": "150px"})
+
+# def build_right_dropdown_box():
+#     return dcc.Dropdown(
+#             id='fig-right-dropdown',
+#             options=[
+#                 {'label': 'Grid Import', 'value': 'GI'},
+#                 {'label': 'Peak Load', 'value': 'PL'},
+#                 {'label': 'Grid Reactive', 'value': 'GR'},
+#                 {'label': 'Battery Reactive', 'value': 'BR'},
+#                 {'label': 'Power Factor', 'value': 'PF'},
+#                 {'label': 'Energy Price', 'value': 'EP'},
+#                 {'label': 'Demand', 'value': 'D'}
+#             ],
+#             #placeholder="Left y-axis (default = Grid Import)",
+#             value='PL',
+#         )
+#     #style={"width": '30%', "margin-left": "150px"})
 
 
 def build_left_graph():
@@ -312,13 +335,13 @@ def build_right_graph():
 
 
 def build_left_bottom_graph():
-    return html.Div([build_left_dropdown_box(),
+    return html.Div([build_common_dropdown_box(id="fig-left-dropdown", default_value="GI"),
                     dcc.Graph(id="down-left-graph", animate=True),
                     dcc_interval])
 
 
 def build_right_bottom_graph():
-    return html.Div([build_right_dropdown_box(),
+    return html.Div([build_common_dropdown_box(id="fig-right-dropdown", default_value="PL"),
                      dcc.Graph(id="down-right-graph", animate=True),
                      dcc_interval])
 
