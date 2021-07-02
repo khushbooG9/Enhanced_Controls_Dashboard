@@ -3,7 +3,6 @@ import sys
 import json
 import numpy as np
 from datetime import datetime, timedelta
-
 from battery_class_new import battery_class_new
 import matplotlib.animation as ani
 import matplotlib.pyplot as plt
@@ -79,8 +78,6 @@ def clean_dict(dict, id):
         dict = {'Time': [], 'battery_setpoints_rt': [], 'SoC_rt': [], 'grid_load_rt': [],
                         'peak_load_rt': [],
                         'react_grid_rt': [], 'react_batt_rt': [], 'grid_pf_rt': [], 'total_load_actual_rt': []}
-
-
     return dict
 
 

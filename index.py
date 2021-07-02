@@ -76,34 +76,6 @@ def init_data_config():
         data_config = json.load(lp)
     return data_config
 
-def build_settings_tab():
-    """
-    Function to put together the settings tab
-    """
-    return [
-        # system_configuration_panel(),
-        html.Div(
-            id="system-configuration-menu",
-            children=[configuration_panel(), data_upload_panel()],
-        )]
-
-
-def build_simulation_tab():
-    """
-    Function to put together the simulation  tab
-    """
-    return (html.Div(
-        id="simulation-container",
-        children=[
-            build_buttons_panel(),
-            html.Div(
-                id="graphs-container",
-                children=[build_top_panel(), build_bottom_panel()],
-            ),
-        ],
-    ),
-    )
-
 
 def build_tabs():
     """
@@ -112,7 +84,7 @@ def build_tabs():
     return html.Div([
             dcc.Tabs(
                 id="app-tabs",
-                value="tab2",
+                value="tab1",
                 className="custom-tabs",
                 children=[
                     dcc.Tab(
@@ -243,10 +215,6 @@ def stop_production(n_clicks, current):
     if n_clicks == 0:
         return True, "start"
     return not current, "stop" if current else "start"
-
-
-def list_conversion (a):
-    return [j for i in [[x]*3600 for x in a] for j in i]
 
 
 @app.callback(
