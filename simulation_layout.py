@@ -16,6 +16,22 @@ dcc_interval = dcc.Interval(
     disabled=True, )
 
 
+def build_simulation_tab():
+    """
+    Function to put together the simulation  tab
+    """
+    return (html.Div(
+        id="simulation-container",
+        children=[
+            build_buttons_panel(),
+            html.Div(
+                id="graphs-container",
+                children=[build_top_panel(), build_bottom_panel()],
+            ),
+        ],
+    ),
+    )
+
 def build_price_change_button():
     return html.Div(
         id="card-1",

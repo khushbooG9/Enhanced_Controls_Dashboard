@@ -3,6 +3,16 @@ import dash_core_components as dcc
 import dash_daq as daq
 
 
+def build_settings_tab():
+    """
+    Function to put together the settings tab
+    """
+    return [
+        # system_configuration_panel(),
+        html.Div(
+            id="system-configuration-menu",
+            children=[configuration_panel(), data_upload_panel()],
+        )]
 
 def dcc_date_picker():
     return dcc.DatePickerRange(
