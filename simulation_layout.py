@@ -7,13 +7,7 @@ style = {'width': '100%', 'height': '30px', 'lineHeight': '30px', 'borderWidth':
          'borderRadius': '2px', 'textAlign': 'center', 'margin': '10px', 'fontSize': '12px'}
 label_style = {'textAlign': 'center',  'fontSize': '16px'}
 label_style_1 = {'textAlign': 'left',  'fontSize': '15px'}
-interval = 1000
-click = 0
-dcc_interval = dcc.Interval(
-    id='graph-update',
-    interval=interval,
-    n_intervals=0,
-    disabled=True, )
+
 
 
 def build_price_change_button():
@@ -261,90 +255,6 @@ def build_buttons_panel():
         ],
     )
 
-def build_common_dropdown_box(id: str, default_value:str):
-    """
-    id: the html element that is created such that you can style/use javascript to manipulate
-        (MUST BE UNIQUE ACROSS ALL ELEMENTS ON THE PAGE)
-    default_value: the default value of the form submittion element one of .
-    """
-    options = ["GI", "PL", "GR", "BR", "PF", "EP", "D"]
-    if default_value not in options:
-        raise ValueError(f'Invalid option specified must be one of ({",".join(options)})')
-    return dcc.Dropdown(
-            id=id, # 'fig-left-dropdown',
-            options=[
-                {'label': 'Grid Import', 'value': 'GI'},
-                {'label': 'Peak Load', 'value': 'PL'},
-                {'label': 'Grid Reactive', 'value': 'GR'},
-                {'label': 'Battery Reactive', 'value': 'BR'},
-                {'label': 'Power Factor', 'value': 'PF'},
-                {'label': 'Energy Price', 'value': 'EP'},
-                {'label': 'Demand', 'value': 'D'}
-            ],
-            #placeholder="Left y-axis (default = Grid Import)",
-            value=default_value # 'GI'
-        )
-
-# def build_left_dropdown_box():
-#     return dcc.Dropdown(
-#             id='fig-left-dropdown',
-#             options=[
-#                 {'label': 'Grid Import', 'value': 'GI'},
-#                 {'label': 'Peak Load', 'value': 'PL'},
-#                 {'label': 'Grid Reactive', 'value': 'GR'},
-#                 {'label': 'Battery Reactive', 'value': 'BR'},
-#                 {'label': 'Power Factor', 'value': 'PF'},
-#                 {'label': 'Energy Price', 'value': 'EP'},
-#                 {'label': 'Demand', 'value': 'D'}
-#             ],
-#             #placeholder="Left y-axis (default = Grid Import)",
-#             value='GI'
-#         )
-
-
-# def build_right_dropdown_box():
-#     return dcc.Dropdown(
-#             id='fig-right-dropdown',
-#             options=[
-#                 {'label': 'Grid Import', 'value': 'GI'},
-#                 {'label': 'Peak Load', 'value': 'PL'},
-#                 {'label': 'Grid Reactive', 'value': 'GR'},
-#                 {'label': 'Battery Reactive', 'value': 'BR'},
-#                 {'label': 'Power Factor', 'value': 'PF'},
-#                 {'label': 'Energy Price', 'value': 'EP'},
-#                 {'label': 'Demand', 'value': 'D'}
-#             ],
-#             #placeholder="Left y-axis (default = Grid Import)",
-#             value='PL',
-#         )
-#     #style={"width": '30%', "margin-left": "150px"})
-
-
-def build_left_graph():
-    """
-    function to build left graph
-    Reference: https://plotly.com/python/subplots/
-    """
-    return html.Div([dcc.Graph(id="left-graph-fig", animate=True),
-                     dcc_interval])
-
-
-def build_right_graph():
-    return html.Div([dcc.Graph(id="right-graph-fig", animate=True),
-                     dcc_interval])
-
-
-def build_left_bottom_graph():
-    return html.Div([build_common_dropdown_box(id="fig-left-dropdown", default_value="GI"),
-                    dcc.Graph(id="down-left-graph", animate=True),
-                    dcc_interval])
-
-
-def build_right_bottom_graph():
-    return html.Div([build_common_dropdown_box(id="fig-right-dropdown", default_value="PL"),
-                     dcc.Graph(id="down-right-graph", animate=True),
-                     dcc_interval])
-
 
 def revenue_block():
     return html.Div(
@@ -453,18 +363,7 @@ def build_top_panel():
         id="top-section-container",
         className="row",
         children=[
-            html.Div(
-                id="left-graph",
-                children=[
-                    build_left_graph(),
-                ]
-            ),
-            html.Div(
-                id="right-graph",
-                children=[
-                    build_right_graph(),
-                ]
-            ),
+            common_graph(id="top-left-graph"),
         ],
     )
 
@@ -478,17 +377,7 @@ def build_bottom_panel():
         id="bottom-section-container",
         className="row",
         children=[
-            html.Div(
-                id="left-graph",
-                children=[
-                    build_left_bottom_graph(),
-                ]
-            ),
-            html.Div(
-                id="right-graph",
-                children=[
-                    build_right_bottom_graph(),
-                ]
-            ),
+            common_graph("bottom-left-graph", "GI"),
+            common_graph("bottom-right-graph", "PL")
         ],
     )

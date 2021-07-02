@@ -1,4 +1,4 @@
-from app import *
+from app import app
 from setting_layout import *
 from simulation_layout import *
 import dash
@@ -153,6 +153,7 @@ def serve_layout():
                     dcc.Store(id="data-store", storage_type="session"),
                     dcc.Store(id="liveplot-store", storage_type="session"),
                     build_tabs(),
+                    dcc.Interval(id='graph-update', interval=1000, n_intervals=0, disabled=True),
                     html.Div(id="app-content")
                 ],
             ),

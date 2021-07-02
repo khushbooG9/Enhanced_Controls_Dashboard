@@ -174,7 +174,7 @@ body {
   flex: 1 1 auto;
 }
 
-#left-graph-fig, #right-graph-fig {
+#top-left-graph, #top-right-graph {
   
   height: 95%;
   width: 95%;
