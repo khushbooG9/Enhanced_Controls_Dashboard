@@ -2,6 +2,7 @@ import dash_html_components as html
 import dash_core_components as dcc
 import dash_daq as daq
 import plotly.graph_objects as go
+from components.dropdown_graph import common_graph
 
 style = {'width': '100%', 'height': '30px', 'lineHeight': '30px', 'borderWidth': '1px', 'borderStyle': 'dashed',
          'borderRadius': '2px', 'textAlign': 'center', 'margin': '10px', 'fontSize': '12px'}
