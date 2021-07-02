@@ -381,6 +381,7 @@ def build_top_panel():
         className="row",
         children=[
             common_graph(id="top-left-graph"),
+            common_graph(id="top-right-graph")
         ],
     )
 
