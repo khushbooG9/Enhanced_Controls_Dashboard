@@ -7,12 +7,10 @@ def build_settings_tab():
     """
     Function to put together the settings tab
     """
-    return [
-        # system_configuration_panel(),
-        html.Div(
+    return html.Div(
             id="system-configuration-menu",
             children=[configuration_panel(), data_upload_panel()],
-        )]
+        )
 
 
 def dcc_date_picker():
@@ -31,15 +29,15 @@ def upload_file(id):
 
 def data_upload_panel():
     return html.Div(
-        id="configuration-select-menu-wrapper",
+        id="data-upload-select-menu-wrapper",
         children=[
             html.Div(
-                id="configuration-select-menu",
+                id="data-upload-select-menu",
                 children=[
                     html.H6("Upload"),
                     html.Br(),
                     html.Div(
-                        id="dropdown-label",
+                        id="data-upload-dropdown-label-profile",
                         children=[
                             html.Div(
                                 children=[
@@ -55,7 +53,7 @@ def data_upload_panel():
                     # html.Div(id='output-upload-load-profile-data'),
                     html.Br(),
                     html.Div(
-                        id="dropdown-label",
+                        id="data-upload-dropdown-label-energy-prices",
                         children=[
                             html.Div(
                                 children=[
@@ -72,7 +70,7 @@ def data_upload_panel():
                     # html.Div(id='output-upload-energy-price-data'),
                     html.Br(),
                     html.Div(
-                        id="dropdown-label",
+                        id="data-upload-dropdown-label-ess-data",
                         children=[
                             html.Div(
                                 children=[

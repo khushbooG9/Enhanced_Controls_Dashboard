@@ -1,3 +1,4 @@
+from logging import debug
 import dash
 #from jitcache import Cache
 #external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
@@ -7,4 +8,4 @@ import dash
 # )
 app = dash.Dash()
 server = app.server
-app.config.suppress_callback_exceptions = True
+app.config.suppress_callback_exceptions = False

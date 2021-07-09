@@ -19,9 +19,10 @@ import json
 
 @app.callback(
     Output('graph-update', 'interval'),
-    [Input('submit-val', 'n_clicks')],
+    [Input('clicked-button', 'n_clicks')],
     [State('update-rate-box', 'value')])
 def update_output(n_clicks, value):
+    print("Trigger")
     return value
 
 
@@ -81,31 +82,76 @@ def build_tabs():
     """
     Function to build both the tabs
     """
-    return html.Div([
-            dcc.Tabs(
-                id="app-tabs",
-                value="tab1",
-                className="custom-tabs",
-                children=[
-                    dcc.Tab(
-                        id="Specs-tab",
-                        label="Settings",
-                        value="tab1",
-                        className="custom-tab",
-                        selected_className="custom-tab--selected",
-                    ),
-                    dcc.Tab(
-                        id="Control-chart-tab",
-                        label="Control Dashboard",
-                        value="tab2",
-                        className="custom-tab",
-                        selected_className="custom-tab--selected",
-                    ),
+    tab_style = {
+        'color': '#0074D9',
+        'text-decoration': 'underline',
+        'margin': 30,
+        'cursor': 'pointer'
+    }
 
-                ],
-            )
-        ],
+    return html.Div(children=[
+            dcc.Location(id='url'),
+            dcc.Link('Configuration', href='/', style=tab_style),
+            dcc.Link('Control Dashboard', href='/charts', style=tab_style),
+            build_settings_tab(),
+            build_simulation_tab()
+        ]
     )
+
+
+@app.callback(
+    Output("system-configuration-menu", "style"),
+    Output("simulation-container", "style"),
+    Input("url", "pathname")
+)
+def change_tab(pathname):
+    spec_style = dict(display="block")
+    chart_style = dict(display="block")
+
+    # Tab1 is chart
+    if pathname == "/":
+        chart_style = dict(display="none")
+    elif pathname == "/charts":
+        spec_style = dict(display="none")
+    else:
+        raise ValueError("Invalid value for tab!")
+
+    return spec_style, chart_style
+        # [        
+        #     html.Div(
+        #         id="app-tabs",
+        #         className="custom-tabs",
+        #         children=[
+        #             html.Div(
+        #                 dcc.Link("Configuration"),
+        #             html.Div("Control Dashboard"),
+
+        #         ]
+        #     )
+            # dcc.Tabs(
+            #     id="app-tabs",
+            #     value="Specs-tab",
+            #     className="custom-tabs",
+            #     children=[
+            #         dcc.Tab(
+            #             id="Specs-tab",
+            #             label="Settings",
+            #             value="Specs-tab",
+            #             className="custom-tab",
+            #             selected_className="custom-tab--selected",
+            #         ),
+            #         dcc.Tab(
+            #             id="Control-chart-tab",
+            #             label="Control Dashboard",
+            #             value="Control-chart-tab",
+            #             className="custom-tab",
+            #             selected_className="custom-tab--selected",
+            #         ),
+
+            #     ],
+            # )
+        #],
+    #)
 
 
 def serve_layout():
@@ -125,8 +171,8 @@ def serve_layout():
                     dcc.Store(id="data-store", storage_type="session"),
                     dcc.Store(id="liveplot-store", storage_type="session"),
                     build_tabs(),
-                    dcc.Interval(id='graph-update', interval=1000, n_intervals=0, disabled=True),
-                    html.Div(id="app-content")
+                    dcc.Interval(id='graph-update', interval=1000, n_intervals=0, disabled=True)
+                    
                 ],
             ),
         ],
@@ -134,17 +180,7 @@ def serve_layout():
 
 app.layout = serve_layout
 
-@app.callback(
-    output=[Output("app-content", "children")],
-    inputs=[Input("app-tabs", "value")],
-    # state = [State("value-setter-store","data"), State("dropdown-store", "data")]
-)
-def render_tab_contents(tab_switch):
-    """
-    """
-    if tab_switch == "tab1":
-        return build_settings_tab()
-    return build_simulation_tab()
+
 
 
 @app.callback(
@@ -218,20 +254,20 @@ def stop_production(n_clicks, current):
 
 
 @app.callback(
-    output=[Output("right-graph-fig", "figure"), Output("left-graph-fig", "figure"), Output("down-left-graph", "figure"),
-            Output("down-right-graph", "figure"), Output("data-store", "data"), Output("liveplot-store", "data"), Output("revenue1", "value"),
+    output=[Output("top-right-graph", "figure"), Output("top-left-graph", "figure"), Output("bottom-left-graph", "figure"),
+            Output("bottom-right-graph", "figure"), Output("data-store", "data"), Output("liveplot-store", "data"), Output("revenue1", "value"),
             Output("revenue2", "value"), Output("revenue3", "value")],
-    inputs=[Input("graph-update", "n_intervals"), Input("outage-switch", "value"),  Input("external-switch", "value"), Input("submit-val", "n_clicks"),
+    inputs=[Input("graph-update", "n_intervals"), Input("outage-switch", "value"),  Input("external-switch", "value"),
             Input('start-time', 'value'), Input('stop-time', 'value')],
     state=[State('price-change-slider', 'value'), State('grid-load-change-slider', 'value'),
-           State('update-window', 'value'), State('fig-left-dropdown', 'value'), State('fig-right-dropdown', 'value'),
+           State('update-window', 'value'), State('bottom-left-graph-dropdown', 'value'), State('bottom-right-graph-dropdown', 'value'),
            State('max-soc', 'value'), State('min-soc', 'value'), State('energy-capacity', 'value'),
            State('max-power', 'value'), State("data-store", "data"), State("liveplot-store", "data"),
            State("gen-config-store", "data"), State("data-config-store", "data"), State("usecase-store", "data")])
 # @cache.memoize
 # fig1= None
 
-def update_live_graph(ts, outage_flag, external_signal_flag, submit_click, fig_start_time, fig_stop_time, price_change_value, grid_load_change_value, update_window,
+def update_live_graph(ts, outage_flag, external_signal_flag, fig_start_time, fig_stop_time, price_change_value, grid_load_change_value, update_window,
                       fig_leftdropdown, fig_rightdropdown, ess_soc_max_limit, ess_soc_min_limit, ess_capacity, max_power,  data1, live1,
                       gen_config, data_config,
                       use_case_library):
@@ -478,4 +514,4 @@ def update_live_graph(ts, outage_flag, external_signal_flag, submit_click, fig_s
 
 
 if __name__ == '__main__':
-    app.run_server(debug=False, port=8051)
+    app.run_server(debug=True, port=8051)
