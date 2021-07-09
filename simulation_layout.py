@@ -15,18 +15,17 @@ def build_simulation_tab():
     """
     Function to put together the simulation  tab
     """
-    return (html.Div(
+    return html.Div(
         id="simulation-container",
         children=[
-            build_buttons_panel(),
+            build_simulation_controls(),
             html.Div(
                 id="graphs-container",
                 children=[build_top_panel(), build_bottom_panel()],
             ),
         ],
-    ),
     )
-
+    
 def build_price_change_button():
     return html.Div(
         id="card-1",
@@ -127,127 +126,52 @@ def build_stop_button():
     )
 
 
-def build_update_buffer_button():
-    return html.Div([
-        dcc.Input(
-            id='update-buffer',
-            type="number",
-            min=200,
-            max=5000,
-            step=100,
-            value=2000
-        ),
-        html.Button('Update Buffer Size', id='update-buffer-button', n_clicks=0),
-    ]
-    )
 
 
-def build_update_rate_box():
-    return html.Div([
-        dcc.Input(
-            id='update-rate-box',
-            type="number",
-            min=800,
-            max=5000,
-            step=100,
-            value=1000
-        ),
-        html.Button('Update Rate', id='submit-val', n_clicks=0),
-        # html.Div(id='slider-output-container')
-    ])
-
-
-def build_controller_update_rate_box():
-    return html.Div([
-        dcc.Input(
-            id='update-controller-rate-box',
-            type="number",
-            min=60,
-            max=3600,
-            step=60,
-            value=60
-        ),
-        html.Button('Controller Update Rate', id='submit-val', n_clicks=0),
-        # html.Div(id='slider-output-container')
-    ])
-
-
-def build_data_resolution_box():
-    return html.Div([
-        dcc.Input(
-            id='update-data-resolution-box',
-            type="number",
-            min=1,
-            max=3600,
-            step=60,
-            value=1
-        ),
-        html.Button('Data Resolution', id='submit-val', n_clicks=0),
-        # html.Div(id='slider-output-container')
-    ])
-
-
-def build_start_timer_box():
-    return html.Div([
-        dcc.Input(
-            id='start-time',
-            type="number",
-            min=0,
-            max=5000,
-            step=1,
-            value=0
-        ),
-        html.Button('Start Time', id='submit-val', n_clicks=0),
-        # html.Div(id='slider-output-container')
-    ])
-
-
-def build_stop_timer_box():
-    return html.Div([
-        dcc.Input(
-            id='stop-time',
-            type="number",
-            min=0,
-            max=3600*24,
-            step=1,
-            value=0
-        ),
-        html.Button('Stop Time', id='submit-val', n_clicks=0),
-        # html.Div(id='slider-output-container')
-    ])
-
-
-def build_update_window_box():
-    return html.Div([
-        dcc.Input(
-            id='update-window',
-            type="number",
-            min=20,
-            max=3600*24,
-            step=10,
-            value=120
-        ),
-        html.Button('Update Window', id='submit-val', n_clicks=0),
-        # html.Div(id='slider-output-container')
-    ])
-
-
-def build_update_boxes():
+def build_simulation_input_controls():
     return html.Div(
         id="update-box-panel",
         className="row",
         children=[
-            html.Div(id="data_resolution", children=[build_data_resolution_box()]),
-            html.Div(id="start-timer", children=[ build_start_timer_box()]),
-            html.Div(id="stop-timer", children=[build_stop_timer_box()]),
-            html.Div(id="rate", children=[build_update_rate_box()]),
-            html.Div(id="window", children=[build_update_window_box()]),
-            html.Div(id="controller-update-rate", children=[build_controller_update_rate_box()]),
-            # html.Div(id="buffer", children=[build_update_buffer_button()])
-        ])
+            html.Div(
+                id="data_resolution",
+                children=[
+                    dcc.Input(id='update-data-resolution-box', type="number", min=1, max=3600, step=60, value=1),
+                    html.Button('Data Resolution', id='submit-data-resolution', n_clicks=0)
+            ]),
+            html.Div(
+                id="start-timer", 
+                children=[ 
+                    dcc.Input(id='start-time', type="number", min=0, max=5000, step=1, value=0),
+                    html.Button('Start Time', id='submit-start-time', n_clicks=0)
+            ]),
+            html.Div(id="stop-timer", 
+                children=[
+                    dcc.Input(id='stop-time', type="number", min=0, max=3600*24, step=1, value=0),
+                    html.Button('Stop Time', id='submit-stop-time', n_clicks=0)
+            ]),
+            html.Div(id="rate", 
+                children=[
+                    dcc.Input(id='update-rate-box',type="number", min=800, max=5000, step=100, value=1000),
+                    html.Button('Update Rate', id='submit-rate', n_clicks=0)
+            ]),
+            html.Div(id="window", 
+                children=[
+                    dcc.Input(id='update-window', type="number", min=20, max=3600*24, step=10, value=120),
+                    html.Button('Update Window', id='submit-update-window', n_clicks=0)
+            ]),
+            html.Div(id="controller-update-rate", 
+                children=[
+                    dcc.Input(id='update-controller-rate-box', type="number", min=60, max=3600, step=60, value=60),
+                    html.Button('Controller Update Rate', id='submit-controler-rate-update', n_clicks=0)
+            ]),
+            # This will be for handling clicks on any of the buttons so they route properly to update the 
+            # graphs
+            html.Div(id='clicked-button', children='del:0 add:0 tog:0 last:nan', style={'display': 'none'})
+    ])
 
 
-def build_buttons_panel():
+def build_simulation_controls():
     """
     Function to generate a panel for buttons on left side
     """
@@ -255,7 +179,7 @@ def build_buttons_panel():
         id="buttons-panel",
         className="row",
         children=[
-            build_update_boxes(),
+            build_simulation_input_controls(),
             html.Br(),
             build_price_change_slider(),
             grid_load_change_slider(),
@@ -345,7 +269,7 @@ def ess_parameter_block_2():
     return html.Div(
         [#html.Label("ESS Parameter", style=label_style),
         html.Div(
-        id="ess-parameter-block",
+        id="ess-parameter-block2",
         className= "row",
         children=[
             html.Div([html.Label("Energy Capacity kWh", style=label_style_1),
@@ -381,6 +305,7 @@ def build_top_panel():
         className="row",
         children=[
             common_graph(id="top-left-graph"),
+            common_graph(id="top-right-graph")
         ],
     )
 
