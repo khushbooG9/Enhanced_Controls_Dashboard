@@ -14,10 +14,12 @@ def build_settings_tab():
             children=[configuration_panel(), data_upload_panel()],
         )]
 
+
 def dcc_date_picker():
     return dcc.DatePickerRange(
         start_date_placeholder_text="Start Period",
         end_date_placeholder_text="End Period", )
+
 
 def upload_file(id):
     return dcc.Upload(id=id,
@@ -25,6 +27,7 @@ def upload_file(id):
                           ["Drag and drop or select a file"]),
                       # style=style
                       )
+
 
 def data_upload_panel():
     return html.Div(

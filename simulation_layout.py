@@ -57,7 +57,6 @@ def build_price_change_slider():
             value=0,
             updatemode='drag'
         ),
-        # html.Div(id='slider-output-container')
     ])
 
 
@@ -83,7 +82,6 @@ def grid_load_change_slider():
             value=0,
             updatemode='drag'
         ),
-        # html.Div(id='slider-output-container')
     ])
 
 

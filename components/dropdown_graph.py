@@ -46,3 +46,9 @@ def common_graph(id: str, dropdown_default: Optional[str] = None):
     if dropdown_default:
         children.insert(0, common_dropdown_box(id=f"{id}-dropdown", default_value=dropdown_default))
     return html.Div(children)
+
+def common_slider(id:str, default_value):
+    """
+
+    """
+    pass
