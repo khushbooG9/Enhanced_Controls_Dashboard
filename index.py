@@ -87,10 +87,12 @@ def build_tabs():
         'text-decoration': 'underline',
         'margin': 30,
         'cursor': 'pointer',
-        'max-width': 800
+        'width': 800
     }
 
-    return html.Div(children=[
+    return html.Div(id = "apps-tabs",
+                    className = "custom-tabs",
+            children=[
             dcc.Location(id='url'),
             dcc.Link('Configuration', href='/', style=tab_style),
             dcc.Link('Control Dashboard', href='/charts', style=tab_style),
@@ -477,4 +479,4 @@ def update_live_graph(ts, outage_flag, external_signal_flag, fig_start_time, fig
 
 
 if __name__ == '__main__':
-    app.run_server(debug=True, port=8051)
+    app.run_server(debug=False, port=8051)

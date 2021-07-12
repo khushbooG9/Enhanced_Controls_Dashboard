@@ -10,22 +10,6 @@ label_style = {'textAlign': 'center',  'fontSize': '16px'}
 label_style_1 = {'textAlign': 'left',  'fontSize': '15px'}
 
 
-def build_simulation_tab():
-    """
-    Function to put together the simulation  tab
-    """
-    return html.Div(
-        id="simulation-container",
-        children=[
-            build_simulation_controls(),
-            html.Div(
-                id="graphs-container",
-                children=[build_top_panel(), build_bottom_panel()],
-            ),
-        ],
-    )
-
-
 def build_price_change_button():
     return html.Div(
         id="card-1",
@@ -168,32 +152,6 @@ def build_simulation_input_controls():
     ])
 
 
-def build_simulation_controls():
-    """
-    Function to generate a panel for buttons on left side
-    """
-    return html.Div(
-        id="buttons-panel",
-        className="row",
-        children=[
-            build_simulation_input_controls(),
-            html.Br(),
-            build_price_change_slider(),
-            grid_load_change_slider(),
-            html.Br(),
-            build_unscheduled_outage_button(),
-            html.Br(),
-            build_external_signal_button(),
-            html.Br(),
-            #html.Br(),
-            ess_parameter_block_1(),
-            ess_parameter_block_2(),
-            revenue_block(),
-            build_stop_button(),
-        ],
-    )
-
-
 def revenue_block():
     return html.Div(
         [html.Label("Revenue", style=label_style),
@@ -292,6 +250,32 @@ def ess_parameter_block_2():
         ])])
 
 
+def build_simulation_controls():
+    """
+    Function to generate a panel for buttons on left side
+    """
+    return html.Div(
+        id="buttons-panel",
+        className="row",
+        children=[
+            build_simulation_input_controls(),
+            html.Br(),
+            build_price_change_slider(),
+            grid_load_change_slider(),
+            html.Br(),
+            build_unscheduled_outage_button(),
+            html.Br(),
+            build_external_signal_button(),
+            html.Br(),
+            #html.Br(),
+            ess_parameter_block_1(),
+            ess_parameter_block_2(),
+            revenue_block(),
+            build_stop_button(),
+        ],
+    )
+
+
 def build_top_panel():
     """
     Function to build top panel for 2 graph placeholders
@@ -319,5 +303,21 @@ def build_bottom_panel():
         children=[
             common_graph("bottom-left-graph", "GI"),
             common_graph("bottom-right-graph", "PL")
+        ],
+    )
+
+
+def build_simulation_tab():
+    """
+    Function to put together the simulation  tab
+    """
+    return html.Div(
+        id="simulation-container",
+        children=[
+            build_simulation_controls(),
+            html.Div(
+                id="graphs-container",
+                children=[build_top_panel(), build_bottom_panel()],
+            ),
         ],
     )
