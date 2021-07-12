@@ -86,7 +86,8 @@ def build_tabs():
         'color': '#0074D9',
         'text-decoration': 'underline',
         'margin': 30,
-        'cursor': 'pointer'
+        'cursor': 'pointer',
+        'max-width': 800
     }
 
     return html.Div(children=[
@@ -117,41 +118,6 @@ def change_tab(pathname):
         raise ValueError("Invalid value for tab!")
 
     return spec_style, chart_style
-        # [        
-        #     html.Div(
-        #         id="app-tabs",
-        #         className="custom-tabs",
-        #         children=[
-        #             html.Div(
-        #                 dcc.Link("Configuration"),
-        #             html.Div("Control Dashboard"),
-
-        #         ]
-        #     )
-            # dcc.Tabs(
-            #     id="app-tabs",
-            #     value="Specs-tab",
-            #     className="custom-tabs",
-            #     children=[
-            #         dcc.Tab(
-            #             id="Specs-tab",
-            #             label="Settings",
-            #             value="Specs-tab",
-            #             className="custom-tab",
-            #             selected_className="custom-tab--selected",
-            #         ),
-            #         dcc.Tab(
-            #             id="Control-chart-tab",
-            #             label="Control Dashboard",
-            #             value="Control-chart-tab",
-            #             className="custom-tab",
-            #             selected_className="custom-tab--selected",
-            #         ),
-
-            #     ],
-            # )
-        #],
-    #)
 
 
 def serve_layout():
@@ -179,8 +145,6 @@ def serve_layout():
     )])
 
 app.layout = serve_layout
-
-
 
 
 @app.callback(
@@ -251,7 +215,6 @@ def stop_production(n_clicks, current):
     if n_clicks == 0:
         return True, "start"
     return not current, "stop" if current else "start"
-
 
 @app.callback(
     output=[Output("top-right-graph", "figure"), Output("top-left-graph", "figure"), Output("bottom-left-graph", "figure"),

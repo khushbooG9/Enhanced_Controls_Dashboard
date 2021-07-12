@@ -151,17 +151,17 @@ body {
 }
 
 #bottom-section-container {
-  /*display: flex;
+  display: flex;
   flex-direction: row;
   flex-wrap: wrap;
   border-top: white solid 0.8rem;
   border-bottom: white solid 0.8rem; 
   justify-content: flex-end;
-  align-items: flex-end;*/
-  height: 40rem;
+  align-items: flex-end;
+  /*height: 40rem;
   flex-direction: row;
   display: flex;
-  max-width: 100%;
+  max-width: 100%;*/
 }
 
 
@@ -371,6 +371,7 @@ body {
   text-align: center;
   font-weight: 500;
 }
+
 /*#bottom-panel-container {
   width: 40%;
   box-sizing: content-box;

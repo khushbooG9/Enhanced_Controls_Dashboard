@@ -10,7 +10,6 @@ label_style = {'textAlign': 'center',  'fontSize': '16px'}
 label_style_1 = {'textAlign': 'left',  'fontSize': '15px'}
 
 
-
 def build_simulation_tab():
     """
     Function to put together the simulation  tab
@@ -25,7 +24,8 @@ def build_simulation_tab():
             ),
         ],
     )
-    
+
+
 def build_price_change_button():
     return html.Div(
         id="card-1",
@@ -99,6 +99,7 @@ def build_unscheduled_outage_button():
     ],
     )
 
+
 def build_external_signal_button():
     return html.Div([
         html.Label('Regulation Signal', style=label_style),
@@ -122,8 +123,6 @@ def build_stop_button():
             daq.StopButton(id="stop-button", labelPosition='top', size=160, n_clicks=0),
         ],
     )
-
-
 
 
 def build_simulation_input_controls():
@@ -291,6 +290,7 @@ def ess_parameter_block_2():
                                 )]),
 
         ])])
+
 
 def build_top_panel():
     """

@@ -211,6 +211,7 @@ def usecase_dcr_popup():
 
     )
 
+
 def build_usecase_line(line_num, label, switch_value, dd_value, value):
     return html.Div(
         id=line_num,
