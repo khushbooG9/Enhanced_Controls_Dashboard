@@ -212,7 +212,7 @@ html {
 body {
   font-size: 1.5em; /* currently ems cause chrome bug misinterpreting rems on body element */
   line-height: 1.6;
-  font-weight: 400;
+  /*font-weight: 400; */
   font-family: "Open Sans", "HelveticaNeue", "Helvetica Neue", Helvetica, Arial, sans-serif;
   color: rgb(50, 50, 50);
 }
@@ -223,7 +223,7 @@ body {
 h1, h2, h3, h4, h5, h6 {
   margin-top: 0;
   margin-bottom: 0;
-  font-weight: 300;
+  /*font-weight: 300;*/
 }
 
 h1 {
@@ -326,6 +326,7 @@ input[type="button"] {
   border: 1px solid #bbb;
   cursor: pointer;
   box-sizing: border-box;
+  width: 250px;
 }
 
 .button:hover,
@@ -379,6 +380,7 @@ input[type="tel"],
 input[type="url"],
 input[type="password"],
 textarea,
+
 select {
   height: 38px;
   padding: 6px 10px; /* The 6px vertically centers text on FF, ignored by Webkit */
@@ -404,46 +406,6 @@ textarea {
   -moz-appearance: none;
   appearance: none;
 }
-
-textarea {
-  min-height: 65px;
-  padding-top: 6px;
-  padding-bottom: 6px;
-}
-
-input[type="email"]:focus,
-input[type="number"]:focus,
-input[type="search"]:focus,
-input[type="text"]:focus,
-input[type="tel"]:focus,
-input[type="url"]:focus,
-input[type="password"]:focus,
-textarea:focus,
-  /*select:focus {*/
-  /*  border: 1px solid #33C3F0;*/
-  /*  outline: 0; }*/
-label,
-legend {
-  display: block;
-  margin-bottom: 0px;
-}
-
-fieldset {
-  padding: 0;
-  border-width: 0;
-}
-
-input[type="checkbox"],
-input[type="radio"] {
-  display: inline;
-}
-
-label > .label-body {
-  display: inline-block;
-  margin-left: .5rem;
-  font-weight: normal;
-}
-
 
 /* Lists
 –––––––––––––––––––––––––––––––––––––––––––––––––– */
@@ -567,7 +529,6 @@ hr {
   display: table;
   clear: both;
 }
-
 
 /* Media Queries
 –––––––––––––––––––––––––––––––––––––––––––––––––– */

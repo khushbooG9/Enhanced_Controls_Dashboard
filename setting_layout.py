@@ -8,7 +8,7 @@ def build_settings_tab():
     Function to put together the settings tab
     """
     return html.Div(
-            id="system-configuration-menu",
+            id="settings-container",
             children=[configuration_panel(), data_upload_panel()],
         )
 

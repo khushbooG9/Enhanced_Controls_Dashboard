@@ -1,0 +1,132 @@
+/* Table of contents
+––––––––––––––––––––––––––––––––––––––––––––––––––
+- Banner
+- Modal
+- Tabs
+- Main Dashboard Tab
+- Measurement Tab
+- Tables/Dropdown
+- Containers
+- Media Queries
+–––––––––––––––––––––––––––––––––––––––––––––––––– */
+
+
+/* App level */
+
+#app-container * {
+    box-sizing: border-box;
+    -moz-box-sizing: border-box;
+}
+
+body {
+    background-color: white;
+    color: black;
+    font-family: "Open Sans", sans-serif;
+    width: 100%;
+    height: 100vh;
+    max-width: 100% !important;
+    overflow-x: hidden;
+    margin: 0;
+}
+
+#big-app-container {
+    max-width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 0 6rem;
+}
+
+
+/* Pieces */
+
+.banner {
+    height: fit-content;
+    background-color: white;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid #4B5460;
+    padding: 1rem 10rem;
+    width: 100%;
+}
+
+.banner h5 {
+    font-family: 'Open Sans Semi Bold', sans-serif;
+    font-weight: 500;
+    line-height: 1.2;
+    font-size: 2rem;
+    letter-spacing: 0.1rem;
+    text-transform: uppercase;
+}
+
+.banner h6 {
+    font-size: 1.6rem;
+    line-height: 1;
+}
+
+input[type="number"] {
+    width: 100px;
+    margin-right: 5px;
+    text-align: right;
+}
+
+.settings-container,
+.simulation-container {
+    /*background-color: #B2B0B0#;*/
+    background-color: blue;
+    letter-spacing: 1px;
+    color: inherit;
+    border: 0;
+    border-bottom: white solid 4px !important;
+    /* flex-direction: column; */
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    height: 18px;
+    display: flex;
+    /* flex-wrap: wrap; */
+    width: 100%;
+    border-style: dotted;
+    border-width: 2px;
+}
+
+#settings-button,
+#simulation-button {
+    border-bottom: #EBBA93 solid 4px !important;
+    background-color: burlywood;
+    width: 150px;
+    height: 50px;
+}
+
+#settings-container div {
+    flex: 1;
+}
+
+
+/* #settings-container.button-panel {
+    margin-right: 3px;
+}
+
+#simulation-container.button-panel {
+    margin-left: 3px;
+}
+
+
+/* panels on the settings tab */
+
+#configuration-select-menu-wrapper {
+    /* float: left; */
+    /* margin-right: 20px; */
+    flex: 50%
+}
+
+#data-upload-select-menu-wrapper {
+    /*float: left;*/
+    flex: 50%
+}
+
+.no-display {
+    display: none;
+}

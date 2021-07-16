@@ -91,8 +91,8 @@ def build_tabs():
 
     return html.Div(children=[
             dcc.Location(id='url'),
-            dcc.Link('Configuration', href='/', style=tab_style),
-            dcc.Link('Control Dashboard', href='/charts', style=tab_style),
+            dcc.Link('Configuration', id="settings-button", href='/', style=tab_style),
+            dcc.Link('Control Dashboard', id="simulation-button", href='/charts', style=tab_style),
             build_settings_tab(),
             build_simulation_tab()
         ]
@@ -100,7 +100,7 @@ def build_tabs():
 
 
 @app.callback(
-    Output("system-configuration-menu", "style"),
+    Output("settings-container", "style"),
     Output("simulation-container", "style"),
     Input("url", "pathname")
 )
