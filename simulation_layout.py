@@ -17,6 +17,7 @@ def build_simulation_tab():
     """
     return html.Div(
         id="simulation-container",
+        className="simulation-container",
         children=[
             build_simulation_controls(),
             html.Div(
@@ -24,14 +25,6 @@ def build_simulation_tab():
                 children=[build_top_panel(), build_bottom_panel()],
             ),
         ],
-    )
-    
-def build_price_change_button():
-    return html.Div(
-        id="card-1",
-        children=[html.Button("Price change in load", className="", id="button1", n_clicks=0),
-                  # html.Div(id='price-change-button'),
-                  ],
     )
 
 

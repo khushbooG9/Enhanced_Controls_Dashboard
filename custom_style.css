@@ -310,7 +310,7 @@ body {
 
 }
 
-#configuration-select-menu {
+#configuration-select-menu, #data-upload-select-menu-wrapper {
   width: 90%;
   box-sizing: content-box;
   display: flex;
@@ -474,7 +474,6 @@ body {
   flex-wrap: wrap;
   justify-content: center;
   align-items: center;
-  
   margin: auto;
 }
 

@@ -8,14 +8,17 @@ def build_settings_tab():
     Function to put together the settings tab
     """
     return html.Div(
+            className="settings-container",
             id="settings-container",
             children=[configuration_panel(), data_upload_panel()],
         )
+
 
 def dcc_date_picker():
     return dcc.DatePickerRange(
         start_date_placeholder_text="Start Period",
         end_date_placeholder_text="End Period", )
+
 
 def upload_file(id):
     return dcc.Upload(id=id,
@@ -23,6 +26,7 @@ def upload_file(id):
                           ["Drag and drop or select a file"]),
                       # style=style
                       )
+
 
 def data_upload_panel():
     return html.Div(
@@ -87,6 +91,7 @@ def data_upload_panel():
         ]
 
     )
+
 
 def usecase_dcr_popup():
     """
@@ -190,11 +195,12 @@ def usecase_dcr_popup():
                                             ],
 
                                         ),
+                                        #html.Button("Update", className="usecase-line-row", id="usecase-dcr-set-btn", n_clicks=0),
                                     ]
 
                                 ),
 
-                                    html.Button("Update", className="", id="usecase-dcr-set-btn", n_clicks=0),
+
 
                                 ],
 
@@ -207,6 +213,7 @@ def usecase_dcr_popup():
         )
 
     )
+
 
 def build_usecase_line(line_num, label, switch_value, dd_value, value):
     return html.Div(
@@ -265,15 +272,15 @@ def usecase_pfc_popup():
                                     id="markdown-panel2b",
                                     children=[
                                         html.H6("Configuration"),
-                                        dcc.Dropdown(
-                                            id='variable-pfc-dropdown',
-                                            options=[
-                                                {'label': 'Power Factor', 'value': 'PF'},
-                                                {'label': 'Reactive Grid Power', 'value': 'RGP'},
-                                                {'label': 'Reactive Battery Power', 'value': 'RBL'}
-                                            ],
-                                            value='PF'
-                                        ),
+                                        # dcc.Dropdown(
+                                        #     id='variable-pfc-dropdown',
+                                        #     options=[
+                                        #         {'label': 'Power Factor', 'value': 'PF'},
+                                        #         {'label': 'Reactive Grid Power', 'value': 'RGP'},
+                                        #         {'label': 'Reactive Battery Power', 'value': 'RBL'}
+                                        #     ],
+                                        #     value='PF'
+                                        # ),
                                         html.Br(),
                                         html.Div(
                                             id="usecase-pfc-header",
@@ -328,7 +335,7 @@ def usecase_pfc_popup():
 
                                 ),
 
-                                    html.Button("Update", className="", id="usecase-pfc-set-btn", n_clicks=0),
+                                   #html.Button("Update", className="", id="usecase-pfc-set-btn", n_clicks=0),
 
                                 ],
 
@@ -355,7 +362,7 @@ def configuration_panel():
                 children=[
                     html.H6("Usecase Configuration"),
                     html.Br(),
-                    html.Br(),
+                    #html.Br(),
                     html.Div(
                         id="usecase-header",
                         className="usecase-line-row",
@@ -370,18 +377,20 @@ def configuration_panel():
                                        "dcr"),
                     build_usecase_line("power-factor-correction", "Power Factor Correction", "switch_pfc", "dd_pfc",
                                        "pfc"),
-                    html.Br(),
+                    #html.Br(),
                     build_usecase_line("arbitrage", "Arbitrage", "switch_arb", "dd_arb", "arb"),
-                    html.Br(),
+                    #html.Br(),
                     build_usecase_line("revserves-placement", "Reserves Placement", "switch_rp", "dd_rp", "rp"),
+                    html.Br(),
+                    html.Div(
+                        id="dropdown-button",
+                        children=[html.Button("Update", className="", n_clicks=0), ]
+                    ),
                 ]
             ),
-            html.Br(),
-            html.Br(),
-            html.Div(
-                id="dropdown-button",
-                children=[html.Button("Update", className="", n_clicks=0), ]
-            ),
+
+            #html.Br(),
+
             usecase_dcr_popup(),
             usecase_pfc_popup(),
         ]
