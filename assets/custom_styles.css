@@ -132,7 +132,7 @@ input[type="number"] {
 }
 
 #data-upload-select-menu-wrapper{
-    margin-right: 10px}
+    margin-right: 1px}
 
 
 #configuration-select-menu, #data-upload-select-menu {
@@ -187,8 +187,6 @@ input[type="number"] {
   transform: translate(-50%, -50%);
 }
 
-
-
 .markdown-content, .markdown-content2, .markdown-content3, .markdown-content4, .markdown-content5 {
   display: flex;
   direction: row;
@@ -223,7 +221,6 @@ input[type="number"] {
 .usecase-line-row {
   display: flex;
   flex-direction: row;
-  align-items: center;
 }
 
 .usecase-switch {
