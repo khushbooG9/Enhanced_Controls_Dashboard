@@ -94,11 +94,12 @@ input[type="number"] {
     /*align-items: flex-start;
     justify-content: space-evenly;*/
     margin: 4rem 5rem 1rem;
-    flex: 3 1;
+    flex: 2 1;
 }
 
 .simulation-container {
   background-color: #EFEDED;
+  flex: 2 1;
 }
 
 .tabs{
@@ -197,9 +198,7 @@ input[type="number"] {
   background-color: #cc3300;
   border: 2px solid #992600;
   /*margin-right: 2px;*/
-
 }
-
 
 
 #markdown-panela, #markdown-panel2a, #markdown-panel3a, #markdown-panel4a {
@@ -250,6 +249,20 @@ input[type="number"] {
 
 #usecase-header > div, #value-setter-panel-header2 > div, #usecase-dcr-header > div, #usecase-pfc-header > div {
   text-align: center;
+}
+
+/* settings- Upload */
+
+#upload-load-profile-data, #upload-energy-price-data, #upload-ess-data {
+  width: 40%;
+  margin-left: auto;
+  height: 35px;
+  border-width: 1px;
+  border-style: dashed;
+  border-radius: 5px;
+  text-align: center;
+  background-color: white;
+
 }
 
 #control-type-input1, #control-type-input21 {
