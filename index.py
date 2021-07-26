@@ -89,10 +89,14 @@ def build_tabs():
         'cursor': 'pointer'
     }
 
-    return html.Div(children=[
+    return html.Div(
+        id="tabs",
+        className="tabs",
+        children=[
             dcc.Location(id='url'),
-            dcc.Link('Configuration', id="settings-button", href='/', style=tab_style),
-            dcc.Link('Control Dashboard', id="simulation-button", href='/charts', style=tab_style),
+            html.Div(
+            [dcc.Link('Configuration', id="settings-button", href='/', style=tab_style),
+            dcc.Link('Control Dashboard', id="simulation-button", href='/charts', style=tab_style)]),
             build_settings_tab(),
             build_simulation_tab()
         ]

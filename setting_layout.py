@@ -30,6 +30,7 @@ def upload_file(id):
 
 def data_upload_panel():
     return html.Div(
+        className= "data-upload-select-menu-wrapper",
         id="data-upload-select-menu-wrapper",
         children=[
             html.Div(

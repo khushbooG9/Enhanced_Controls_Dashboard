@@ -263,7 +263,9 @@ body {
   align-items: flex-start;
   justify-content: space-evenly;
   margin: 4rem 5rem 1rem;
-} 
+}
+
+
 
 #configuration-select-menu-wrapper {
   width: 90%;

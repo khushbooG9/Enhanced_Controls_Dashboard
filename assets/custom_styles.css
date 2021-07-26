@@ -29,7 +29,7 @@ body {
     margin: 0;
 }
 
-#big-app-container {
+.big-app-container {
     max-width: 100%;
     display: flex;
     flex-direction: column;
@@ -81,36 +81,41 @@ input[type="number"] {
     border: 0;
     border-bottom: white solid 4px !important;
     display: flex
-    flex-direction: row;
-    /*
+    flex-direction: column;
+    flex-wrap: wrap;
     align-items: left;
     justify-content: center;
     cursor: pointer;
-    flex-wrap: wrap;
     width: 100%;
     border-width: 2px;
-    */
 }
 
-/*
 .settings-container {
-    align-items: flex-start;
-    justify-content: space-evenly;
+    /*align-items: flex-start;
+    justify-content: space-evenly;*/
     margin: 4rem 5rem 1rem;
     flex: 3 1;
 }
-*/
 
-#settings-button,
-#simulation-button {
-    border-bottom: #EBBA93 solid 4px !important;
-    background-color: burlywood;
-    width: 150px;
-    height: 50px;
+.simulation-container {
+  background-color: #EFEDED;
 }
 
-#settings-container div {
-    flex: 3 1;
+.tabs{
+  width: 90%;
+  box-sizing: content-box;
+  display: flex;
+  flex-direction: column;
+}
+
+.settings-button,
+.simulation-button {
+    border-bottom: #EBBA93 solid 4px !important;
+    background-color: burlywood;
+    /*display: flex;
+    flex-direction: row;*/
+    width: 150px;
+    height: 50px;
 }
 
 /* #settings-container.button-panel {
@@ -126,9 +131,9 @@ input[type="number"] {
     /*margin-right: 20px;*/
     width: 50%;
     display: flex;
-    flex-direction: row;
-    justify-content: space-evenly;
-    align-items: center;
+    flex-direction: column;
+    /*justify-content: space-evenly;
+    align-items: center;*/
 }
 
 #data-upload-select-menu-wrapper{
@@ -139,7 +144,7 @@ input[type="number"] {
   width: 50%;
   box-sizing: content-box;
   display: flex;
-  flex-direction: row;
+  flex-direction: column;
   background-color:  #ffcc99;
   justify-content: space-evenly;
   align-items: flex-start;
@@ -165,17 +170,7 @@ input[type="number"] {
 }
 */
 
-#simulation-container {
-  width: 100%;
-  max-width: 100%;
-  height: 100%;
-  display: flex;
-  flex-direction: row;
-  background-color: #EFEDED;
-  justify-content: center;
-  margin: 0;
-  padding: 0;
-}
+
 
 /* The Modal (background) */
 #markdown-container, #markdown-container2, #markdown-container3, #markdown-container4, #markdown-container5 {
@@ -236,14 +231,13 @@ input[type="number"] {
   /*margin-right: 60px;*/
 }
 .usecase-setting-input {
-
   margin-left: auto;
 }
+
 .usecase-line-row {
   display: flex;
   flex-direction: row;
 }
-
 
 #usecase-header, #value-setter-panel-header2, #usecase-dcr-header, #usecase-pfc-header {
   font-weight: bold;
@@ -257,13 +251,6 @@ input[type="number"] {
 #usecase-header > div, #value-setter-panel-header2 > div, #usecase-dcr-header > div, #usecase-pfc-header > div {
   text-align: center;
 }
-
-
-
-
-
-
-
 
 #control-type-input1, #control-type-input21 {
 
