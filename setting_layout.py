@@ -8,10 +8,10 @@ def build_settings_tab():
     Function to put together the settings tab
     """
     return html.Div(
-            className="settings-container",
-            id="settings-container",
-            children=[configuration_panel(), data_upload_panel()],
-        )
+        className="settings-container",
+        id="settings-container",
+        children=[configuration_panel(), data_upload_panel()],
+    )
 
 
 def dcc_date_picker():
@@ -195,12 +195,10 @@ def usecase_dcr_popup():
                                             ],
 
                                         ),
-                                        #html.Button("Update", className="usecase-line-row", id="usecase-dcr-set-btn", n_clicks=0),
+                                        # html.Button("Update", className="usecase-line-row", id="usecase-dcr-set-btn", n_clicks=0),
                                     ]
 
                                 ),
-
-
 
                                 ],
 
@@ -335,7 +333,7 @@ def usecase_pfc_popup():
 
                                 ),
 
-                                   #html.Button("Update", className="", id="usecase-pfc-set-btn", n_clicks=0),
+                                    # html.Button("Update", className="", id="usecase-pfc-set-btn", n_clicks=0),
 
                                 ],
 
@@ -362,7 +360,7 @@ def configuration_panel():
                 children=[
                     html.H6("Usecase Configuration"),
                     html.Br(),
-                    #html.Br(),
+                    # html.Br(),
                     html.Div(
                         id="usecase-header",
                         className="usecase-line-row",
@@ -377,9 +375,9 @@ def configuration_panel():
                                        "dcr"),
                     build_usecase_line("power-factor-correction", "Power Factor Correction", "switch_pfc", "dd_pfc",
                                        "pfc"),
-                    #html.Br(),
+                    # html.Br(),
                     build_usecase_line("arbitrage", "Arbitrage", "switch_arb", "dd_arb", "arb"),
-                    #html.Br(),
+                    # html.Br(),
                     build_usecase_line("revserves-placement", "Reserves Placement", "switch_rp", "dd_rp", "rp"),
                     html.Br(),
                     html.Div(
@@ -389,7 +387,7 @@ def configuration_panel():
                 ]
             ),
 
-            #html.Br(),
+            # html.Br(),
 
             usecase_dcr_popup(),
             usecase_pfc_popup(),

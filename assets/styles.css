@@ -1,0 +1,268 @@
+/*
+NOTE: EDITS IN THIS FILE WILL NOT SHOW UP UNLESS YOU HAVE A SCSS FILE WATCHER ENABLED IN PYCHARM
+*/
+html, body {
+  background: #616265;
+  color: rgba(245, 245, 245, 0.6);
+  font-family: "Open Sans", sans-serif;
+  width: 100%;
+  height: 100vh;
+  margin: 0;
+}
+
+.app {
+  max-width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+}
+
+/* Pieces */
+.banner {
+  height: fit-content;
+  background-color: rgba(25, 28, 31, 0.8);
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-start;
+  position: sticky;
+  top: 0;
+  border-bottom: 2px solid #d47827;
+}
+.banner > * {
+  margin-right: 0.5em;
+}
+.banner__button {
+  text-align: center;
+  background-color: rgba(0, 120, 54, 0.6);
+  max-width: 20ch;
+  min-width: 6ch;
+  color: rgba(245, 245, 245, 0.6);
+  border-radius: 6px;
+  padding: 0.5rem;
+  margin: 0.5rem;
+  height: 100%;
+}
+.banner__button--active {
+  background-color: #007836;
+}
+.banner__text {
+  margin-left: auto;
+  text-align: right;
+}
+.banner__logo > img {
+  padding: 0.5em;
+  height: 75px;
+}
+.banner h5 {
+  font-family: "Open Sans Semi Bold", sans-serif;
+  font-weight: 500;
+  line-height: 1.2;
+  font-size: 2rem;
+  letter-spacing: 0.1rem;
+  text-transform: uppercase;
+}
+.banner h6 {
+  font-size: 1.6rem;
+  line-height: 1;
+}
+
+.display-switch {
+  display: flex;
+  justify-content: space-around;
+  height: 4rem;
+}
+.display-switch__button {
+  text-align: center;
+  background-color: #007836;
+  width: 150px;
+  color: rgba(245, 245, 245, 0.6);
+  border-radius: 6px;
+  padding: 0.5rem;
+  margin: 0.5rem 0;
+  height: 2rem;
+  opacity: 0.7;
+}
+.display-switch__button--active {
+  opacity: 1;
+}
+
+input[type=number] {
+  width: 100px;
+  margin-right: 5px;
+  text-align: right;
+}
+
+.settings-container,
+.simulation-container {
+  letter-spacing: 1px;
+  color: inherit;
+  border: 0;
+  display: flex;
+}
+
+div.settings-container {
+  flex: 3 1;
+}
+
+#configuration-select-menu-wrapper, #data-upload-select-menu-wrapper {
+  float: left;
+  /*margin-right: 20px;*/
+  width: 50%;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-evenly;
+  align-items: center;
+}
+
+#data-upload-select-menu-wrapper {
+  margin-right: 1px;
+}
+
+#configuration-select-menu, #data-upload-select-menu {
+  width: 50%;
+  box-sizing: content-box;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-evenly;
+  align-items: flex-start;
+  border: 2px solid #d47827;
+  display: inline-block;
+  padding: 2rem;
+}
+
+#configuration-select-menu-wrapper h6, #data-upload-select-menu-wrapper, h6 #markdown-panelb h6, #markdown-panel2b h6 {
+  text-align: center;
+  font-weight: 500;
+}
+
+/* panels on the settings tab */
+/*
+#settings-container {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  justify-content: space-evenly;
+  margin: 4rem 5rem 1rem;
+}
+*/
+#simulation-container {
+  width: 100%;
+  max-width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: row;
+  background-color: #EFEDED;
+  justify-content: center;
+  margin: 0;
+  padding: 0;
+}
+
+/* The Modal (background) */
+#markdown-container, #markdown-container2, #markdown-container3, #markdown-container4, #markdown-container5 {
+  width: 40%;
+  background-color: #EFEDED;
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.markdown-content, .markdown-content2, .markdown-content3, .markdown-content4, .markdown-content5 {
+  display: flex;
+  flex-direction: row;
+  border-left: white solid 0.8rem;
+  border-right: white solid 0.8rem;
+  border-bottom: white solid 0.8rem;
+}
+
+.usecase-set-button {
+  border-radius: 4px;
+  width: 140px;
+  background-color: #007836;
+  border: 2px solid rgba(0, 120, 54, 0.6);
+  /*margin-right: 2px;*/
+}
+
+#markdown-panela, #markdown-panel2a, #markdown-panel3a, #markdown-panel4a {
+  display: flex;
+  flex-direction: row;
+  width: 90%;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  margin: auto;
+}
+
+/* Usecase configuration buttons */
+.usecase-line-row {
+  display: flex;
+  flex-direction: row;
+}
+
+.usecase-switch {
+  margin-left: auto;
+  margin-right: auto;
+  align-items: right;
+}
+
+.usecase-dropdown {
+  width: 100px;
+  align-items: right;
+  border-radius: 4px;
+  /*margin-right: 60px;*/
+}
+
+.usecase-setting-input {
+  margin-left: auto;
+}
+
+.usecase-line-row {
+  display: flex;
+  flex-direction: row;
+}
+
+#usecase-header, #value-setter-panel-header2, #usecase-dcr-header, #usecase-pfc-header {
+  font-weight: bold;
+  color: darkgray;
+  line-height: 1;
+  padding: 2rem 0;
+  border-top: 1px solid #4b5460;
+  border-bottom: 1px solid #4b5460;
+}
+
+#usecase-header > div, #value-setter-panel-header2 > div, #usecase-dcr-header > div, #usecase-pfc-header > div {
+  text-align: center;
+}
+
+#control-type-input1, #control-type-input21 {
+  align-items: center;
+  margin-right: -40%;
+}
+
+#control-type-input2, #control-type-input22 {
+  margin-right: 2px;
+}
+
+.modal {
+  display: none;
+  /*Hidden by default */
+  position: fixed;
+  /* Stay in place */
+  z-index: 1005;
+  /* Sit on top */
+  left: 0;
+  top: 0;
+  width: 100vw;
+  /* Full width */
+  height: 100vh;
+  /* Full height */
+  overflow: auto;
+  /* Enable scroll if needed */
+  background-color: black;
+  /* Fallback color */
+  background-color: rgba(0, 0, 0, 0.4);
+  /* Black w/ opacity */
+}
+
+/*# sourceMappingURL=styles.css.map */

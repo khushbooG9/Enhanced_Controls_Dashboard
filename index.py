@@ -15,6 +15,9 @@ from battery_class_new import *
 from sim_runner_no_dashboard import *
 from collections import deque
 import json
+from dotenv import load_dotenv
+
+load_dotenv()
 
 
 @app.callback(
@@ -22,7 +25,7 @@ import json
     [Input('clicked-button', 'n_clicks')],
     [State('update-rate-box', 'value')])
 def update_output(n_clicks, value):
-    print("Trigger")
+    print("Trigger", value, n_clicks)
     return value
 
 
@@ -32,18 +35,22 @@ def build_banner():
         className="banner",
         children=[
             html.Div(
+                id="banner-logo",
+                className="banner__logo",
+                children=[
+                    html.Img(id="logo", src=app.get_asset_url("PNNL Vertical Logo (.svg).svg")),
+                ],
+            ),
+            dcc.Link(className='banner__button', href='/', children='Config'),
+            dcc.Link(className='banner__button banner__button--active', href='/charts', children='Dash'),
+            html.Div(
                 id="banner-text",
+                className="banner__text",
                 children=[
                     html.H5("Energy Storage Control"),
                     html.H6("Enhanced Control Dashboard"),
                 ],
-            ),
-            html.Div(
-                id="banner-logo",
-                children=[
-                    html.Img(id="logo", src=app.get_asset_url("pnnl_logo.png")),
-                ],
-            ),
+            )
         ],
     )
 
@@ -78,109 +85,65 @@ def init_data_config():
     return data_config
 
 
-def build_tabs():
+@app.callback(dash.dependencies.Output('app-container', 'children'),
+              [dash.dependencies.Input('url', 'pathname')])
+def build_tabs(pathname):
     """
-    Function to build both the tabs
+    Function to build both a tab based on the current route
     """
-    tab_style = {
-        'color': '#0074D9',
-        'text-decoration': 'underline',
-        'margin': 30,
-        'cursor': 'pointer'
-    }
-
-    return html.Div(children=[
-            dcc.Location(id='url'),
-            dcc.Link('Configuration', id="settings-button", href='/', style=tab_style),
-            dcc.Link('Control Dashboard', id="simulation-button", href='/charts', style=tab_style),
-            build_settings_tab(),
-            build_simulation_tab()
-        ]
-    )
+    return html.Div(children=[build_simulation_tab()] if pathname == '/charts' else [build_settings_tab()])
 
 
-@app.callback(
-    Output("settings-container", "style"),
-    Output("simulation-container", "style"),
-    Input("url", "pathname")
-)
-def change_tab(pathname):
-    spec_style = dict(display="block")
-    chart_style = dict(display="block")
-
-    # Tab1 is chart
-    if pathname == "/":
-        chart_style = dict(display="none")
-    elif pathname == "/charts":
-        spec_style = dict(display="none")
-    else:
-        raise ValueError("Invalid value for tab!")
-
-    return spec_style, chart_style
-        # [        
-        #     html.Div(
-        #         id="app-tabs",
-        #         className="custom-tabs",
-        #         children=[
-        #             html.Div(
-        #                 dcc.Link("Configuration"),
-        #             html.Div("Control Dashboard"),
-
-        #         ]
-        #     )
-            # dcc.Tabs(
-            #     id="app-tabs",
-            #     value="Specs-tab",
-            #     className="custom-tabs",
-            #     children=[
-            #         dcc.Tab(
-            #             id="Specs-tab",
-            #             label="Settings",
-            #             value="Specs-tab",
-            #             className="custom-tab",
-            #             selected_className="custom-tab--selected",
-            #         ),
-            #         dcc.Tab(
-            #             id="Control-chart-tab",
-            #             label="Control Dashboard",
-            #             value="Control-chart-tab",
-            #             className="custom-tab",
-            #             selected_className="custom-tab--selected",
-            #         ),
-
-            #     ],
-            # )
-        #],
-    #)
+# @app.callback(
+#     Output("settings-container", "style"),
+#     Output("simulation-container", "style"),
+#     Input("url", "pathname")
+# )
+# def change_tab(pathname):
+#     # leave styles undefined if not none so as to use custom display on the div
+#     spec_style = None
+#     chart_style = None
+#
+#     # Tab1 is chart
+#     if pathname == "/":
+#         chart_style = dict(display="none")
+#     elif pathname == "/charts":
+#         spec_style = dict(display="none")
+#     else:
+#         raise ValueError("Invalid value for tab!")
+#
+#     return spec_style, chart_style
 
 
 def serve_layout():
     return html.Div(
         [
-        html.Div(
-        id="big-app-container",
-        children=[
-            build_banner(),
+            dcc.Location(id="url", refresh=False),
             html.Div(
-                id="app-container",
+                id="big-app-container",
+                className="app",
                 children=[
-                    dcc.Store(id="usecase-store", storage_type="session", data=init_usecase()),
-                    dcc.Store(id="gen-config-store", storage_type="session", data=init_gen_config()),
-                    dcc.Store(id="control-config-store", storage_type="session", data=init_control_config()),
-                    dcc.Store(id="data-config-store", storage_type="session", data=init_data_config()),
-                    dcc.Store(id="data-store", storage_type="session"),
-                    dcc.Store(id="liveplot-store", storage_type="session"),
-                    build_tabs(),
-                    dcc.Interval(id='graph-update', interval=1000, n_intervals=0, disabled=True)
-                    
+                    build_banner(),
+                    html.Div(
+                        id="app-container",
+                        className="main-content",
+                        children=[
+                            dcc.Store(id="usecase-store", storage_type="session", data=init_usecase()),
+                            dcc.Store(id="gen-config-store", storage_type="session", data=init_gen_config()),
+                            dcc.Store(id="control-config-store", storage_type="session", data=init_control_config()),
+                            dcc.Store(id="data-config-store", storage_type="session", data=init_data_config()),
+                            dcc.Store(id="data-store", storage_type="session"),
+                            dcc.Store(id="liveplot-store", storage_type="session"),
+                            # build_tabs(),
+                            dcc.Interval(id='graph-update', interval=1000, n_intervals=0, disabled=True)
+
+                        ],
+                    ),
                 ],
-            ),
-        ],
-    )])
+            )])
+
 
 app.layout = serve_layout
-
-
 
 
 @app.callback(
@@ -222,20 +185,19 @@ def update_click_output1(button_click, close_click):
             Output("switch_rp", "on")],
 )
 def make_usecase_active(s1, s2, s3, s4):
-    print(s1)
-    if s1 == True:
+    if s1:
         d1a, d1b = False, False
     else:
         d1a, d1b = True, True
-    if s2 == True:
+    if s2:
         d2a, d2b = False, False
     else:
         d2a, d2b = True, True
-    if s3 == True:
+    if s3:
         d3a, d3b = False, False
     else:
         d3a, d3b = True, True
-    if s4 == True:
+    if s4:
         d4a, d4b = False, False
     else:
         d4a, d4b = True, True
@@ -248,31 +210,36 @@ def make_usecase_active(s1, s2, s3, s4):
     [State("graph-update", "disabled")],
 )
 def stop_production(n_clicks, current):
+    print("stopped")
     if n_clicks == 0:
         return True, "start"
     return not current, "stop" if current else "start"
 
 
 @app.callback(
-    output=[Output("top-right-graph", "figure"), Output("top-left-graph", "figure"), Output("bottom-left-graph", "figure"),
-            Output("bottom-right-graph", "figure"), Output("data-store", "data"), Output("liveplot-store", "data"), Output("revenue1", "value"),
+    output=[Output("top-right-graph", "figure"), Output("top-left-graph", "figure"),
+            Output("bottom-left-graph", "figure"),
+            Output("bottom-right-graph", "figure"), Output("data-store", "data"), Output("liveplot-store", "data"),
+            Output("revenue1", "value"),
             Output("revenue2", "value"), Output("revenue3", "value")],
-    inputs=[Input("graph-update", "n_intervals"), Input("outage-switch", "value"),  Input("external-switch", "value"),
+    inputs=[Input("graph-update", "n_intervals"), Input("outage-switch", "value"), Input("external-switch", "value"),
             Input('start-time', 'value'), Input('stop-time', 'value')],
     state=[State('price-change-slider', 'value'), State('grid-load-change-slider', 'value'),
-           State('update-window', 'value'), State('bottom-left-graph-dropdown', 'value'), State('bottom-right-graph-dropdown', 'value'),
+           State('update-window', 'value'), State('bottom-left-graph-dropdown', 'value'),
+           State('bottom-right-graph-dropdown', 'value'),
            State('max-soc', 'value'), State('min-soc', 'value'), State('energy-capacity', 'value'),
            State('max-power', 'value'), State("data-store", "data"), State("liveplot-store", "data"),
            State("gen-config-store", "data"), State("data-config-store", "data"), State("usecase-store", "data")])
 # @cache.memoize
 # fig1= None
 
-def update_live_graph(ts, outage_flag, external_signal_flag, fig_start_time, fig_stop_time, price_change_value, grid_load_change_value, update_window,
-                      fig_leftdropdown, fig_rightdropdown, ess_soc_max_limit, ess_soc_min_limit, ess_capacity, max_power,  data1, live1,
+def update_live_graph(ts, outage_flag, external_signal_flag, fig_start_time, fig_stop_time, price_change_value,
+                      grid_load_change_value, update_window,
+                      fig_leftdropdown, fig_rightdropdown, ess_soc_max_limit, ess_soc_min_limit, ess_capacity,
+                      max_power, data1, live1,
                       gen_config, data_config,
                       use_case_library):
-
-    update_buffer = 3600*24
+    update_buffer = 3600 * 24
     data = {}
     new_battery_setpoint = 0.0
     new_grid_load = 0.0
@@ -285,7 +252,7 @@ def update_live_graph(ts, outage_flag, external_signal_flag, fig_start_time, fig
     print(f"start time = {start_time}")
     end_time = gen_config['EndTime']
     end_time = datetime.strptime(end_time, time_format)
-    #gen_config['bat_capacity_kWh'] = ess_capacity
+    # gen_config['bat_capacity_kWh'] = ess_capacity
     gen_config['rated_kW'] = max_power
     gen_config['reserve_soc'] = ess_soc_min_limit / 100
     battery_obj = battery_class_new(use_case_library, gen_config, data_config)
@@ -305,7 +272,7 @@ def update_live_graph(ts, outage_flag, external_signal_flag, fig_start_time, fig
             priority_list.append(use_case_library[key]["priority"])
         SoC_temp = battery_obj.SoC_init
         battery_obj.get_data()
-        print('SoC Temp'+str(SoC_temp))
+        print('SoC Temp' + str(SoC_temp))
         # price_temp = 0.0
     elif ts > 0:
         print('at ts>0')
@@ -326,8 +293,8 @@ def update_live_graph(ts, outage_flag, external_signal_flag, fig_start_time, fig
         legend_dict = dict(orientation="h", yanchor="bottom", y=1.05, xanchor="right", x=1)
         fig = go.Figure()
         fig.add_trace(go.Scatter(
-            x=[i*3600 for i in range(0, len(prediction_data))],
-            y= prediction_data,
+            x=[i * 3600 for i in range(0, len(prediction_data))],
+            y=prediction_data,
             name="Prediction"))
         fig.add_trace(go.Scatter(
             x=[i for i in range(max(0, ts - update_buffer), (ts + 1))],
@@ -335,18 +302,20 @@ def update_live_graph(ts, outage_flag, external_signal_flag, fig_start_time, fig
             name="Actual"))
 
         if title == "SoC":
-            fig.add_shape(type="line", x0=-2, y0=ess_soc_max_limit, x1=ts+4, y1=ess_soc_max_limit,
+            fig.add_shape(type="line", x0=-2, y0=ess_soc_max_limit, x1=ts + 4, y1=ess_soc_max_limit,
                           line=dict(color="LightSeaGreen", dash="dashdot"))
             fig.add_shape(type="line", x0=-2, y0=ess_soc_min_limit, x1=ts + 4, y1=ess_soc_min_limit,
                           line=dict(color="MediumPurple", dash="dashdot"))
-        ymin, ymax = min([prediction_data[0]] + actual_data[max(fig_start_time, ts - update_window):ts]), max([prediction_data[0]] + actual_data[max(fig_start_time, ts - update_window):ts])
+        ymin, ymax = min([prediction_data[0]] + actual_data[max(fig_start_time, ts - update_window):ts]), max(
+            [prediction_data[0]] + actual_data[max(fig_start_time, ts - update_window):ts])
         min_margin = abs(ymin * 0.15)
         max_margin = abs(ymax * 0.15)
 
         start_interval_figure = max(fig_start_time, ts - update_window)
         stop_interval_figure = max(ts, fig_stop_time)
 
-        fig.update_xaxes(range=[start_interval_figure, stop_interval_figure], showline=True, linewidth=2, linecolor='#e67300',
+        fig.update_xaxes(range=[start_interval_figure, stop_interval_figure], showline=True, linewidth=2,
+                         linecolor='#e67300',
                          mirror=True)
         if title == "SoC":
             ymin, ymax = 0, 100
@@ -361,7 +330,7 @@ def update_live_graph(ts, outage_flag, external_signal_flag, fig_start_time, fig
                            text=str((start_time + td(seconds=stop_interval_figure)).time()),
                            showarrow=False,
                            yshift=-50,
-                           xshift= 450)
+                           xshift=450)
 
         fig.update_yaxes(range=[ymin, ymax], showline=True, linewidth=2, linecolor='#e67300', mirror=True)
         # fig.update_yaxes(showline=True, linewidth=2, linecolor='#e67300', mirror=True)
@@ -375,20 +344,23 @@ def update_live_graph(ts, outage_flag, external_signal_flag, fig_start_time, fig
     if ts < simulation_duration:
         if ts % 3600 == 0:
             battery_obj.set_hourly_load_forecast(current_time, current_time + timedelta(days=1))
-            #print("just before price forecast")
+            # print("just before price forecast")
             battery_obj.set_hourly_price_forecast(current_time, current_time + timedelta(days=1), ts)
             battery_obj.DA_optimal_quantities()
 
-        battery_obj.set_load_actual(battery_obj.load_predict[0], np.mean(np.diff(battery_obj.load_predict[0:3])) * battery_obj.hrs_to_secs )
+        battery_obj.set_load_actual(battery_obj.load_predict[0],
+                                    np.mean(np.diff(battery_obj.load_predict[0:3])) * battery_obj.hrs_to_secs)
 
         # if (ts % 300 == 0):
         battery_obj.set_price_actual(battery_obj.price_predict[0],
-                                     (battery_obj.price_predict[1] - battery_obj.price_predict[0]) * 300 * battery_obj.hrs_to_secs, ts)
+                                     (battery_obj.price_predict[1] - battery_obj.price_predict[
+                                         0]) * 300 * battery_obj.hrs_to_secs, ts)
 
         # change price and load values given there is a user input to change it
-        new_actual_price = max(0.0001, battery_obj.actual_price[-1] + battery_obj.actual_price[-1] * price_change_value / 100)
+        new_actual_price = max(0.0001,
+                               battery_obj.actual_price[-1] + battery_obj.actual_price[-1] * price_change_value / 100)
         new_actual_load = max(0, battery_obj.actual_load[-1] + battery_obj.actual_load[-1] * (
-                    grid_load_change_value / 100))
+                grid_load_change_value / 100))
 
         current_reg_signal = battery_obj.get_reg_signal(current_time, ts)
         print(f"current reg signal = {current_reg_signal}")
@@ -436,13 +408,13 @@ def update_live_graph(ts, outage_flag, external_signal_flag, fig_start_time, fig
                 if new_reserve_down_cap < 0.0:
                     new_battery_setpoint = battery_obj.change_setpoint(new_battery_setpoint,
                                                                        current_reg_signal * new_reserve_down_cap * (
-                                                                                   1 / (5 * 60)))
+                                                                               1 / (5 * 60)))
                     new_SoC, new_battery_setpoint = battery_obj.check_SoC(new_battery_setpoint, SoC_temp)
 
                 elif new_reserve_down_cap > 0.0:
                     new_battery_setpoint = battery_obj.change_setpoint(new_battery_setpoint,
                                                                        current_reg_signal * new_reserve_up_cap * (
-                                                                                   1 / (5 * 60)))
+                                                                               1 / (5 * 60)))
                     new_SoC, new_battery_setpoint = battery_obj.check_SoC(new_battery_setpoint, SoC_temp)
 
     battery_obj.SoC_actual.append(SoC_temp)
@@ -458,7 +430,7 @@ def update_live_graph(ts, outage_flag, external_signal_flag, fig_start_time, fig
     battery_obj.grid_apparent_power_actual.append(new_grid_apparent_power)
     new_power_factor = battery_obj.get_power_factor(new_grid_load, new_grid_apparent_power)
     battery_obj.grid_power_factor_actual.append(new_power_factor)
-    battery_obj.peak_load_actual.append(max(battery_obj.grid_load_actual[0:ts+1]))
+    battery_obj.peak_load_actual.append(max(battery_obj.grid_load_actual[0:ts + 1]))
     SoC_temp = new_SoC
     battery_obj.metrics['peak_surcharge_da'].append(battery_obj.peak_load_prediction * battery_obj.peak_price)
     battery_obj.metrics['original_surcharge'].append(max(battery_obj.peak_load_actual) * battery_obj.peak_price)
@@ -470,31 +442,31 @@ def update_live_graph(ts, outage_flag, external_signal_flag, fig_start_time, fig
     fig_dict = {'linewidth': 2, 'linecolor': '#EFEDED', 'width': 600, 'height': 400,
                 'xaxis_title': 'Seconds', 'yaxis_title': 'kW'}
     fig_pf_dict = {'linewidth': 2, 'linecolor': '#EFEDED', 'width': 600, 'height': 400,
-                'xaxis_title': 'Seconds', 'yaxis_title': '-'}
+                   'xaxis_title': 'Seconds', 'yaxis_title': '-'}
     fig_price_dict = {'linewidth': 2, 'linecolor': '#EFEDED', 'width': 600, 'height': 400,
-                'xaxis_title': 'Seconds', 'yaxis_title': '$/kWh'}
+                      'xaxis_title': 'Seconds', 'yaxis_title': '$/kWh'}
     fig_reactive_dict = {'linewidth': 2, 'linecolor': '#EFEDED', 'width': 600, 'height': 400,
-                'xaxis_title': 'Seconds', 'yaxis_title': 'kVAR'}
+                         'xaxis_title': 'Seconds', 'yaxis_title': 'kVAR'}
     fig_soc_dict = {'linewidth': 2, 'linecolor': '#EFEDED', 'width': 600, 'height': 400,
                     'xaxis_title': 'Seconds', 'yaxis_title': '%'}
-    fig1 = dash_fig(ln, [x * (100/ battery_obj.rated_kWh) for x in battery_obj.SoC_prediction],
-                    [y * (100/ battery_obj.rated_kWh) for y in battery_obj.SoC_actual],
+    fig1 = dash_fig(ln, [x * (100 / battery_obj.rated_kWh) for x in battery_obj.SoC_prediction],
+                    [y * (100 / battery_obj.rated_kWh) for y in battery_obj.SoC_actual],
                     "SoC", **fig_soc_dict)
 
     fig2 = dash_fig(ln, battery_obj.battery_setpoints_prediction,
                     battery_obj.battery_setpoints_actual,
                     "Battery Setpoint", **fig_dict)
 
-    #print(f"price predict = {battery_obj.price_predict}")
+    # print(f"price predict = {battery_obj.price_predict}")
     peak_load_prediction = [battery_obj.peak_load_prediction] * 24
 
     fig_obj = {"PL": [peak_load_prediction, battery_obj.peak_load_actual, fig_dict],
                "GR": [battery_obj.grid_react_power_prediction, battery_obj.grid_react_power_actual, fig_reactive_dict],
-               "BR": [battery_obj.battery_react_power_prediction, battery_obj.battery_react_power_actual, fig_reactive_dict],
+               "BR": [battery_obj.battery_react_power_prediction, battery_obj.battery_react_power_actual,
+                      fig_reactive_dict],
                "GI": [battery_obj.grid_load_prediction, battery_obj.grid_load_actual, fig_dict],
                "EP": [battery_obj.price_predict, battery_obj.actual_price, fig_price_dict],
                "PF": [battery_obj.grid_power_factor_prediction, battery_obj.grid_power_factor_actual, fig_pf_dict]}
-
 
     fig3 = dash_fig(ln, fig_obj[fig_leftdropdown][0], fig_obj[fig_leftdropdown][1], **fig_obj[fig_leftdropdown][2])
     fig4 = dash_fig(ln, fig_obj[fig_rightdropdown][0], fig_obj[fig_rightdropdown][1], **fig_obj[fig_rightdropdown][2])
@@ -514,4 +486,6 @@ def update_live_graph(ts, outage_flag, external_signal_flag, fig_start_time, fig
 
 
 if __name__ == '__main__':
-    app.run_server(debug=True, port=8051)
+    truthy_values = ('true', '1')
+    should_debug = os.environ.get('DEBUG').lower() in truthy_values
+    app.run_server(debug=should_debug, port=os.environ.get('PORT'))
