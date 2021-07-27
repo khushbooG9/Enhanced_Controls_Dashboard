@@ -1,10 +1,11 @@
 import json
 import logging
 
-from sim_runner_no_dashboard import construct_use_case_library
 from battery_class_new import battery_class_new
+from sim_runner_no_dashboard import construct_use_case_library
 
 _log = logging.getLogger(__name__)
+
 
 def __init_gen_config__():
     _log.debug("Loading gen_config")

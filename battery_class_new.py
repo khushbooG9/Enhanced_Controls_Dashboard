@@ -4,19 +4,15 @@
 
 
 """
-import numpy as np
-# import tesp_support.helpers as helpers
-from copy import deepcopy
-import pyomo.environ as pyo
-import pandas as pd
-# pyutilib.subprocess.GlobalData.DEFINE_SIGNAL_HANDLERS_DEFAULT = False
-import pyutilib.subprocess.GlobalData
 # import tesp_support.helpers as helpers
 from copy import deepcopy
 
 import numpy as np
 import pandas as pd
 import pyomo.environ as pyo
+# import tesp_support.helpers as helpers
+# pyutilib.subprocess.GlobalData.DEFINE_SIGNAL_HANDLERS_DEFAULT = False
+import pyutilib.subprocess.GlobalData
 # pyutilib.subprocess.GlobalData.DEFINE_SIGNAL_HANDLERS_DEFAULT = False
 import pyutilib.subprocess.GlobalData
 
@@ -75,7 +71,7 @@ class battery_class_new:
 
         self.real_time_control_resolution = gen_dict["real_time_control_resolution"]  # seconds
         self.hrs_to_secs = self.real_time_control_resolution * (
-                    1 / 3600)  # to convert hourly day-ahead results quantities to real-time control time steps
+                1 / 3600)  # to convert hourly day-ahead results quantities to real-time control time steps
 
         # Power Factor Correction Variables
         self.lin_segments = int(gen_dict["linearization_segments"])
@@ -505,13 +501,13 @@ class battery_class_new:
         # print("load data time", self.load_data['Time'])
         # print("current_time", current_time)
         self.load_predict = \
-        self.load_data[(self.load_data['Time'] >= current_time) & (self.load_data['Time'] < forecast_time)][
-            'Value'].values
+            self.load_data[(self.load_data['Time'] >= current_time) & (self.load_data['Time'] < forecast_time)][
+                'Value'].values
         self.load_up = self.load_predict + self.load_predict * self.load_dev
         self.load_down = self.load_predict - self.load_predict * self.load_dev
         self.load_predict = self.load_predict + (
-                    self.load_dev * np.random.rand(len(self.load_predict)) * self.load_up) - (
-                                        self.load_dev * np.random.rand(len(self.load_predict)) * self.load_down)
+                self.load_dev * np.random.rand(len(self.load_predict)) * self.load_up) - (
+                                    self.load_dev * np.random.rand(len(self.load_predict)) * self.load_down)
         # because we know the forecast at the current time step
         # self.load_up[0] = self.load_predict[0]
         # self.load_down[0] = self.load_predict[0]
@@ -531,8 +527,8 @@ class battery_class_new:
             Forecasted Price (float x 24): in $/kWh
         """
         self.price_predict = \
-        self.price_data[(self.price_data['Time'] >= current_time) & (self.price_data['Time'] < forecast_time)][
-            'Value'].values
+            self.price_data[(self.price_data['Time'] >= current_time) & (self.price_data['Time'] < forecast_time)][
+                'Value'].values
         self.price_up = self.price_predict + self.price_predict * self.price_dev
         self.price_down = self.price_predict - self.price_predict * self.price_dev
         self.price_up[0] = self.price_predict[0]
@@ -611,7 +607,7 @@ class battery_class_new:
     def con_rule_ine5_pcc(self, m, i, k):
         if self.use_case_dict["power_factor_correction"]["control_type"] == "opti-based":
             return self.pf_limit * (
-                        m.p_total[i] * self.cos_terms[k - 1] + m.q_total[i] * self.sin_terms[k - 1]) * self.pf_penalty \
+                    m.p_total[i] * self.cos_terms[k - 1] + m.q_total[i] * self.sin_terms[k - 1]) * self.pf_penalty \
                    <= m.theta[i] - m.p_total[i] * self.pf_penalty
         else:
             return m.q_batt[i] == 0.0
@@ -619,7 +615,7 @@ class battery_class_new:
     def con_rule_ine6_pcc(self, m, i, k):
         if self.use_case_dict["power_factor_correction"]["control_type"] == "opti-based":
             return self.pf_limit * (
-                        m.p_total[i] * self.cos_terms[k - 1] + m.q_total[i] * self.sin_terms[k - 1]) * self.pf_penalty \
+                    m.p_total[i] * self.cos_terms[k - 1] + m.q_total[i] * self.sin_terms[k - 1]) * self.pf_penalty \
                    >= m.p_total[i] * self.pf_penalty - m.theta[i]
         else:
             return m.q_batt[i] == 0.0

@@ -1,7 +1,6 @@
-
+import logging
 from collections import deque
 from datetime import timedelta as td
-import logging
 
 import dash
 import dash_core_components as dcc
@@ -9,6 +8,7 @@ import dash_html_components as html
 import plotly.graph_objects as go
 from dash.dependencies import Input, Output, State
 
+from app import app
 from configuration import (
     use_case_library,
     gen_config,
@@ -16,15 +16,13 @@ from configuration import (
     data_config,
     battery_obj
 )
-
-from app import app
-from setting_layout import *
-from sim_runner_no_dashboard import *
-from simulation_layout import *
+from setting_layout import build_settings_tab
+from simulation_layout import build_simulation_tab
 
 logging.basicConfig(level=logging.DEBUG)
 logging.getLogger("pyomo.core").setLevel(logging.INFO)
 _log = logging.getLogger(__name__)
+
 
 @app.callback(
     Output('graph-update', 'interval'),
@@ -55,9 +53,6 @@ def build_banner():
             ),
         ],
     )
-
-
-
 
 
 def build_tabs():
@@ -272,7 +267,7 @@ def update_live_graph(ts, outage_flag, external_signal_flag, fig_start_time, fig
     # gen_config['bat_capacity_kWh'] = ess_capacity
     gen_config['rated_kW'] = max_power
     gen_config['reserve_soc'] = ess_soc_min_limit / 100
-#    battery_obj = battery_class_new(use_case_library, gen_config, data_config)
+    #    battery_obj = battery_class_new(use_case_library, gen_config, data_config)
     new_reserve_up_cap = 500  # kW/5 minutes
     new_reserve_down_cap = 500  # kW/5 minutes
 
