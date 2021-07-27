@@ -94,7 +94,7 @@ input[type="number"] {
     /*align-items: flex-start;
     justify-content: space-evenly;*/
     margin: 4rem 5rem 1rem;
-    flex: 2 1;
+    flex: 3 1;
 }
 
 .simulation-container {
@@ -103,9 +103,9 @@ input[type="number"] {
 }
 
 .tabs{
-  width: 90%;
-  box-sizing: content-box;
-  display: flex;
+  width: 100%;
+  /*box-sizing: content-box;
+  display: flex;*/
   flex-direction: column;
 }
 
@@ -127,9 +127,9 @@ input[type="number"] {
     margin-left: 3px;
 }
 */
-#configuration-select-menu-wrapper, #data-upload-select-menu-wrapper {
-    float: left;
-    /*margin-right: 20px;*/
+.configuration-select-menu-wrapper, .data-upload-select-menu-wrapper {
+    /*float: left;
+    margin-right: 20px;*/
     width: 50%;
     display: flex;
     flex-direction: column;
@@ -137,11 +137,12 @@ input[type="number"] {
     align-items: center;*/
 }
 
+/*
 #data-upload-select-menu-wrapper{
     margin-right: 1px}
+*/
 
-
-#configuration-select-menu, #data-upload-select-menu {
+.configuration-select-menu, .data-upload-select-menu {
   width: 50%;
   box-sizing: content-box;
   display: flex;
@@ -154,7 +155,7 @@ input[type="number"] {
   padding: 2rem;
 }
 
-#configuration-select-menu-wrapper h6, #data-upload-select-menu-wrapper, h6 #markdown-panelb h6, #markdown-panel2b h6 {
+.configuration-select-menu-wrapper h6, .data-upload-select-menu-wrapper h6, #markdown-panelb h6, #markdown-panel2b h6 {
   text-align: center;
   font-weight: 500;
 }
