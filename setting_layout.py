@@ -1,6 +1,6 @@
-import dash_html_components as html
 import dash_core_components as dcc
 import dash_daq as daq
+import dash_html_components as html
 
 
 def build_settings_tab():
@@ -8,14 +8,16 @@ def build_settings_tab():
     Function to put together the settings tab
     """
     return html.Div(
-            id="settings-container",
-            children=[configuration_panel(), data_upload_panel()],
-        )
+        id="settings-container",
+        children=[configuration_panel(), data_upload_panel()],
+    )
+
 
 def dcc_date_picker():
     return dcc.DatePickerRange(
         start_date_placeholder_text="Start Period",
         end_date_placeholder_text="End Period", )
+
 
 def upload_file(id):
     return dcc.Upload(id=id,
@@ -23,6 +25,7 @@ def upload_file(id):
                           ["Drag and drop or select a file"]),
                       # style=style
                       )
+
 
 def data_upload_panel():
     return html.Div(
@@ -87,6 +90,7 @@ def data_upload_panel():
         ]
 
     )
+
 
 def usecase_dcr_popup():
     """
@@ -207,6 +211,7 @@ def usecase_dcr_popup():
         )
 
     )
+
 
 def build_usecase_line(line_num, label, switch_value, dd_value, value):
     return html.Div(
