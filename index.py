@@ -1,12 +1,14 @@
 import logging
 from collections import deque
-from datetime import timedelta as td
+from datetime import timedelta
+from datetime import datetime
 
 import dash
 import dash_core_components as dcc
 import dash_html_components as html
 import plotly.graph_objects as go
 from dash.dependencies import Input, Output, State
+import numpy as np
 
 from app import app
 from configuration import (
@@ -16,8 +18,8 @@ from configuration import (
     data_config,
     battery_obj
 )
-from setting_layout import build_settings_tab
-from simulation_layout import build_simulation_tab
+from setting_layout import *
+from simulation_layout import *
 
 logging.basicConfig(level=logging.DEBUG)
 logging.getLogger("pyomo.core").setLevel(logging.INFO)
@@ -94,41 +96,6 @@ def change_tab(pathname):
         raise ValueError("Invalid value for tab!")
 
     return spec_style, chart_style
-        # [        
-        #     html.Div(
-        #         id="app-tabs",
-        #         className="custom-tabs",
-        #         children=[
-        #             html.Div(
-        #                 dcc.Link("Configuration"),
-        #             html.Div("Control Dashboard"),
-
-        #         ]
-        #     )
-            # dcc.Tabs(
-            #     id="app-tabs",
-            #     value="Specs-tab",
-            #     className="custom-tabs",
-            #     children=[
-            #         dcc.Tab(
-            #             id="Specs-tab",
-            #             label="Settings",
-            #             value="Specs-tab",
-            #             className="custom-tab",
-            #             selected_className="custom-tab--selected",
-            #         ),
-            #         dcc.Tab(
-            #             id="Control-chart-tab",
-            #             label="Control Dashboard",
-            #             value="Control-chart-tab",
-            #             className="custom-tab",
-            #             selected_className="custom-tab--selected",
-            #         ),
-
-            #     ],
-            # )
-        #],
-    #)
 
 
 def serve_layout():
@@ -335,11 +302,11 @@ def update_live_graph(ts, outage_flag, external_signal_flag, fig_start_time, fig
             ymin, ymax = ymin - min_margin, ymax + max_margin
 
         fig.add_annotation(x=start_interval_figure, y=ymin,
-                           text=str((start_time + td(seconds=start_interval_figure)).time()),
+                           text=str((start_time + timedelta(seconds=start_interval_figure)).time()),
                            showarrow=False,
                            yshift=-50)
         fig.add_annotation(x=start_interval_figure, y=ymin,
-                           text=str((start_time + td(seconds=stop_interval_figure)).time()),
+                           text=str((start_time + timedelta(seconds=stop_interval_figure)).time()),
                            showarrow=False,
                            yshift=-50,
                            xshift=450)
