@@ -1,6 +1,7 @@
-import json
+
 from collections import deque
 from datetime import timedelta as td
+import logging
 
 import dash
 import dash_core_components as dcc
@@ -8,11 +9,22 @@ import dash_html_components as html
 import plotly.graph_objects as go
 from dash.dependencies import Input, Output, State
 
+from configuration import (
+    use_case_library,
+    gen_config,
+    control_config,
+    data_config,
+    battery_obj
+)
+
 from app import app
 from setting_layout import *
 from sim_runner_no_dashboard import *
 from simulation_layout import *
 
+logging.basicConfig(level=logging.DEBUG)
+logging.getLogger("pyomo.core").setLevel(logging.INFO)
+_log = logging.getLogger(__name__)
 
 @app.callback(
     Output('graph-update', 'interval'),
@@ -45,34 +57,7 @@ def build_banner():
     )
 
 
-def init_usecase():
-    with open("dict.json", 'r', encoding='utf-8') as lp:
-        gen_config = json.load(lp)
 
-    with open("control_fields.json", 'r', encoding='utf-8') as lp:
-        control_config = json.load(lp)
-
-    use_case_library = construct_use_case_library(gen_config, control_config)
-
-    return use_case_library
-
-
-def init_gen_config():
-    with open("dict.json", 'r', encoding='utf-8') as lp:
-        gen_config = json.load(lp)
-    return gen_config
-
-
-def init_control_config():
-    with open("control_fields.json", 'r', encoding='utf-8') as lp:
-        control_config = json.load(lp)
-    return control_config
-
-
-def init_data_config():
-    with open("data_paths.json", 'r', encoding='utf-8') as lp:
-        data_config = json.load(lp)
-    return data_config
 
 
 def build_tabs():
@@ -161,10 +146,10 @@ def serve_layout():
                     html.Div(
                         id="app-container",
                         children=[
-                            dcc.Store(id="usecase-store", storage_type="session", data=init_usecase()),
-                            dcc.Store(id="gen-config-store", storage_type="session", data=init_gen_config()),
-                            dcc.Store(id="control-config-store", storage_type="session", data=init_control_config()),
-                            dcc.Store(id="data-config-store", storage_type="session", data=init_data_config()),
+                            dcc.Store(id="usecase-store", storage_type="session", data=use_case_library),
+                            dcc.Store(id="gen-config-store", storage_type="session", data=gen_config),
+                            dcc.Store(id="control-config-store", storage_type="session", data=control_config),
+                            dcc.Store(id="data-config-store", storage_type="session", data=data_config),
                             dcc.Store(id="data-store", storage_type="session"),
                             dcc.Store(id="liveplot-store", storage_type="session"),
                             build_tabs(),
@@ -265,7 +250,6 @@ def stop_production(n_clicks, current):
            State("gen-config-store", "data"), State("data-config-store", "data"), State("usecase-store", "data")])
 # @cache.memoize
 # fig1= None
-
 def update_live_graph(ts, outage_flag, external_signal_flag, fig_start_time, fig_stop_time, price_change_value,
                       grid_load_change_value, update_window,
                       fig_leftdropdown, fig_rightdropdown, ess_soc_max_limit, ess_soc_min_limit, ess_capacity,
@@ -288,7 +272,7 @@ def update_live_graph(ts, outage_flag, external_signal_flag, fig_start_time, fig
     # gen_config['bat_capacity_kWh'] = ess_capacity
     gen_config['rated_kW'] = max_power
     gen_config['reserve_soc'] = ess_soc_min_limit / 100
-    battery_obj = battery_class_new(use_case_library, gen_config, data_config)
+#    battery_obj = battery_class_new(use_case_library, gen_config, data_config)
     new_reserve_up_cap = 500  # kW/5 minutes
     new_reserve_down_cap = 500  # kW/5 minutes
 
@@ -304,7 +288,7 @@ def update_live_graph(ts, outage_flag, external_signal_flag, fig_start_time, fig
         for key, value in use_case_library.items():
             priority_list.append(use_case_library[key]["priority"])
         SoC_temp = battery_obj.SoC_init
-        battery_obj.get_data()
+        # battery_obj.get_data()
         print('SoC Temp' + str(SoC_temp))
         # price_temp = 0.0
     elif ts > 0:
@@ -519,4 +503,5 @@ def update_live_graph(ts, outage_flag, external_signal_flag, fig_start_time, fig
 
 
 if __name__ == '__main__':
+    _log.debug("Creating server now.")
     app.run_server(debug=True, port=8051)
