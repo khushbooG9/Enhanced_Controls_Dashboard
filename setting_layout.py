@@ -1,6 +1,6 @@
-import dash_html_components as html
 import dash_core_components as dcc
 import dash_daq as daq
+import dash_html_components as html
 
 
 def build_settings_tab():
@@ -8,9 +8,10 @@ def build_settings_tab():
     Function to put together the settings tab
     """
     return html.Div(
-            id="system-configuration-menu",
-            children=[configuration_panel(), data_upload_panel()],
-        )
+        id="settings-container",
+        children=[configuration_panel(), data_upload_panel()],
+    )
+
 
 
 def dcc_date_picker():
@@ -90,6 +91,7 @@ def data_upload_panel():
         ]
 
     )
+
 
 def usecase_dcr_popup():
     """

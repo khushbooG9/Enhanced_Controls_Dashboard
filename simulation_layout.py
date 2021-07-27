@@ -117,7 +117,7 @@ def build_simulation_input_controls():
             html.Div(
                 id="data_resolution",
                 children=[
-                    dcc.Input(id='update-data-resolution-box', type="number", min=1, max=3600, step=60, value=1),
+                    dcc.Input(id='update-data-resolution-box', type="number", min=1, max=3600, step=60, value=1, className="input-number-box"),
                     html.Button('Data Resolution', id='submit-data-resolution', n_clicks=0)
             ]),
             html.Div(
