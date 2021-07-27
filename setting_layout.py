@@ -30,10 +30,12 @@ def upload_file(id):
 
 def data_upload_panel():
     return html.Div(
+        className= "data-upload-select-menu-wrapper",
         id="data-upload-select-menu-wrapper",
         children=[
             html.Div(
                 id="data-upload-select-menu",
+                className = "data-upload-select-menu",
                 children=[
                     html.H6("Upload"),
                     html.Br(),
@@ -126,14 +128,14 @@ def usecase_dcr_popup():
                                     children=[
                                         html.H6("Configuration"),
                                         html.Br(),
-                                        dcc.Dropdown(
-                                            id='variable-dcr-dropdown',
-                                            options=[
-                                                {'label': 'Grid Import', 'value': 'GI'},
-                                                {'label': 'Peak Load', 'value': 'PL'}
-                                            ],
-                                            value='GL'
-                                        ),
+                                        # dcc.Dropdown(
+                                        #     id='variable-dcr-dropdown',
+                                        #     options=[
+                                        #         {'label': 'Grid Import', 'value': 'GI'},
+                                        #         {'label': 'Peak Load', 'value': 'PL'}
+                                        #     ],
+                                        #     value='GL'
+                                        # ),
                                         html.Div(
                                             id="usecase-dcr-header",
                                             className="usecase-line-row",
@@ -354,9 +356,11 @@ def configuration_panel():
     """
     return html.Div(
         id="configuration-select-menu-wrapper",
+        className="configuration-select-menu-wrapper",
         children=[
             html.Div(
                 id="configuration-select-menu",
+                className="configuration-select-menu",
                 children=[
                     html.H6("Usecase Configuration"),
                     html.Br(),

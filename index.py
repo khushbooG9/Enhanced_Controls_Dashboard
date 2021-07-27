@@ -94,25 +94,25 @@ def build_tabs(pathname):
     return html.Div(children=[build_simulation_tab()] if pathname == '/charts' else [build_settings_tab()])
 
 
-# @app.callback(
-#     Output("settings-container", "style"),
-#     Output("simulation-container", "style"),
-#     Input("url", "pathname")
-# )
-# def change_tab(pathname):
-#     # leave styles undefined if not none so as to use custom display on the div
-#     spec_style = None
-#     chart_style = None
-#
-#     # Tab1 is chart
-#     if pathname == "/":
-#         chart_style = dict(display="none")
-#     elif pathname == "/charts":
-#         spec_style = dict(display="none")
-#     else:
-#         raise ValueError("Invalid value for tab!")
-#
-#     return spec_style, chart_style
+@app.callback(
+    Output("settings-container", "style"),
+    Output("simulation-container", "style"),
+    Input("url", "pathname")
+)
+def change_tab(pathname):
+    # leave styles undefined if not none so as to use custom display on the div
+    spec_style = None
+    chart_style = None
+
+    # Tab1 is chart
+    if pathname == "/":
+        chart_style = dict(display="none")
+    elif pathname == "/charts":
+        spec_style = dict(display="none")
+    else:
+        raise ValueError("Invalid value for tab!")
+
+    return spec_style, chart_style
 
 
 def serve_layout():
