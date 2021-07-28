@@ -20,12 +20,14 @@ from dotenv import load_dotenv
 load_dotenv()
 
 
+
+
 @app.callback(
     Output('graph-update', 'interval'),
     [Input('clicked-button', 'n_clicks')],
     [State('update-rate-box', 'value')])
 def update_output(n_clicks, value):
-    print("Trigger", value, n_clicks)
+    print("Trigger")
     return value
 
 
@@ -85,13 +87,25 @@ def init_data_config():
     return data_config
 
 
-@app.callback(dash.dependencies.Output('app-container', 'children'),
-              [dash.dependencies.Input('url', 'pathname')])
-def build_tabs(pathname):
+def build_tabs():
     """
-    Function to build both a tab based on the current route
+    Function to build both the tabs
     """
-    return html.Div(children=[build_simulation_tab()] if pathname == '/charts' else [build_settings_tab()])
+    tab_style = {
+        'color': '#0074D9',
+        'text-decoration': 'underline',
+        'margin': 30,
+        'cursor': 'pointer'
+    }
+
+    return html.Div(children=[
+        dcc.Location(id='url'),
+        dcc.Link('Configuration', id="settings-button", href='/', style=tab_style),
+        dcc.Link('Control Dashboard', id="simulation-button", href='/charts', style=tab_style),
+        build_settings_tab(),
+        build_simulation_tab()
+    ]
+    )
 
 
 @app.callback(
@@ -100,9 +114,8 @@ def build_tabs(pathname):
     Input("url", "pathname")
 )
 def change_tab(pathname):
-    # leave styles undefined if not none so as to use custom display on the div
-    spec_style = None
-    chart_style = None
+    spec_style = dict(display="block")
+    chart_style = dict(display="block")
 
     # Tab1 is chart
     if pathname == "/":
@@ -134,7 +147,7 @@ def serve_layout():
                             dcc.Store(id="data-config-store", storage_type="session", data=init_data_config()),
                             dcc.Store(id="data-store", storage_type="session"),
                             dcc.Store(id="liveplot-store", storage_type="session"),
-                            # build_tabs(),
+                            build_tabs(),
                             dcc.Interval(id='graph-update', interval=1000, n_intervals=0, disabled=True)
 
                         ],
@@ -185,6 +198,8 @@ def update_click_output1(button_click, close_click):
             Output("switch_rp", "on")],
 )
 def make_usecase_active(s1, s2, s3, s4):
+    print(f"s1 = {s1}, s2 = {s2}, s3 = {s3}, s4 = {s4}")
+
     if s1:
         d1a, d1b = False, False
     else:
