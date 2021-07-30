@@ -16,8 +16,31 @@ from sim_runner_no_dashboard import *
 from collections import deque
 import json
 from dotenv import load_dotenv
+from configuration import (
+    use_case_library,
+    gen_config,
+    control_config,
+    data_config,
+    battery_obj
+)
 
+# add ability to access environment variables from .env, like os.environ.get(<VAR>)
 load_dotenv()
+
+HOME_PATH = '/'
+CHARTS_PATH = '/charts',
+ROUTES = [
+    {
+        'pathname': HOME_PATH,
+        'component': build_settings_tab(),
+        'name': 'Config',
+    },
+    {
+        'pathname': '/charts',
+        'component': build_simulation_tab(),
+        'name': 'Dash',
+    }
+]
 
 
 @app.callback(
@@ -29,7 +52,31 @@ def update_output(n_clicks, value):
     return value
 
 
-def build_banner():
+@app.callback([Output("banner-button-config", "className"),
+               Output("banner-button-dash", "className"), Output('simulation-container', 'style'),
+               Output('settings-container', 'style')],
+              [dash.dependencies.Input('url', 'pathname')])
+def route(pathname):
+    """
+    builds the routes
+    """
+    class_name = "banner__button"
+    active_class_name = f"{class_name} {class_name}--active"
+
+    classes = []
+    styles = []
+    for i, r in enumerate(ROUTES):
+        if r['pathname'] == pathname:
+            classes.append(active_class_name)
+            styles.append(dict(display="none"))
+        else:
+            classes.append(class_name)
+            styles.append(None)
+
+    return classes + styles
+
+
+def build_navbar():
     return html.Div(
         id="banner",
         className="banner",
@@ -38,11 +85,12 @@ def build_banner():
                 id="banner-logo",
                 className="banner__logo",
                 children=[
-                    html.Img(id="logo", src=app.get_asset_url("PNNL Vertical Logo (.svg).svg")),
+                    html.Img(id="logo", src=app.get_asset_url("pnnl_logo.svg")),
                 ],
             ),
-            dcc.Link(className='banner__button', href='/', children='Config'),
-            dcc.Link(className='banner__button banner__button--active', href='/charts', children='Dash'),
+            dcc.Link(className='banner__button', href='/', children='Config', id="banner-button-config"),
+            dcc.Link(className='banner__button', href='/charts', children='Dash',
+                     id="banner-button-dash"),
             html.Div(
                 id="banner-text",
                 className="banner__text",
@@ -55,88 +103,29 @@ def build_banner():
     )
 
 
-def init_usecase():
-    with open("dict.json", 'r', encoding='utf-8') as lp:
-        gen_config = json.load(lp)
-
-    with open("control_fields.json", 'r', encoding='utf-8') as lp:
-        control_config = json.load(lp)
-
-    use_case_library = construct_use_case_library(gen_config, control_config)
-
-    return use_case_library
-
-
-def init_gen_config():
-    with open("dict.json", 'r', encoding='utf-8') as lp:
-        gen_config = json.load(lp)
-    return gen_config
-
-
-def init_control_config():
-    with open("control_fields.json", 'r', encoding='utf-8') as lp:
-        control_config = json.load(lp)
-    return control_config
-
-
-def init_data_config():
-    with open("data_paths.json", 'r', encoding='utf-8') as lp:
-        data_config = json.load(lp)
-    return data_config
-
-
-@app.callback(dash.dependencies.Output('app-container', 'children'),
-              [dash.dependencies.Input('url', 'pathname')])
-def build_tabs(pathname):
-    """
-    Function to build both a tab based on the current route
-    """
-    return html.Div(children=[build_simulation_tab()] if pathname == '/charts' else [build_settings_tab()])
-
-
-@app.callback(
-    Output("settings-container", "style"),
-    Output("simulation-container", "style"),
-    Input("url", "pathname")
-)
-def change_tab(pathname):
-    # leave styles undefined if not none so as to use custom display on the div
-    spec_style = None
-    chart_style = None
-
-    # Tab1 is chart
-    if pathname == "/":
-        chart_style = dict(display="none")
-    elif pathname == "/charts":
-        spec_style = dict(display="none")
-    else:
-        raise ValueError("Invalid value for tab!")
-
-    return spec_style, chart_style
-
-
 def serve_layout():
     return html.Div(
-        [
+        className="app",
+        children=[
             dcc.Location(id="url", refresh=False),
+            build_navbar(),
             html.Div(
                 id="big-app-container",
-                className="app",
+                className="main-content",
                 children=[
-                    build_banner(),
                     html.Div(
                         id="app-container",
                         className="main-content",
                         children=[
-                            dcc.Store(id="usecase-store", storage_type="session", data=init_usecase()),
-                            dcc.Store(id="gen-config-store", storage_type="session", data=init_gen_config()),
-                            dcc.Store(id="control-config-store", storage_type="session", data=init_control_config()),
-                            dcc.Store(id="data-config-store", storage_type="session", data=init_data_config()),
+                            dcc.Store(id="usecase-store", storage_type="session", data=use_case_library),
+                            dcc.Store(id="gen-config-store", storage_type="session", data=gen_config),
+                            dcc.Store(id="control-config-store", storage_type="session", data=control_config),
+                            dcc.Store(id="data-config-store", storage_type="session", data=data_config),
                             dcc.Store(id="data-store", storage_type="session"),
                             dcc.Store(id="liveplot-store", storage_type="session"),
-                            # build_tabs(),
-                            dcc.Interval(id='graph-update', interval=1000, n_intervals=0, disabled=True)
-
+                            build_settings_tab(),
+                            build_simulation_tab(),
+                            dcc.Interval(id='graph-update', interval=1000, n_intervals=0, disabled=True),
                         ],
                     ),
                 ],
@@ -255,7 +244,7 @@ def update_live_graph(ts, outage_flag, external_signal_flag, fig_start_time, fig
     # gen_config['bat_capacity_kWh'] = ess_capacity
     gen_config['rated_kW'] = max_power
     gen_config['reserve_soc'] = ess_soc_min_limit / 100
-    battery_obj = battery_class_new(use_case_library, gen_config, data_config)
+    #    battery_obj = battery_class_new(use_case_library, gen_config, data_config)
     new_reserve_up_cap = 500  # kW/5 minutes
     new_reserve_down_cap = 500  # kW/5 minutes
 
@@ -271,7 +260,7 @@ def update_live_graph(ts, outage_flag, external_signal_flag, fig_start_time, fig
         for key, value in use_case_library.items():
             priority_list.append(use_case_library[key]["priority"])
         SoC_temp = battery_obj.SoC_init
-        battery_obj.get_data()
+        # battery_obj.get_data()
         print('SoC Temp' + str(SoC_temp))
         # price_temp = 0.0
     elif ts > 0:
