@@ -1,6 +1,6 @@
-import dash_html_components as html
 import dash_core_components as dcc
 import dash_daq as daq
+import dash_html_components as html
 
 
 def build_settings_tab():
@@ -15,9 +15,9 @@ def build_settings_tab():
 
 
 def dcc_date_picker():
-    return dcc.DatePickerRange(
+    return html.Div(dcc.DatePickerRange(
         start_date_placeholder_text="Start Period",
-        end_date_placeholder_text="End Period", )
+        end_date_placeholder_text="End Period", ), className="upload__date-picker")
 
 
 def upload_file(id):
@@ -30,68 +30,64 @@ def upload_file(id):
 
 def data_upload_panel():
     return html.Div(
-        className= "data-upload-select-menu-wrapper",
+        className="settings-container__upload__wrapper",
         id="data-upload-select-menu-wrapper",
         children=[
             html.Div(
                 id="data-upload-select-menu",
-                className = "data-upload-select-menu",
+                className="settings-container__upload",
                 children=[
-                    html.H6("Upload"),
-                    html.Br(),
                     html.Div(
-                        id="data-upload-dropdown-label-profile",
+                        className="upload",
                         children=[
+                            html.H6("Upload"),
+                            html.Br(),
                             html.Div(
+                                id="data-upload-dropdown-label-profile",
                                 children=[
-                                    html.Label("Load Profile Data"),
-                                    dcc_date_picker(),
-                                    upload_file("upload-load-profile-data")
+                                    html.Div(
+                                        className="upload__row",
+                                        children=[
+                                            html.Label("Load Profile Data"),
+                                            dcc_date_picker(),
+                                            upload_file("upload-load-profile-data")
+                                        ]
+                                    ),
                                 ]
                             ),
-                            html.Hr(),
-                        ]
-                    ),
-                    # html.Br(),
-                    # html.Div(id='output-upload-load-profile-data'),
-                    html.Br(),
-                    html.Div(
-                        id="data-upload-dropdown-label-energy-prices",
-                        children=[
+                            html.Br(),
                             html.Div(
+                                id="data-upload-dropdown-label-energy-prices",
                                 children=[
-                                    html.Label("Energy Price Data"),
-                                    dcc_date_picker(),
-                                    upload_file("upload-energy-price-data")
+                                    html.Div(
+                                        className="upload__row",
+                                        children=[
+                                            html.Label("Energy Price Data"),
+                                            dcc_date_picker(),
+                                            upload_file("upload-energy-price-data")
+                                        ]
+                                    ),
                                 ]
                             ),
-                            html.Hr(),
-                            # html.Div(id='output-upload-cable-data'),
-                        ]
-                    ),
-                    # html.Br(),
-                    # html.Div(id='output-upload-energy-price-data'),
-                    html.Br(),
-                    html.Div(
-                        id="data-upload-dropdown-label-ess-data",
-                        children=[
+                            html.Br(),
                             html.Div(
+                                id="data-upload-dropdown-label-ess-data",
                                 children=[
-                                    html.Label("ESS Data"),
-                                    upload_file("upload-ess-data")
+                                    html.Div(
+                                        className="upload__row",
+                                        children=[
+                                            html.Label("ESS Data"),
+                                            upload_file("upload-ess-data")
+                                        ]
+                                    ),
                                 ]
                             ),
-                            html.Hr(),
-                            # html.Div(id='output-upload-cable-data'),
                         ]
                     ),
-                    # html.Div(id='output-upload-ess-data'),
-
+                    html.Br(),
                 ]
-            ),
-            html.Br(),
+            )
         ]
-
     )
 
 
@@ -188,7 +184,7 @@ def usecase_dcr_popup():
                                             children=[
                                                 html.Label("Control Type", className="usecase-dcr-label"),
                                                 daq.BooleanSwitch(on=False, id="control-type-input1",
-                                                                  className="usecase-switch", color="#cc3300",
+                                                                  className="usecase-switch", color="#007836",
                                                                   label="Optimization"),
                                                 daq.BooleanSwitch(on=False, id="control-type-input2",
                                                                   className="usecase-switch", color="#cc3300",
@@ -218,22 +214,25 @@ def usecase_dcr_popup():
 def build_usecase_line(line_num, label, switch_value, dd_value, value):
     return html.Div(
         id=line_num,
-        className="usecase-line-row",
+        className="usecase-configuration__line",
         children=[
-            html.Label(label, className="usecase-label"),
-            daq.BooleanSwitch(on=False, className="usecase-switch", color="#cc3300", id=switch_value),
-            dcc.Dropdown(
-                className="usecase-dropdown",
-                id=dd_value,
-                options=[
-                    {'label': '1', 'value': 1},
-                    {'label': '2', 'value': 2},
-                    {'label': '3', 'value': 3},
-                    {'label': '4', 'value': 4}
-                ],
-                disabled=True,
+            html.Label(label, className="usecase-configuration__label"),
+            daq.BooleanSwitch(on=False, className="usecase-configuration__switch", color="#00ab4d", id=switch_value),
+            html.Div(
+                dcc.Dropdown(
+
+                    id=dd_value,
+                    options=[
+                        {'label': '1', 'value': 1},
+                        {'label': '2', 'value': 2},
+                        {'label': '3', 'value': 3},
+                        {'label': '4', 'value': 4}
+                    ],
+                    disabled=True,
+                ), className="usecase-configuration__dropdown",
             ),
-            html.Button("Configure", className="usecase-set-button", id=value, disabled=True, n_clicks=0)
+
+            html.Button("Configure", className="usecase-configuration__set-button", id=value, disabled=True, n_clicks=0)
         ],
 
     )
@@ -356,38 +355,57 @@ def configuration_panel():
     """
     return html.Div(
         id="configuration-select-menu-wrapper",
-        className="configuration-select-menu-wrapper",
+        className="settings-container__configuration__wrapper",
         children=[
             html.Div(
                 id="configuration-select-menu",
-                className="configuration-select-menu",
+                className="settings-container__configuration",
                 children=[
-                    html.H6("Usecase Configuration"),
-                    html.Br(),
-                    # html.Br(),
                     html.Div(
-                        id="usecase-header",
-                        className="usecase-line-row",
+                        className="usecase-configuration",
                         children=[
-                            html.Label("Usecase", className="usecase-label"),
-                            html.Label("Select", className="usecase-switch"),
-                            html.Label("Priority", className="usecase-dropdown"),
-                            "Configure Usecase",  # html.Div(col, className="value-setter")
-                        ],
-                    ),
-                    build_usecase_line("demand-charge-reduction", "Demand Charge Reduction", "switch_dcr", "dd_dcr",
-                                       "dcr"),
-                    build_usecase_line("power-factor-correction", "Power Factor Correction", "switch_pfc", "dd_pfc",
-                                       "pfc"),
-                    # html.Br(),
-                    build_usecase_line("arbitrage", "Arbitrage", "switch_arb", "dd_arb", "arb"),
-                    # html.Br(),
-                    build_usecase_line("revserves-placement", "Reserves Placement", "switch_rp", "dd_rp", "rp"),
-                    html.Br(),
-                    html.Div(
-                        id="dropdown-button",
-                        children=[html.Button("Update", className="", n_clicks=0), ]
-                    ),
+                            html.H6("Usecase Configuration"),
+                            html.Br(),
+                            # html.Br(),
+                            html.Div(
+                                id="usecase-header",
+                                className="usecase-configuration__header",
+                                children=[
+                                    html.Label("Usecase",
+                                               className="usecase-configuration__label"),
+                                    html.Label("Select",
+                                               className="usecase-configuration__switch"),
+                                    html.Label("Priority",
+                                               className="usecase-configuration__dropdown"),
+                                    html.P("Configure Usecase", className="usecase-configuration__button-label"),
+                                    # html.Div(col, className="value-setter")
+                                ],
+                            ),
+                            build_usecase_line("demand-charge-reduction",
+                                               "Demand Charge Reduction",
+                                               "switch_dcr", "dd_dcr",
+                                               "dcr"),
+                            build_usecase_line("power-factor-correction",
+                                               "Power Factor Correction",
+                                               "switch_pfc", "dd_pfc",
+                                               "pfc"),
+                            # html.Br(),
+                            build_usecase_line("arbitrage", "Arbitrage",
+                                               "switch_arb", "dd_arb",
+                                               "arb"),
+                            # html.Br(),
+                            build_usecase_line("reserves-placement",
+                                               "Reserves Placement",
+                                               "switch_rp", "dd_rp",
+                                               "rp"),
+                            html.Br(),
+                            html.Div(
+                                id="dropdown-button",
+                                className="usecase-configuration__button",
+                                children=[html.Button(html.H6("Update"),
+                                                      n_clicks=0)]
+                            ), ]),
+
                 ]
             ),
 

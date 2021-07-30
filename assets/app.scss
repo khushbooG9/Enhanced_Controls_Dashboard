@@ -1,0 +1,480 @@
+/*
+NOTE: EDITS IN THIS FILE WILL NOT SHOW UP UNLESS YOU HAVE A SCSS FILE WATCHER ENABLED IN PYCHARM
+*/
+
+$primary: #616265;
+$secondary: #191C1F;
+$text-color: rgba(whitesmoke, 0.6);
+$accent1: #d47827;
+$accent2: #007836;
+
+html, body {
+  background: $primary;
+  color: $text-color;
+  font-family: "Open Sans", sans-serif;
+  width: 100%;
+  //width: 100vw;
+  height: 100vh;
+  margin: 0;
+}
+
+$app-padding: 6rem;
+$app-width: calc(100% - #{2 * $app-padding});
+.app {
+  max-width: 100%;
+  //width: $app-width;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  //padding: 0 $app-padding;
+}
+
+/* Pieces */
+
+$banner-logo-height: 5em;
+$banner-height: calc(1em + #{$banner-logo-height});
+.banner {
+  height: $banner-height;
+  background-color: lighten($secondary, 10%);
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-start;
+  position: sticky;
+  top: 0;
+  border-bottom: 2px solid $accent1;
+  // place just underneath the dash error list, above the rest of the content
+  z-index: 1099;
+
+  &__button {
+    text-align: center;
+    color: $accent2;
+    font-weight: bold;
+    max-width: 20ch;
+    min-width: 12ch;
+    line-height: $banner-height;
+    box-sizing: border-box;
+    padding: .5rem;
+    height: 100%;
+
+    &--active {
+      background-color: lighten($secondary, 5%);
+    }
+
+    &:hover {
+      background-color: lighten($secondary, 15%);
+    }
+  }
+
+  &__text {
+    margin: 0 0.5em 0 auto;
+    text-align: right;
+  }
+
+  &__logo > img {
+    padding: 0.5em;
+    height: $banner-logo-height;
+  }
+
+  h5 {
+    font-family: 'Open Sans Semi Bold', sans-serif;
+    font-weight: 500;
+    line-height: 1.2;
+    font-size: 2rem;
+    letter-spacing: 0.1rem;
+    text-transform: uppercase;
+  }
+
+  h6 {
+    font-size: 1.6rem;
+    line-height: 1;
+  }
+}
+
+.main-content {
+  width: 100%;
+  //&::before {
+  //  content: '';
+  //  position: absolute;
+  //  width: 100%;
+  //  left: 0;
+  //  right: 0;
+  //  border-bottom: 2px solid $accent1;
+  //}
+}
+
+.display-switch {
+  display: flex;
+  justify-content: space-around;
+  height: 4rem;
+
+  &__button {
+    text-align: center;
+    background-color: $accent2;
+    width: 150px;
+    //height: 50px;
+    color: $text-color;
+    border-radius: 6px;
+    padding: .5rem;
+    margin: .5rem 0;
+    height: 2rem;
+    opacity: .7;
+
+    &--active {
+      opacity: 1;
+    }
+  }
+}
+
+input[type="number"] {
+  width: 100px;
+  margin-right: 5px;
+  text-align: right;
+}
+
+%container {
+  letter-spacing: 1px;
+  display: flex;
+}
+
+.simulation-container {
+  @extend %container;
+
+  &__buttons-panel {
+    width: 50%;
+  }
+
+  & .graphs-container {
+    width: 50%;
+    display: flex;
+      flex-direction: column;
+    &__row {
+      display: flex;
+    }
+  }
+}
+
+.settings-container {
+  @extend %container;
+  box-sizing: border-box;
+  border-bottom: 2px solid $accent1;
+
+  &__upload {
+    overflow-y: hidden;
+  }
+
+  &__configuration__wrapper, &__upload__wrapper {
+    width: 50%;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-evenly;
+    align-items: center;
+  }
+}
+
+.upload {
+  overflow: hidden;
+}
+
+%main-content {
+  width: 100%;
+  box-sizing: content-box;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-evenly;
+  align-items: stretch;
+  padding: 2rem 0;
+
+  & > h6 {
+    text-align: center;
+    font-weight: 700;
+  }
+}
+
+.main-button {
+  border-radius: 4px;
+  color: $text-color;
+  background-color: $accent2;
+  border: 1px solid $accent1;
+  text-transform: none;
+  font-size: 1em;
+}
+
+.usecase-configuration {
+  @extend %main-content;
+
+  & > h6 {
+    grid-area: head;
+  }
+
+  &__header {
+    display: flex;
+    justify-content: space-between;
+    font-weight: bold;
+    line-height: 1;
+    padding: 2rem 0 1rem;
+    margin-bottom: 1rem;
+    border-top: 1px solid $secondary;
+    border-bottom: 1px solid $secondary;
+  }
+
+  &__line {
+    //color: $primary;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    //& > * {
+    //  margin-right: 1em;
+    //}
+
+    .dash-dropdown {
+      color: $secondary;
+
+      span.Select-clear:hover {
+        color: $accent2;
+      }
+    }
+  }
+
+  &__label {
+    flex: 3 1;
+    word-break: break-all;
+    hyphens: auto;
+  }
+
+  &__switch {
+    flex: 2 1;
+  }
+
+  &__dropdown {
+    flex: 3 1;
+    padding-right: 1em;
+  }
+
+  &__button-label {
+    flex: 1 1;
+  }
+
+  &__set-button {
+    margin: 0 auto;
+    width: 25ch;
+    flex: 1 1;
+    border-radius: 4px;
+    color: $text-color;
+    background-color: $accent2;
+    border: 1px solid $accent1;
+  }
+
+  &__button {
+    margin: 0 auto;
+
+    & > button {
+      @extend .main-button;
+    }
+  }
+}
+
+.button-panel {
+  margin: 0 auto;
+  width: 60%;
+
+  & > div {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 1em;
+
+    & .button {
+      @extend .main-button;
+    }
+  }
+}
+
+.price-change-slider, .grid-load-change-slider {
+  $track-color: lighten($accent2, 40%);
+
+  .rc-slider-track {
+    background-color: $track-color;
+  }
+
+  .rc-slider-handle:hover {
+    background-color: $track-color;
+  }
+
+  &[class^="rc-slider-dot"], &[class^="rc-slider-handle"], &[class="rc-slider-dot-active"] {
+    border-color: $track-color;
+  }
+
+  & .rc-slider-mark-text-active {
+    color: lighten($accent1, 20%)
+  }
+}
+
+.upload {
+  @extend %main-content;
+
+  &__row {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+    text-align: left;
+
+    &::before {
+      content: '';
+      width: 80vw;
+      margin-bottom: 1em;
+      border-bottom: 3px solid $accent2;
+    }
+
+    &__break {
+      width: 100%;
+    }
+  }
+
+  &__date-picker {
+    margin: 1em 0;
+  }
+
+  &__button {
+    margin: 0 auto;
+    width: 25ch;
+
+    & button {
+      @extend .main-button;
+    }
+  }
+}
+
+#data-upload-select-menu-wrapper {
+  border-left: 2px solid $accent1;
+}
+
+#markdown-panelb h6, #markdown-panel2b h6 {
+  text-align: center;
+  font-weight: 500;
+}
+
+
+/* panels on the settings tab */
+/*
+#settings-container {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  justify-content: space-evenly;
+  margin: 4rem 5rem 1rem;
+}
+*/
+
+//#simulation-container {
+//  width: 100%;
+//  max-width: 100%;
+//  height: 100%;
+//  display: flex;
+//  flex-direction: row;
+//  background-color: #EFEDED;
+//  justify-content: center;
+//  margin: 0;
+//  padding: 0;
+//}
+
+/* The Modal (background) */
+#markdown-container, #markdown-container2, #markdown-container3, #markdown-container4, #markdown-container5 {
+  width: 40%;
+  background-color: #EFEDED;
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.markdown-content, .markdown-content2, .markdown-content3, .markdown-content4, .markdown-content5 {
+  display: flex;
+  flex-direction: row;
+  border-left: white solid 0.8rem;
+  border-right: white solid 0.8rem;
+  border-bottom: white solid 0.8rem;
+}
+
+.usecase-set-button {
+  @extend .main-button;
+  width: 16ch;
+  margin: 0 0.5em 0.5em;
+}
+
+
+#markdown-panela, #markdown-panel2a, #markdown-panel3a, #markdown-panel4a {
+  display: flex;
+  flex-direction: row;
+  width: 90%;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  margin: auto;
+}
+
+/* Usecase configuration buttons */
+
+.usecase-line-row {
+  display: flex;
+  flex-direction: row;
+}
+
+.usecase-switch {
+  //margin-left: auto;
+  //margin-right: auto;
+}
+
+.usecase-dropdown {
+  width: 100px;
+  align-items: right;
+  border-radius: 4px;
+  /*margin-right: 60px;*/
+}
+
+.usecase-setting-input {
+
+  margin-left: auto;
+}
+
+.usecase-line-row {
+  display: flex;
+  flex-direction: row;
+}
+
+
+#value-setter-panel-header2, #usecase-dcr-header, #usecase-pfc-header {
+  font-weight: bold;
+  color: darkgray;
+  line-height: 1;
+  padding: 2rem 0;
+  border-top: 1px solid #4b5460;
+  border-bottom: 1px solid #4b5460;
+}
+
+#usecase-header > div, #value-setter-panel-header2 > div, #usecase-dcr-header > div, #usecase-pfc-header > div {
+  text-align: center;
+}
+
+#control-type-input1, #control-type-input21 {
+
+  align-items: center;
+  margin-right: -40%;
+}
+
+#control-type-input2, #control-type-input22 {
+  margin-right: 2px;
+}
+
+.modal {
+  display: none; /*Hidden by default */
+  position: fixed; /* Stay in place */
+  z-index: 1005; /* Sit on top */
+  left: 0;
+  top: 0;
+  width: 100vw; /* Full width */
+  height: 100vh; /* Full height */
+  overflow: auto; /* Enable scroll if needed */
+  background-color: rgb(0, 0, 0); /* Fallback color */
+  background-color: rgba(0, 0, 0, 0.4); /* Black w/ opacity */
+}
