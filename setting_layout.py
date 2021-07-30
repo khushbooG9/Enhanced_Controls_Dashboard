@@ -1,6 +1,6 @@
-import dash_html_components as html
 import dash_core_components as dcc
 import dash_daq as daq
+import dash_html_components as html
 
 
 def build_settings_tab():

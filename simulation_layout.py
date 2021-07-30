@@ -10,7 +10,6 @@ label_style = {'textAlign': 'center',  'fontSize': '16px'}
 label_style_1 = {'textAlign': 'left',  'fontSize': '15px'}
 
 
-
 def build_simulation_tab():
     """
     Function to put together the simulation  tab
@@ -25,7 +24,17 @@ def build_simulation_tab():
                 className="graphs-container",
                 children=[build_top_panel(), build_bottom_panel()],
             ),
-        ],
+        ]
+    )
+
+
+
+def build_price_change_button():
+    return html.Div(
+        id="card-1",
+        children=[html.Button("Price change in load", className="", id="button1", n_clicks=0),
+                  # html.Div(id='price-change-button'),
+                  ],
     )
 
 
@@ -52,7 +61,6 @@ def build_price_change_slider():
             value=0,
             updatemode='drag'
         ),
-        # html.Div(id='slider-output-container')
     ])
 
 
@@ -79,7 +87,6 @@ def grid_load_change_slider():
             value=0,
             updatemode='drag'
         ),
-        # html.Div(id='slider-output-container')
     ])
 
 
@@ -96,6 +103,7 @@ def build_unscheduled_outage_button():
         # html.Div(id='Unscheduled-outage-button'),
     ],
     )
+
 
 def build_external_signal_button():
     return html.Div([
@@ -120,8 +128,6 @@ def build_stop_button():
             daq.StopButton(id="stop-button", labelPosition='top', size=160, n_clicks=0),
         ],
     )
-
-
 
 
 def build_simulation_input_controls():
@@ -292,6 +298,7 @@ def ess_parameter_block_2():
                                 )]),
 
         ])])
+
 
 def build_top_panel():
     """

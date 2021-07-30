@@ -1,11 +1,12 @@
-from app import app
-from setting_layout import *
-from simulation_layout import *
+import logging
+import os
+from collections import deque
+from datetime import timedelta
+from datetime import datetime
+
 import dash
-import dash_html_components as html
 import dash_core_components as dcc
-from dash.dependencies import Input, Output, State
-from plotly.subplots import make_subplots
+import dash_html_components as html
 import plotly.graph_objects as go
 from datetime import datetime as dt, timedelta as td
 import dash_daq as daq
@@ -16,6 +17,10 @@ from sim_runner_no_dashboard import *
 from collections import deque
 import json
 from dotenv import load_dotenv
+from dash.dependencies import Input, Output, State
+import numpy as np
+
+from app import app
 from configuration import (
     use_case_library,
     gen_config,
@@ -23,6 +28,8 @@ from configuration import (
     data_config,
     battery_obj
 )
+from setting_layout import *
+from simulation_layout import *
 
 # add ability to access environment variables from .env, like os.environ.get(<VAR>)
 load_dotenv()
@@ -41,6 +48,10 @@ ROUTES = [
         'name': 'Dash',
     }
 ]
+
+logging.basicConfig(level=logging.DEBUG)
+logging.getLogger("pyomo.core").setLevel(logging.INFO)
+_log = logging.getLogger(__name__)
 
 
 @app.callback(
@@ -312,11 +323,11 @@ def update_live_graph(ts, outage_flag, external_signal_flag, fig_start_time, fig
             ymin, ymax = ymin - min_margin, ymax + max_margin
 
         fig.add_annotation(x=start_interval_figure, y=ymin,
-                           text=str((start_time + td(seconds=start_interval_figure)).time()),
+                           text=str((start_time + timedelta(seconds=start_interval_figure)).time()),
                            showarrow=False,
                            yshift=-50)
         fig.add_annotation(x=start_interval_figure, y=ymin,
-                           text=str((start_time + td(seconds=stop_interval_figure)).time()),
+                           text=str((start_time + timedelta(seconds=stop_interval_figure)).time()),
                            showarrow=False,
                            yshift=-50,
                            xshift=450)
@@ -477,4 +488,5 @@ def update_live_graph(ts, outage_flag, external_signal_flag, fig_start_time, fig
 if __name__ == '__main__':
     truthy_values = ('true', '1')
     should_debug = os.environ.get('DEBUG').lower() in truthy_values
+    _log.debug("Creating server now.")
     app.run_server(debug=should_debug, port=os.environ.get('PORT'))
