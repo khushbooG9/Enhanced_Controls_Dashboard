@@ -2,7 +2,7 @@ import dash_html_components as html
 import dash_core_components as dcc
 import dash_daq as daq
 import plotly.graph_objects as go
-from components.dropdown_graph import common_graph, common_slider
+from components.common import common_graph, common_slider, common_switch
 
 style = {'width': '100%', 'height': '30px', 'lineHeight': '30px', 'borderWidth': '1px', 'borderStyle': 'dashed',
          'borderRadius': '2px', 'textAlign': 'center', 'margin': '10px', 'fontSize': '12px'}
@@ -25,36 +25,6 @@ def build_simulation_tab():
                 children=[build_top_panel(), html.Br(), build_bottom_panel()],
             ),
         ]
-    )
-
-
-def build_unscheduled_outage_button():
-    return html.Div([
-        html.Label('Unschedule Outage', style=label_style),
-        daq.ToggleSwitch(
-            id='outage-switch',
-            label=['OFF', 'ON'],
-            labelPosition='bottom',
-            color='green',
-            value=False
-        ),
-        # html.Div(id='Unscheduled-outage-button'),
-    ],
-    )
-
-
-def build_external_signal_button():
-    return html.Div([
-        html.Label('Regulation Signal', style=label_style),
-        daq.ToggleSwitch(
-            id='external-switch',
-            label=['OFF', 'ON'],
-            labelPosition='bottom',
-            color='green',
-            value=False
-        ),
-        # html.Div(id='Unscheduled-outage-button'),
-    ],
     )
 
 
@@ -130,9 +100,9 @@ def build_simulation_controls():
             common_slider(id='grid-load-change-slider', className='grid-load-change-slider', label_name="Load Change",
                           label_style=label_style),
             html.Br(),
-            build_unscheduled_outage_button(),
+            common_switch(id='outage-switch', label_name='Unschedule Outage', label_style=label_style),
             html.Br(),
-            build_external_signal_button(),
+            common_switch(id='external-switch', label_name='Regulation Signal', label_style=label_style),
             html.Br(),
             revenue_block(),
             build_stop_button(),

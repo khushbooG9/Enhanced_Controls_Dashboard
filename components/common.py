@@ -1,6 +1,7 @@
 from typing import Optional
 import dash_core_components as dcc
 import dash_html_components as html
+import dash_daq as daq
 
 
 def common_dropdown_box(id: str, default_value: str):
@@ -77,3 +78,18 @@ def common_slider(id: str, className: str, label_name, label_style,
             updatemode=updatemode
         ),
     ])
+
+
+def common_switch(id, label_name, label_style, switch_label=['OFF', 'ON'],
+                  label_position='bottom', color='green', value=False):
+    return html.Div([
+        html.Label(label_name, style=label_style),
+        daq.ToggleSwitch(
+            id=id,
+            label=switch_label,
+            labelPosition=label_position,
+            color=color,
+            value=value
+        ),
+    ],
+    )
