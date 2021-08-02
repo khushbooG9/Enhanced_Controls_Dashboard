@@ -36,7 +36,7 @@ html, body {
   font-weight: bold;
   max-width: 20ch;
   min-width: 12ch;
-  line-height: calc(1em + 5em);
+  line-height: calc(2em + 5em);
   box-sizing: border-box;
   padding: 0.5rem;
   height: 100%;
@@ -53,7 +53,7 @@ html, body {
 }
 .banner__logo > img {
   padding: 0.5em;
-  height: 5em;
+  height: 8em;
 }
 .banner h5 {
   font-family: "Open Sans Semi Bold", sans-serif;
@@ -104,10 +104,19 @@ input[type=number] {
 }
 
 .simulation-container__buttons-panel {
-  width: 50%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  border-right: white solid 0.8rem;
+  border-bottom: white solid 0.8rem;
+  /*flex: 1 1;
+  padding: 2rem;*/
+  max-width: 25%;
+  width: 25%;
 }
 .simulation-container .graphs-container {
-  width: 50%;
+  width: 75%;
   display: flex;
   flex-direction: column;
 }
@@ -134,15 +143,26 @@ input[type=number] {
   overflow: hidden;
 }
 
-.upload, .usecase-configuration {
+.upload {
   width: 100%;
   box-sizing: content-box;
   display: flex;
   flex-direction: column;
   justify-content: space-evenly;
-  align-items: stretch;
+  align-items: center;
   padding: 2rem 0;
 }
+
+.usecase-configuration {
+  width: 140%;
+  box-sizing: content-box;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-evenly;
+  align-items: stretch;
+  padding: 1rem 0;
+}
+
 .upload > h6, .usecase-configuration > h6 {
   text-align: center;
   font-weight: 700;
@@ -160,6 +180,7 @@ input[type=number] {
 .usecase-configuration > h6 {
   grid-area: head;
 }
+
 .usecase-configuration__header {
   display: flex;
   justify-content: space-between;
@@ -219,6 +240,7 @@ input[type=number] {
 }
 .price-change-slider .rc-slider-track, .grid-load-change-slider .rc-slider-track {
   background-color: #45ff99;
+
 }
 .price-change-slider .rc-slider-handle:hover, .grid-load-change-slider .rc-slider-handle:hover {
   background-color: #45ff99;
@@ -228,6 +250,7 @@ input[type=number] {
 }
 .price-change-slider .rc-slider-mark-text-active, .grid-load-change-slider .rc-slider-mark-text-active {
   color: #e7ad7a;
+  width: 100%;
 }
 
 .upload__row {
@@ -347,6 +370,45 @@ input[type=number] {
 
 #control-type-input2, #control-type-input22 {
   margin-right: 2px;
+}
+
+#revenue-block {
+  width: 100%;
+  box-sizing: content-box;
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  border: 2px solid #e67300;
+  /*background-color:  #ffcc99;
+  justify-content: space-evenly;
+  /*
+  /*display: inline-block;*/
+  margin: 15px;
+  padding: 2%;
+  max-width: 90%;
+  font-weight: 100;
+}
+
+#ess-parameter-block {
+  width: 100%;
+  box-sizing: content-box;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-evenly;
+  align-items: flex-start;
+  border: 2px solid #e67300;
+  /*background-color:  #ffcc99;
+  /*
+  /*display: inline-block;*/
+  margin: 15px;
+  padding: 2%;
+  max-width: 90%;
+  font-weight: 100;
+}
+
+#revenue-block h6 {
+  text-align: center;
+  font-weight: 500;
 }
 
 .modal {

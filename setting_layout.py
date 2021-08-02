@@ -2,6 +2,11 @@ import dash_core_components as dcc
 import dash_daq as daq
 import dash_html_components as html
 
+style = {'width': '100%', 'height': '30px', 'lineHeight': '30px', 'borderWidth': '1px', 'borderStyle': 'dashed',
+         'borderRadius': '2px', 'textAlign': 'center', 'margin': '10px', 'fontSize': '12px'}
+label_style = {'textAlign': 'center',  'fontSize': '16px'}
+label_style_1 = {'textAlign': 'left',  'fontSize': '15px'}
+
 
 def build_settings_tab():
     """
@@ -24,7 +29,7 @@ def upload_file(id):
     return dcc.Upload(id=id,
                       children=html.Div(
                           ["Drag and drop or select a file"]),
-                      # style=style
+                      style=style
                       )
 
 
@@ -82,6 +87,7 @@ def data_upload_panel():
                                     ),
                                 ]
                             ),
+                            ess_parameter_block(),
                         ]
                     ),
                     html.Br(),
@@ -124,14 +130,6 @@ def usecase_dcr_popup():
                                     children=[
                                         html.H6("Configuration"),
                                         html.Br(),
-                                        # dcc.Dropdown(
-                                        #     id='variable-dcr-dropdown',
-                                        #     options=[
-                                        #         {'label': 'Grid Import', 'value': 'GI'},
-                                        #         {'label': 'Peak Load', 'value': 'PL'}
-                                        #     ],
-                                        #     value='GL'
-                                        # ),
                                         html.Div(
                                             id="usecase-dcr-header",
                                             className="usecase-line-row",
@@ -220,7 +218,6 @@ def build_usecase_line(line_num, label, switch_value, dd_value, value):
             daq.BooleanSwitch(on=False, className="usecase-configuration__switch", color="#00ab4d", id=switch_value),
             html.Div(
                 dcc.Dropdown(
-
                     id=dd_value,
                     options=[
                         {'label': '1', 'value': 1},
@@ -385,15 +382,16 @@ def configuration_panel():
                                                "Demand Charge Reduction",
                                                "switch_dcr", "dd_dcr",
                                                "dcr"),
+                            html.Br(),
                             build_usecase_line("power-factor-correction",
                                                "Power Factor Correction",
                                                "switch_pfc", "dd_pfc",
                                                "pfc"),
-                            # html.Br(),
+                            html.Br(),
                             build_usecase_line("arbitrage", "Arbitrage",
                                                "switch_arb", "dd_arb",
                                                "arb"),
-                            # html.Br(),
+                            html.Br(),
                             build_usecase_line("reserves-placement",
                                                "Reserves Placement",
                                                "switch_rp", "dd_rp",
@@ -416,3 +414,53 @@ def configuration_panel():
         ]
 
     )
+
+
+def ess_parameter_block():
+    return html.Div(
+        id="ess-parameter-block",
+        className= "row",
+        children=[
+            html.Label("ESS Parameter", style=label_style),
+            html.Br(),
+            html.Div([html.Label("Max SoC %", style=label_style_1),
+                      dcc.Input( id='max-soc',
+                                type="number",
+                                min=50,
+                                max=100,
+                                step=10,
+                                value=90,
+                                style={"width": '70%'}
+                            )]),
+
+            html.Div([html.Label("Min SOC %", style=label_style_1),
+                      dcc.Input( id='min-soc',
+                                type="number",
+                                min=0,
+                                max=50,
+                                step=10,
+                                value=10,
+                                style={"width": '70%'}
+                            )]),
+
+            html.Div([html.Label("Energy Capacity kWh", style=label_style_1),
+                      dcc.Input(id='energy-capacity',
+                                type="number",
+                                min=100,
+                                max=2000,
+                                step=100,
+                                value=1500,
+                                style={"width": '70%'}
+                                )]),
+
+            html.Div([html.Label("Max Power kW", style=label_style_1),
+                      dcc.Input(id='max-power',
+                                type="number",
+                                min=100,
+                                max=1000,
+                                step=50,
+                                value=750,
+                                style={"width": '70%'}
+                                )]),
+
+        ])
