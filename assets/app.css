@@ -34,7 +34,8 @@ html, body {
   text-align: center;
   color: #007836;
   /*font-weight: 1000;*/
-  font-weight: 700;
+  font-weight: bold;
+  font-size: 2rem;
   max-width: 80ch;
   min-width: 50ch;
   line-height: calc(2em + 5em);
@@ -206,6 +207,10 @@ input[type=number] {
 
 .usecase-configuration__line .dash-dropdown span.Select-clear:hover {
   color: #007836;
+}
+
+#bottom-left-graph-dropdown, #bottom-right-graph-dropdown {
+color: black;
 }
 
 .usecase-configuration__label {

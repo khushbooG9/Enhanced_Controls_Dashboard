@@ -6,8 +6,8 @@ from components.common import common_graph, common_slider, common_switch
 
 style = {'width': '100%', 'height': '30px', 'lineHeight': '30px', 'borderWidth': '1px', 'borderStyle': 'dashed',
          'borderRadius': '2px', 'textAlign': 'center', 'margin': '10px', 'fontSize': '12px'}
-label_style = {'textAlign': 'center', 'fontSize': '16px'}
-label_style_1 = {'textAlign': 'left', 'fontSize': '15px'}
+label_style = {'textAlign': 'center',  'fontSize': '16px'}
+label_style_1 = {'textAlign': 'left', 'fontSize': '14px'}
 
 
 def build_simulation_tab():
@@ -112,7 +112,7 @@ def build_simulation_controls():
 
 def revenue_block():
     return html.Div(
-        [html.Label("Revenue", style=label_style),
+        [html.Label("Revenue/ ", style=label_style),
          html.Div(
              id="revenue-block",
              className="row",
