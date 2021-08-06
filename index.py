@@ -40,12 +40,12 @@ ROUTES = [
     {
         'pathname': HOME_PATH,
         'component': build_settings_tab(),
-        'name': 'Config',
+        'name': 'Configuration',
     },
     {
         'pathname': '/charts',
         'component': build_simulation_tab(),
-        'name': 'Dash',
+        'name': 'Viewer',
     }
 ]
 
@@ -99,8 +99,8 @@ def build_navbar():
                     html.Img(id="logo", src=app.get_asset_url("pnnl_logo.svg")),
                 ],
             ),
-            dcc.Link(className='banner__button', href='/', children='Config', id="banner-button-config"),
-            dcc.Link(className='banner__button', href='/charts', children='Dash',
+            dcc.Link(className='banner__button', href='/', children='Configuration', id="banner-button-config"),
+            dcc.Link(className='banner__button', href='/charts', children='Viewer',
                      id="banner-button-dash"),
             html.Div(
                 id="banner-text",
