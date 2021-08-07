@@ -173,14 +173,14 @@ def usecase_dcr_popup():
                                         html.Br(),
                                         html.Div(
                                             id="control-type",
-                                            className="usecase-line-row",
+                                            className="usecase-switch",
                                             children=[
                                                 html.Label("Control Type", className="usecase-dcr-label"),
                                                 daq.BooleanSwitch(on=False, id="control-type-input1",
-                                                                  className="usecase-switch", color="#007836",
+                                                                  className="usecase-switch-1", color="#007836",
                                                                   label="Optimization"),
                                                 daq.BooleanSwitch(on=False, id="control-type-input2",
-                                                                  className="usecase-switch", color="#cc3300",
+                                                                  className="usecase-switch-2", color="#cc3300",
                                                                   label="Rule-based"),
 
                                             ],
@@ -200,32 +200,6 @@ def usecase_dcr_popup():
                 ]
             )
         )
-
-    )
-
-
-def build_usecase_line(line_num, label, switch_value, dd_value, value):
-    return html.Div(
-        id=line_num,
-        className="usecase-configuration__line",
-        children=[
-            html.Label(label, className="usecase-configuration__label"),
-            daq.BooleanSwitch(on=False, className="usecase-configuration__switch", color="#00ab4d", id=switch_value),
-            html.Div(
-                dcc.Dropdown(
-                    id=dd_value,
-                    options=[
-                        {'label': '1', 'value': 1},
-                        {'label': '2', 'value': 2},
-                        {'label': '3', 'value': 3},
-                        {'label': '4', 'value': 4}
-                    ],
-                    disabled=True,
-                ), className="usecase-configuration__dropdown",
-            ),
-
-            html.Button("Configure", className="usecase-configuration__set-button", id=value, disabled=True, n_clicks=0)
-        ],
 
     )
 
@@ -263,15 +237,6 @@ def usecase_pfc_popup():
                                     id="markdown-panel2b",
                                     children=[
                                         html.H6("Configuration"),
-                                        # dcc.Dropdown(
-                                        #     id='variable-pfc-dropdown',
-                                        #     options=[
-                                        #         {'label': 'Power Factor', 'value': 'PF'},
-                                        #         {'label': 'Reactive Grid Power', 'value': 'RGP'},
-                                        #         {'label': 'Reactive Battery Power', 'value': 'RBL'}
-                                        #     ],
-                                        #     value='PF'
-                                        # ),
                                         html.Br(),
                                         html.Div(
                                             id="usecase-pfc-header",
@@ -309,14 +274,14 @@ def usecase_pfc_popup():
                                         html.Br(),
                                         html.Div(
                                             id="control-type2",
-                                            className="usecase-line-row",
+                                            className="usecase-switch",
                                             children=[
                                                 html.Label("Control Type", className="usecase-pfc-label"),
                                                 daq.BooleanSwitch(on=False, id="control-type-input21",
-                                                                  className="usecase-switch", color="#cc3300",
+                                                                  className="usecase-switch-1", color="#cc3300",
                                                                   label="Optimization"),
                                                 daq.BooleanSwitch(on=False, id="control-type-input22",
-                                                                  className="usecase-switch", color="#cc3300",
+                                                                  className="usecase-switch-2", color="#cc3300",
                                                                   label="Rule-based"),
 
                                             ],
@@ -337,6 +302,32 @@ def usecase_pfc_popup():
                 ]
             )
         )
+
+    )
+
+
+def build_usecase_line(line_num, label, switch_value, dd_value, value):
+    return html.Div(
+        id=line_num,
+        className="usecase-configuration__line",
+        children=[
+            html.Label(label, className="usecase-configuration__label"),
+            daq.BooleanSwitch(on=False, className="usecase-configuration__switch", color="#00ab4d", id=switch_value),
+            html.Div(
+                dcc.Dropdown(
+                    id=dd_value,
+                    options=[
+                        {'label': '1', 'value': 1},
+                        {'label': '2', 'value': 2},
+                        {'label': '3', 'value': 3},
+                        {'label': '4', 'value': 4}
+                    ],
+                    disabled=True,
+                ), className="usecase-configuration__dropdown",
+            ),
+
+            html.Button("Configure", className="usecase-configuration__set-button", id=value, disabled=True, n_clicks=0)
+        ],
 
     )
 

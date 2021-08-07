@@ -40,12 +40,12 @@ ROUTES = [
     {
         'pathname': HOME_PATH,
         'component': build_settings_tab(),
-        'name': 'Config',
+        'name': 'Configuration',
     },
     {
         'pathname': '/charts',
         'component': build_simulation_tab(),
-        'name': 'Dash',
+        'name': 'Viewer',
     }
 ]
 CHART_BACKGROUND_COLOR = '#616265'
@@ -106,8 +106,7 @@ def build_navbar():
                     html.H5('Config', className="banner__button--wide")
                 ]
             ),
-            dcc.Link(className='banner__button', href='/charts', children=html.H5('Dash'),
-                     id="banner-button-dash"),
+            dcc.Link(className='banner__button', href='/charts', children=html.H6('Viewer'), id="banner-button-dash"),
             html.Div(
                 id="banner-text",
                 className="banner__text",
