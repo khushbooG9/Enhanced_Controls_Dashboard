@@ -48,6 +48,9 @@ ROUTES = [
         'name': 'Dash',
     }
 ]
+CHART_BACKGROUND_COLOR = '#616265'
+CHART_HEIGHT = 400
+CHART_WIDTH = 600
 
 logging.basicConfig(level=logging.DEBUG)
 logging.getLogger("pyomo.core").setLevel(logging.INFO)
@@ -92,15 +95,18 @@ def build_navbar():
         id="banner",
         className="banner",
         children=[
-            html.Div(
-                id="banner-logo",
-                className="banner__logo",
+            dcc.Link(
+                className='banner__button',
+                id="banner-button-config",
+                href='/',
                 children=[
-                    html.Img(id="logo", src=app.get_asset_url("pnnl_logo.svg")),
-                ],
+                    html.Img(id="logo", src=app.get_asset_url("pnnl_logo.svg"),
+                             alt="Logo for Pacific Northwest "
+                                 "National Laboratory"),
+                    html.H5('Config', className="banner__button--wide")
+                ]
             ),
-            dcc.Link(className='banner__button', href='/', children='Config', id="banner-button-config"),
-            dcc.Link(className='banner__button', href='/charts', children='Dash',
+            dcc.Link(className='banner__button', href='/charts', children=html.H5('Dash'),
                      id="banner-button-dash"),
             html.Div(
                 id="banner-text",
@@ -288,7 +294,7 @@ def update_live_graph(ts, outage_flag, external_signal_flag, fig_start_time, fig
     print("SECOND IS", ts)
 
     def dash_fig(ts, prediction_data, actual_data, title=None, **kwargs):
-        dict_fig = {'linewidth': 2, 'linecolor': '#EFEDED', 'width': 600, 'height': 400,
+        dict_fig = {'linewidth': 2, 'linecolor': CHART_BACKGROUND_COLOR, 'width': CHART_WIDTH, 'height': CHART_HEIGHT,
                     'xaxis_title': 'Seconds', 'yaxis_title': 'kW'}
         if kwargs:
             dict_fig.update(kwargs)
@@ -339,7 +345,7 @@ def update_live_graph(ts, outage_flag, external_signal_flag, fig_start_time, fig
         fig.update_layout(paper_bgcolor=dict_fig['linecolor'], width=dict_fig['width'], height=dict_fig['height'],
                           legend=legend_dict, showlegend=True, title=title,
                           xaxis_title=dict_fig['xaxis_title'],
-                          yaxis_title=dict_fig['yaxis_title'])
+                          yaxis_title=dict_fig['yaxis_title'], font_color="rgba(245, 245, 245, 0.6)")
 
         return fig
 
@@ -441,16 +447,11 @@ def update_live_graph(ts, outage_flag, external_signal_flag, fig_start_time, fig
     # print('real time surcharge' + str(battery_obj.metrics['original_surcharge'][-1]))
     ln = len(battery_obj.peak_load_actual)
     current_time = current_time + timedelta(seconds=+1)
-    fig_dict = {'linewidth': 2, 'linecolor': '#EFEDED', 'width': 600, 'height': 400,
-                'xaxis_title': 'Seconds', 'yaxis_title': 'kW'}
-    fig_pf_dict = {'linewidth': 2, 'linecolor': '#EFEDED', 'width': 600, 'height': 400,
-                   'xaxis_title': 'Seconds', 'yaxis_title': '-'}
-    fig_price_dict = {'linewidth': 2, 'linecolor': '#EFEDED', 'width': 600, 'height': 400,
-                      'xaxis_title': 'Seconds', 'yaxis_title': '$/kWh'}
-    fig_reactive_dict = {'linewidth': 2, 'linecolor': '#EFEDED', 'width': 600, 'height': 400,
-                         'xaxis_title': 'Seconds', 'yaxis_title': 'kVAR'}
-    fig_soc_dict = {'linewidth': 2, 'linecolor': '#EFEDED', 'width': 600, 'height': 400,
-                    'xaxis_title': 'Seconds', 'yaxis_title': '%'}
+    fig_dict = {}
+    fig_pf_dict = {'yaxis_title': '-'}
+    fig_price_dict = {'yaxis_title': '$/kWh'}
+    fig_reactive_dict = {'yaxis_title': 'kVAR'}
+    fig_soc_dict = {'yaxis_title': '%'}
     fig1 = dash_fig(ln, [x * (100 / battery_obj.rated_kWh) for x in battery_obj.SoC_prediction],
                     [y * (100 / battery_obj.rated_kWh) for y in battery_obj.SoC_actual],
                     "SoC", **fig_soc_dict)

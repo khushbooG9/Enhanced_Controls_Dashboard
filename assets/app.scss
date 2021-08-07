@@ -47,6 +47,9 @@ $banner-height: calc(1em + #{$banner-logo-height});
   z-index: 1099;
 
   &__button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
     text-align: center;
     color: $accent2;
     font-weight: bold;
@@ -61,6 +64,15 @@ $banner-height: calc(1em + #{$banner-logo-height});
       background-color: lighten($secondary, 5%);
     }
 
+    & > img {
+      padding-left: 0.5em;
+      height: $banner-logo-height;
+    }
+
+    & > h5.banner__button--wide {
+      padding: 0 0.5em;
+    }
+
     &:hover {
       background-color: lighten($secondary, 15%);
     }
@@ -69,61 +81,30 @@ $banner-height: calc(1em + #{$banner-logo-height});
   &__text {
     margin: 0 0.5em 0 auto;
     text-align: right;
-  }
 
-  &__logo > img {
-    padding: 0.5em;
-    height: $banner-logo-height;
-  }
+    & > h5 {
+      font-family: 'Open Sans Semi Bold', sans-serif;
+      font-weight: 500;
+      line-height: 1.2;
+      font-size: 2rem;
+      letter-spacing: 0.1rem;
+      text-transform: uppercase;
+    }
 
-  h5 {
-    font-family: 'Open Sans Semi Bold', sans-serif;
-    font-weight: 500;
-    line-height: 1.2;
-    font-size: 2rem;
-    letter-spacing: 0.1rem;
-    text-transform: uppercase;
-  }
+    & > h6 {
+      font-size: 1.6rem;
+      line-height: 1;
+    }
 
-  h6 {
-    font-size: 1.6rem;
-    line-height: 1;
   }
 }
 
 .main-content {
   width: 100%;
-  //&::before {
-  //  content: '';
-  //  position: absolute;
-  //  width: 100%;
-  //  left: 0;
-  //  right: 0;
-  //  border-bottom: 2px solid $accent1;
-  //}
 }
 
-.display-switch {
-  display: flex;
-  justify-content: space-around;
-  height: 4rem;
-
-  &__button {
-    text-align: center;
-    background-color: $accent2;
-    width: 150px;
-    //height: 50px;
-    color: $text-color;
-    border-radius: 6px;
-    padding: .5rem;
-    margin: .5rem 0;
-    height: 2rem;
-    opacity: .7;
-
-    &--active {
-      opacity: 1;
-    }
-  }
+.slider-label, .switch-label {
+  font-size: 1.6rem;
 }
 
 input[type="number"] {
@@ -140,17 +121,46 @@ input[type="number"] {
 .simulation-container {
   @extend %container;
 
-  &__buttons-panel {
+  & *[id*="switch"] {
     width: 50%;
+    margin: 0 auto;
+  }
+
+  &__buttons-panel {
+    text-align: center;
+    width: 50%;
+
+    & .stop-button {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+
+      & button {
+        border-radius: 4px;
+      }
+    }
   }
 
   & .graphs-container {
     width: 50%;
     display: flex;
-      flex-direction: column;
+    flex-direction: column;
+
     &__row {
       display: flex;
+
+      & .dash-graph {
+        &__wrapper {
+          border: {
+            top: 2px dashed $accent2;
+            left: 2px dashed $accent2;
+            bottom: 2px dashed $accent2;
+          }
+        }
+      }
     }
+
+
   }
 }
 
@@ -172,10 +182,6 @@ input[type="number"] {
   }
 }
 
-.upload {
-  overflow: hidden;
-}
-
 %main-content {
   width: 100%;
   box-sizing: content-box;
@@ -191,6 +197,14 @@ input[type="number"] {
   }
 }
 
+.dash-dropdown {
+  color: $secondary;
+
+  span.Select-clear:hover {
+    color: $accent2;
+  }
+}
+
 .main-button {
   border-radius: 4px;
   color: $text-color;
@@ -202,10 +216,6 @@ input[type="number"] {
 
 .usecase-configuration {
   @extend %main-content;
-
-  & > h6 {
-    grid-area: head;
-  }
 
   &__header {
     display: flex;
@@ -223,17 +233,6 @@ input[type="number"] {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    //& > * {
-    //  margin-right: 1em;
-    //}
-
-    .dash-dropdown {
-      color: $secondary;
-
-      span.Select-clear:hover {
-        color: $accent2;
-      }
-    }
   }
 
   &__label {
@@ -309,8 +308,35 @@ input[type="number"] {
   }
 }
 
+.input-block {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+  text-align: left;
+
+  &__row {
+    width: 90%;
+    margin: 0 auto;
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+
+    & label {
+      flex: 1 1 auto;
+      max-width: 20ch;
+    }
+
+    & input {
+      flex: 3 2 auto;
+      text-align: right;
+    }
+  }
+}
+
 .upload {
   @extend %main-content;
+  overflow: hidden;
 
   &__row {
     display: flex;
@@ -333,6 +359,26 @@ input[type="number"] {
 
   &__date-picker {
     margin: 1em 0;
+  }
+
+  &__file {
+    border: 1px dashed;
+    border-radius: 2px;
+    padding: 0.5em 1em;
+    font-size: 1.6rem;
+    color: $primary;
+    cursor: pointer;
+    background: repeating-linear-gradient(
+                    300deg,
+                    whitesmoke 3px,
+                    whitesmoke 3px,
+                    lighten($primary, 30%) 6px,
+                    lighten($primary, 30%) 12px
+    );
+
+    & > label[for="file"] {
+      cursor: pointer;
+    }
   }
 
   &__button {

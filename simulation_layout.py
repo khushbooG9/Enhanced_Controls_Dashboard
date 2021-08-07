@@ -4,11 +4,6 @@ import dash_daq as daq
 import plotly.graph_objects as go
 from components.common import common_graph, common_slider, common_switch
 
-style = {'width': '100%', 'height': '30px', 'lineHeight': '30px', 'borderWidth': '1px', 'borderStyle': 'dashed',
-         'borderRadius': '2px', 'textAlign': 'center', 'margin': '10px', 'fontSize': '12px'}
-label_style = {'textAlign': 'center', 'fontSize': '16px'}
-label_style_1 = {'textAlign': 'left', 'fontSize': '15px'}
-
 
 def build_simulation_tab():
     """
@@ -29,13 +24,7 @@ def build_simulation_tab():
 
 
 def build_stop_button():
-    return html.Div(
-        id="card-3",
-        children=[
-            # html.Button("Reset Live Updating", className="", id="button3", n_clicks=0),
-            daq.StopButton(id="stop-button", labelPosition='top', size=160, n_clicks=0),
-        ],
-    )
+    return daq.StopButton(id="stop-button", n_clicks=0, className="stop-button")
 
 
 def build_simulation_input_controls():
@@ -96,15 +85,16 @@ def build_simulation_controls():
             build_simulation_input_controls(),
             html.Br(),
             common_slider(id="price-change-slider", className="price-change-slider", label_name="Price Change",
-                          label_style=label_style),
+                          ),
             common_slider(id='grid-load-change-slider', className='grid-load-change-slider', label_name="Load Change",
-                          label_style=label_style),
+                          ),
             html.Br(),
-            common_switch(id='outage-switch', label_name='Unschedule Outage', label_style=label_style),
+            common_switch(id='outage-switch', label_name='Unschedule Outage'),
             html.Br(),
-            common_switch(id='external-switch', label_name='Regulation Signal', label_style=label_style),
+            common_switch(id='external-switch', label_name='Regulation Signal'),
             html.Br(),
             revenue_block(),
+            html.Br(),
             build_stop_button(),
         ],
     )
@@ -112,34 +102,37 @@ def build_simulation_controls():
 
 def revenue_block():
     return html.Div(
-        [html.Label("Revenue", style=label_style),
+        [html.Label("Revenue"),
          html.Div(
              id="revenue-block",
-             className="row",
+             className="input-block",
              children=[
                  html.Div(
                      id="revenue-label1",
+                     className="input-block__row",
                      children=[
-                         html.Label("Day Ahead Estimate", style=label_style_1),
-                         dcc.Input(id="revenue1", type='text', disabled=True, style={"width": '70%'}),
+                         html.Label("Day Ahead Estimate"),
+                         dcc.Input(id="revenue1", type='text', disabled=True),
                      ]
                  ),
 
-                 # html.Br(),
+                 html.Br(),
                  html.Div(
                      id="revenue-label2",
+                     className="input-block__row",
                      children=[
-                         html.Label("Actual, Not Adjusted", style=label_style_1),
-                         dcc.Input(id="revenue2", type='text', disabled=True, style={"width": '70%'}),
+                         html.Label("Actual, Not Adjusted"),
+                         dcc.Input(id="revenue2", type='text', disabled=True),
                      ]
                  ),
 
-                 # html.Br(),
+                 html.Br(),
                  html.Div(
                      id="revenue-label3",
+                     className="input-block__row",
                      children=[
-                         html.Label("Actual, Real Time Adjusted", style=label_style_1),
-                         dcc.Input(id="revenue3", type='text', disabled=True, style={"width": '70%'}),
+                         html.Label("Actual, Real Time Adjusted"),
+                         dcc.Input(id="revenue3", type='text', disabled=True),
                      ]
                  ),
 
