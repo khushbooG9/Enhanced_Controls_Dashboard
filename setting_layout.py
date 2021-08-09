@@ -352,7 +352,7 @@ def configuration_panel():
                     html.Div(
                         className="usecase-configuration",
                         children=[
-                            html.H6("Usecase Configuration"),
+                            html.H6("Use case Configuration"),
                             html.Br(),
                             # html.Br(),
                             html.Div(

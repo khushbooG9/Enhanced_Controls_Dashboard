@@ -112,7 +112,7 @@ def build_simulation_controls():
 
 def revenue_block():
     return html.Div(
-        [html.Label("Revenue/ ", style=label_style),
+        [html.Label("Revenue/ Cost Saving", style=label_style),
          html.Div(
              id="revenue-block",
              className="row",
