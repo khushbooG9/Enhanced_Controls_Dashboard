@@ -2,7 +2,10 @@
 __pycache__/
 *.py[cod]
 *$py.class
-*.pyc
+
+# IDE temp files
+.vscode/
+.idea/
 
 # C extensions
 *.so
@@ -32,12 +35,6 @@ MANIFEST
 #  before PyInstaller builds the exe, so as to inject date/other infos into it.
 *.manifest
 *.spec
-
-# Pycharm
-.idea/
-
-# VSCode
-.vscode/
 
 # Installer logs
 pip-log.txt

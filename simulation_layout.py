@@ -2,20 +2,30 @@ import dash_html_components as html
 import dash_core_components as dcc
 import dash_daq as daq
 import plotly.graph_objects as go
+from components.dropdown_graph import common_graph
 
 style = {'width': '100%', 'height': '30px', 'lineHeight': '30px', 'borderWidth': '1px', 'borderStyle': 'dashed',
          'borderRadius': '2px', 'textAlign': 'center', 'margin': '10px', 'fontSize': '12px'}
 label_style = {'textAlign': 'center',  'fontSize': '16px'}
 label_style_1 = {'textAlign': 'left',  'fontSize': '15px'}
-interval = 1000
-click = 0
-dcc_interval = dcc.Interval(
-    id='graph-update',
-    interval=interval,
-    n_intervals=0,
-    disabled=True, )
 
 
+
+def build_simulation_tab():
+    """
+    Function to put together the simulation  tab
+    """
+    return html.Div(
+        id="simulation-container",
+        children=[
+            build_simulation_controls(),
+            html.Div(
+                id="graphs-container",
+                children=[build_top_panel(), build_bottom_panel()],
+            ),
+        ],
+    )
+    
 def build_price_change_button():
     return html.Div(
         id="card-1",
@@ -116,127 +126,52 @@ def build_stop_button():
     )
 
 
-def build_update_buffer_button():
-    return html.Div([
-        dcc.Input(
-            id='update-buffer',
-            type="number",
-            min=200,
-            max=5000,
-            step=100,
-            value=2000
-        ),
-        html.Button('Update Buffer Size', id='update-buffer-button', n_clicks=0),
-    ]
-    )
 
 
-def build_update_rate_box():
-    return html.Div([
-        dcc.Input(
-            id='update-rate-box',
-            type="number",
-            min=800,
-            max=5000,
-            step=100,
-            value=1000
-        ),
-        html.Button('Update Rate', id='submit-val', n_clicks=0),
-        # html.Div(id='slider-output-container')
-    ])
-
-
-def build_controller_update_rate_box():
-    return html.Div([
-        dcc.Input(
-            id='update-controller-rate-box',
-            type="number",
-            min=60,
-            max=3600,
-            step=60,
-            value=60
-        ),
-        html.Button('Controller Update Rate', id='submit-val', n_clicks=0),
-        # html.Div(id='slider-output-container')
-    ])
-
-
-def build_data_resolution_box():
-    return html.Div([
-        dcc.Input(
-            id='update-data-resolution-box',
-            type="number",
-            min=1,
-            max=3600,
-            step=60,
-            value=1
-        ),
-        html.Button('Data Resolution', id='submit-val', n_clicks=0),
-        # html.Div(id='slider-output-container')
-    ])
-
-
-def build_start_timer_box():
-    return html.Div([
-        dcc.Input(
-            id='start-time',
-            type="number",
-            min=0,
-            max=5000,
-            step=1,
-            value=0
-        ),
-        html.Button('Start Time', id='submit-val', n_clicks=0),
-        # html.Div(id='slider-output-container')
-    ])
-
-
-def build_stop_timer_box():
-    return html.Div([
-        dcc.Input(
-            id='stop-time',
-            type="number",
-            min=0,
-            max=3600*24,
-            step=1,
-            value=0
-        ),
-        html.Button('Stop Time', id='submit-val', n_clicks=0),
-        # html.Div(id='slider-output-container')
-    ])
-
-
-def build_update_window_box():
-    return html.Div([
-        dcc.Input(
-            id='update-window',
-            type="number",
-            min=20,
-            max=3600*24,
-            step=10,
-            value=120
-        ),
-        html.Button('Update Window', id='submit-val', n_clicks=0),
-        # html.Div(id='slider-output-container')
-    ])
-
-
-def build_update_boxes():
+def build_simulation_input_controls():
     return html.Div(
         id="update-box-panel",
         className="row",
         children=[
-            html.Div(id="data_resolution", children=[build_data_resolution_box()]),
-            html.Div(id="start-timer", children=[ build_start_timer_box()]),
-            html.Div(id="stop-timer", children=[build_stop_timer_box()]),
-            html.Div(id="rate", children=[build_update_rate_box()]),
-            html.Div(id="window", children=[build_update_window_box()]),
-            html.Div(id="controller-update-rate", children=[build_controller_update_rate_box()]),
-            # html.Div(id="buffer", children=[build_update_buffer_button()])
-        ])
+            html.Div(
+                id="data_resolution",
+                children=[
+                    dcc.Input(id='update-data-resolution-box', type="number", min=1, max=3600, step=60, value=1),
+                    html.Button('Data Resolution', id='submit-data-resolution', n_clicks=0)
+            ]),
+            html.Div(
+                id="start-timer", 
+                children=[ 
+                    dcc.Input(id='start-time', type="number", min=0, max=5000, step=1, value=0),
+                    html.Button('Start Time', id='submit-start-time', n_clicks=0)
+            ]),
+            html.Div(id="stop-timer", 
+                children=[
+                    dcc.Input(id='stop-time', type="number", min=0, max=3600*24, step=1, value=0),
+                    html.Button('Stop Time', id='submit-stop-time', n_clicks=0)
+            ]),
+            html.Div(id="rate", 
+                children=[
+                    dcc.Input(id='update-rate-box',type="number", min=800, max=5000, step=100, value=1000),
+                    html.Button('Update Rate', id='submit-rate', n_clicks=0)
+            ]),
+            html.Div(id="window", 
+                children=[
+                    dcc.Input(id='update-window', type="number", min=20, max=3600*24, step=10, value=120),
+                    html.Button('Update Window', id='submit-update-window', n_clicks=0)
+            ]),
+            html.Div(id="controller-update-rate", 
+                children=[
+                    dcc.Input(id='update-controller-rate-box', type="number", min=60, max=3600, step=60, value=60),
+                    html.Button('Controller Update Rate', id='submit-controler-rate-update', n_clicks=0)
+            ]),
+            # This will be for handling clicks on any of the buttons so they route properly to update the 
+            # graphs
+            html.Div(id='clicked-button', children='del:0 add:0 tog:0 last:nan', style={'display': 'none'})
+    ])
 
 
-def build_buttons_panel():
+def build_simulation_controls():
     """
     Function to generate a panel for buttons on left side
     """
@@ -244,7 +179,7 @@ def build_buttons_panel():
         id="buttons-panel",
         className="row",
         children=[
-            build_update_boxes(),
+            build_simulation_input_controls(),
             html.Br(),
             build_price_change_slider(),
             grid_load_change_slider(),
@@ -260,90 +195,6 @@ def build_buttons_panel():
             build_stop_button(),
         ],
     )
-
-def build_common_dropdown_box(id: str, default_value:str):
-    """
-    id: the html element that is created such that you can style/use javascript to manipulate
-        (MUST BE UNIQUE ACROSS ALL ELEMENTS ON THE PAGE)
-    default_value: the default value of the form submittion element one of .
-    """
-    options = ["GI", "PL", "GR", "BR", "PF", "EP", "D"]
-    if default_value not in options:
-        raise ValueError(f'Invalid option specified must be one of ({",".join(options)})')
-    return dcc.Dropdown(
-            id=id, # 'fig-left-dropdown',
-            options=[
-                {'label': 'Grid Import', 'value': 'GI'},
-                {'label': 'Peak Load', 'value': 'PL'},
-                {'label': 'Grid Reactive', 'value': 'GR'},
-                {'label': 'Battery Reactive', 'value': 'BR'},
-                {'label': 'Power Factor', 'value': 'PF'},
-                {'label': 'Energy Price', 'value': 'EP'},
-                {'label': 'Demand', 'value': 'D'}
-            ],
-            #placeholder="Left y-axis (default = Grid Import)",
-            value=default_value # 'GI'
-        )
-
-# def build_left_dropdown_box():
-#     return dcc.Dropdown(
-#             id='fig-left-dropdown',
-#             options=[
-#                 {'label': 'Grid Import', 'value': 'GI'},
-#                 {'label': 'Peak Load', 'value': 'PL'},
-#                 {'label': 'Grid Reactive', 'value': 'GR'},
-#                 {'label': 'Battery Reactive', 'value': 'BR'},
-#                 {'label': 'Power Factor', 'value': 'PF'},
-#                 {'label': 'Energy Price', 'value': 'EP'},
-#                 {'label': 'Demand', 'value': 'D'}
-#             ],
-#             #placeholder="Left y-axis (default = Grid Import)",
-#             value='GI'
-#         )
-
-
-# def build_right_dropdown_box():
-#     return dcc.Dropdown(
-#             id='fig-right-dropdown',
-#             options=[
-#                 {'label': 'Grid Import', 'value': 'GI'},
-#                 {'label': 'Peak Load', 'value': 'PL'},
-#                 {'label': 'Grid Reactive', 'value': 'GR'},
-#                 {'label': 'Battery Reactive', 'value': 'BR'},
-#                 {'label': 'Power Factor', 'value': 'PF'},
-#                 {'label': 'Energy Price', 'value': 'EP'},
-#                 {'label': 'Demand', 'value': 'D'}
-#             ],
-#             #placeholder="Left y-axis (default = Grid Import)",
-#             value='PL',
-#         )
-#     #style={"width": '30%', "margin-left": "150px"})
-
-
-def build_left_graph():
-    """
-    function to build left graph
-    Reference: https://plotly.com/python/subplots/
-    """
-    return html.Div([dcc.Graph(id="left-graph-fig", animate=True),
-                     dcc_interval])
-
-
-def build_right_graph():
-    return html.Div([dcc.Graph(id="right-graph-fig", animate=True),
-                     dcc_interval])
-
-
-def build_left_bottom_graph():
-    return html.Div([build_common_dropdown_box(id="fig-left-dropdown", default_value="GI"),
-                    dcc.Graph(id="down-left-graph", animate=True),
-                    dcc_interval])
-
-
-def build_right_bottom_graph():
-    return html.Div([build_common_dropdown_box(id="fig-right-dropdown", default_value="PL"),
-                     dcc.Graph(id="down-right-graph", animate=True),
-                     dcc_interval])
 
 
 def revenue_block():
@@ -418,7 +269,7 @@ def ess_parameter_block_2():
     return html.Div(
         [#html.Label("ESS Parameter", style=label_style),
         html.Div(
-        id="ess-parameter-block",
+        id="ess-parameter-block2",
         className= "row",
         children=[
             html.Div([html.Label("Energy Capacity kWh", style=label_style_1),
@@ -453,18 +304,8 @@ def build_top_panel():
         id="top-section-container",
         className="row",
         children=[
-            html.Div(
-                id="left-graph",
-                children=[
-                    build_left_graph(),
-                ]
-            ),
-            html.Div(
-                id="right-graph",
-                children=[
-                    build_right_graph(),
-                ]
-            ),
+            common_graph(id="top-left-graph"),
+            common_graph(id="top-right-graph")
         ],
     )
 
@@ -478,17 +319,7 @@ def build_bottom_panel():
         id="bottom-section-container",
         className="row",
         children=[
-            html.Div(
-                id="left-graph",
-                children=[
-                    build_left_bottom_graph(),
-                ]
-            ),
-            html.Div(
-                id="right-graph",
-                children=[
-                    build_right_bottom_graph(),
-                ]
-            ),
+            common_graph("bottom-left-graph", "GI"),
+            common_graph("bottom-right-graph", "PL")
         ],
     )
