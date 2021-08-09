@@ -2,11 +2,6 @@ import dash_core_components as dcc
 import dash_daq as daq
 import dash_html_components as html
 
-style = {'width': '100%', 'height': '30px', 'lineHeight': '30px', 'borderWidth': '1px', 'borderStyle': 'dashed',
-         'borderRadius': '2px', 'textAlign': 'center', 'margin': '10px', 'fontSize': '12px'}
-label_style = {'textAlign': 'center',  'fontSize': '16px'}
-label_style_1 = {'textAlign': 'left',  'fontSize': '15px'}
-
 
 def build_settings_tab():
     """
@@ -27,9 +22,8 @@ def dcc_date_picker():
 
 def upload_file(id):
     return dcc.Upload(id=id,
-                      children=html.Div(
-                          ["Drag and drop or select a file"]),
-                      style=style
+                      children=html.Label("Drag and drop or select a file", htmlFor="file"),
+                      className="upload__file"
                       )
 
 
@@ -87,6 +81,7 @@ def data_upload_panel():
                                     ),
                                 ]
                             ),
+                            html.Br(),
                             ess_parameter_block(),
                         ]
                     ),
@@ -407,51 +402,32 @@ def configuration_panel():
     )
 
 
+def build_ess_input_block(input_id, units, input_min, input_max, input_step, input_value):
+    return html.Div(
+        children=[
+            html.Label(f"{input_id} ({units})", htmlFor="number"),
+            dcc.Input(id="-".join(input_id.lower().split(" ")), type="number", min=input_min, max=input_max,
+                      step=input_step, value=input_value)
+        ],
+        className="input-block__row"
+    )
+
+
+def build_all_ess_inputs():
+    ess_data = [["Max SoC", "%", 50, 100, 10, 90], ["Min SOC", "%", 0, 50, 10, 10],
+                ["Energy Capacity", "kWH", 100, 2000, 100, 1500], ["Max Power", "kW", 100, 1000, 50, 750]]
+    inputs = []
+    for data_set in ess_data:
+        inputs.extend([build_ess_input_block(*data_set), html.Br()])
+    return inputs
+
+
 def ess_parameter_block():
     return html.Div(
         id="ess-parameter-block",
-        className= "row",
+        className="upload__row input-block",
         children=[
-            html.Label("ESS Parameter", style=label_style),
+            html.Label("ESS Parameters"),
             html.Br(),
-            html.Div([html.Label("Max SoC %", style=label_style_1),
-                      dcc.Input( id='max-soc',
-                                type="number",
-                                min=50,
-                                max=100,
-                                step=10,
-                                value=90,
-                                style={"width": '70%'}
-                            )]),
-
-            html.Div([html.Label("Min SOC %", style=label_style_1),
-                      dcc.Input( id='min-soc',
-                                type="number",
-                                min=0,
-                                max=50,
-                                step=10,
-                                value=10,
-                                style={"width": '70%'}
-                            )]),
-
-            html.Div([html.Label("Energy Capacity kWh", style=label_style_1),
-                      dcc.Input(id='energy-capacity',
-                                type="number",
-                                min=100,
-                                max=2000,
-                                step=100,
-                                value=1500,
-                                style={"width": '70%'}
-                                )]),
-
-            html.Div([html.Label("Max Power kW", style=label_style_1),
-                      dcc.Input(id='max-power',
-                                type="number",
-                                min=100,
-                                max=1000,
-                                step=50,
-                                value=750,
-                                style={"width": '70%'}
-                                )]),
-
+            *build_all_ess_inputs()
         ])

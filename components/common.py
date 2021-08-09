@@ -36,7 +36,7 @@ def common_graph(id: str, dropdown_default: Optional[str] = None):
     The common_dropdown_box will be added if the dropdown_default is set to something
     other than None.
 
-    The name of the id for the dropdown will be concatinated from the id passed and
+    The name of the id for the dropdown will be concatenated from the id passed and
     then appended with -dropdown.  
 
     Example of dropdown_id is:
@@ -47,10 +47,10 @@ def common_graph(id: str, dropdown_default: Optional[str] = None):
 
     if dropdown_default:
         children.insert(0, common_dropdown_box(id=f"{id}-dropdown", default_value=dropdown_default))
-    return html.Div(children)
+    return html.Div(children, className="dash-graph__wrapper")
 
 
-def common_slider(id: str, className: str, label_name, label_style,
+def common_slider(id: str, className: str, label_name,
                   default_value=0, min=-100, max=100, step=20, updatemode='drag'):
     """
     Create a slide component
@@ -66,7 +66,7 @@ def common_slider(id: str, className: str, label_name, label_style,
              100: '100 %'
              }
     return html.Div([
-        html.Label(label_name, style=label_style),
+        html.Label(label_name, className="slider-label"),
         dcc.Slider(
             id=id,
             className=className,
@@ -80,10 +80,12 @@ def common_slider(id: str, className: str, label_name, label_style,
     ])
 
 
-def common_switch(id, label_name, label_style, switch_label=['OFF', 'ON'],
+def common_switch(id, label_name, switch_label=None,
                   label_position='bottom', color='green', value=False):
+    if switch_label is None:
+        switch_label = ['OFF', 'ON']
     return html.Div([
-        html.Label(label_name, style=label_style),
+        html.Label(label_name, className="switch-label"),
         daq.ToggleSwitch(
             id=id,
             label=switch_label,
