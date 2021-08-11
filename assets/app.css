@@ -99,7 +99,7 @@ input[type=number] {
 }
 .simulation-container__buttons-panel {
   text-align: center;
-  width: 50%;
+  width: 30%;
 }
 .simulation-container__buttons-panel .stop-button {
   display: flex;
@@ -127,9 +127,11 @@ input[type=number] {
   box-sizing: border-box;
   border-bottom: 2px solid #d47827;
 }
+
 .settings-container__upload {
   overflow-y: hidden;
 }
+
 .settings-container__configuration__wrapper, .settings-container__upload__wrapper {
   width: 50%;
   display: flex;
