@@ -177,10 +177,10 @@ def usecase_dcr_popup():
                                             children=[
                                                 html.Label("Control Type", className="usecase-dcr-label"),
                                                 daq.BooleanSwitch(on=False, id="control-type-input1",
-                                                                  className="usecase-switch-1", color="#007836",
+                                                                  className="usecase-switch__switch", color="#007836",
                                                                   label="Optimization"),
                                                 daq.BooleanSwitch(on=False, id="control-type-input2",
-                                                                  className="usecase-switch-2", color="#cc3300",
+                                                                  className="usecase-switch__switch", color="#cc3300",
                                                                   label="Rule-based"),
 
                                             ],
@@ -278,10 +278,10 @@ def usecase_pfc_popup():
                                             children=[
                                                 html.Label("Control Type", className="usecase-pfc-label"),
                                                 daq.BooleanSwitch(on=False, id="control-type-input21",
-                                                                  className="usecase-switch-1", color="#cc3300",
+                                                                  className="usecase-switch__switch", color="#cc3300",
                                                                   label="Optimization"),
                                                 daq.BooleanSwitch(on=False, id="control-type-input22",
-                                                                  className="usecase-switch-2", color="#cc3300",
+                                                                  className="usecase-switch__switch", color="#cc3300",
                                                                   label="Rule-based"),
 
                                             ],
@@ -405,9 +405,9 @@ def configuration_panel():
 def build_ess_input_block(input_id, units, input_min, input_max, input_step, input_value):
     return html.Div(
         children=[
-            html.Label(f"{input_id} ({units})", htmlFor="number"),
+            html.Label(f"{input_id} ({units})", htmlFor="number", className="input-block__input-label"),
             dcc.Input(id="-".join(input_id.lower().split(" ")), type="number", min=input_min, max=input_max,
-                      step=input_step, value=input_value)
+                      step=input_step, value=input_value, className="input-block__input")
         ],
         className="input-block__row"
     )
@@ -417,9 +417,13 @@ def build_all_ess_inputs():
     ess_data = [["Max SoC", "%", 50, 100, 10, 90], ["Min SOC", "%", 0, 50, 10, 10],
                 ["Energy Capacity", "kWH", 100, 2000, 100, 1500], ["Max Power", "kW", 100, 1000, 50, 750]]
     inputs = []
-    for data_set in ess_data:
-        inputs.extend([build_ess_input_block(*data_set), html.Br()])
-    return inputs
+    for i, data_set in enumerate(ess_data):
+        new_inputs = [build_ess_input_block(*data_set)]
+        # add a break after all but the last data set
+        if i < len(ess_data) - 1:
+            new_inputs.append(html.Br())
+        inputs.extend(new_inputs)
+    return html.Div(inputs, className="input-block__rows")
 
 
 def ess_parameter_block():
@@ -427,7 +431,7 @@ def ess_parameter_block():
         id="ess-parameter-block",
         className="upload__row input-block",
         children=[
-            html.Label("ESS Parameters"),
+            html.Label("ESS Parameters", className="input-block__title"),
             html.Br(),
-            *build_all_ess_inputs()
+            build_all_ess_inputs()
         ])

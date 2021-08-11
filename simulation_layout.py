@@ -34,39 +34,38 @@ def build_simulation_input_controls():
         children=[
             html.Div(
                 id="data_resolution",
-                children=[
+                children=[html.Button('Data Resolution', id='submit-data-resolution', n_clicks=0,
+                                className="button"),
                     dcc.Input(id='update-data-resolution-box', type="number", min=1, max=3600, step=60, value=1,
-                              className="input-number-box"),
-                    html.Button('Data Resolution', id='submit-data-resolution', n_clicks=0,
-                                className="button")
+                              className="input-number-box")
                 ]),
             html.Div(
                 id="start-timer",
                 children=[
-                    dcc.Input(id='start-time', type="number", min=0, max=5000, step=1, value=0),
-                    html.Button('Start Time', id='submit-start-time', n_clicks=0, className="button")
+                    html.Button('Start Time', id='submit-start-time', n_clicks=0, className="button"),
+                    dcc.Input(id='start-time', type="number", min=0, max=5000, step=1, value=0)
                 ]),
             html.Div(id="stop-timer",
                      children=[
-                         dcc.Input(id='stop-time', type="number", min=0, max=3600 * 24, step=1, value=0),
-                         html.Button('Stop Time', id='submit-stop-time', n_clicks=0, className="button")
+                         html.Button('Stop Time', id='submit-stop-time', n_clicks=0, className="button"),
+                         dcc.Input(id='stop-time', type="number", min=0, max=3600 * 24, step=1, value=0)
                      ]),
             html.Div(id="rate",
                      children=[
-                         dcc.Input(id='update-rate-box', type="number", min=800, max=5000, step=100, value=1000),
-                         html.Button('Update Rate', id='submit-rate', n_clicks=0, className="button")
+                         html.Button('Update Rate', id='submit-rate', n_clicks=0, className="button"),
+                         dcc.Input(id='update-rate-box', type="number", min=800, max=5000, step=100, value=1000)
                      ]),
             html.Div(id="window",
                      children=[
-                         dcc.Input(id='update-window', type="number", min=20, max=3600 * 24, step=10, value=120),
                          html.Button('Update Window', id='submit-update-window', n_clicks=0,
-                                     className="button")
+                                     className="button"),
+                         dcc.Input(id='update-window', type="number", min=20, max=3600 * 24, step=10, value=120)
                      ]),
             html.Div(id="controller-update-rate",
                      children=[
-                         dcc.Input(id='update-controller-rate-box', type="number", min=60, max=3600, step=60, value=60),
                          html.Button('Controller Update Rate', id='submit-controler-rate-update', n_clicks=0,
-                                     className="button")
+                                     className="button"),
+                         dcc.Input(id='update-controller-rate-box', type="number", min=60, max=3600, step=60, value=60)
                      ]),
             # This will be for handling clicks on any of the buttons so they route properly to update the 
             # graphs
@@ -84,14 +83,17 @@ def build_simulation_controls():
         children=[
             build_simulation_input_controls(),
             html.Br(),
-            common_slider(id="price-change-slider", className="price-change-slider", label_name="Price Change",
-                          ),
-            common_slider(id='grid-load-change-slider', className='grid-load-change-slider', label_name="Load Change",
-                          ),
+            html.Div(
+                [common_slider(id="price-change-slider", className="price-change-slider", label_name="Price Change",
+                               ),
+                 common_slider(id='grid-load-change-slider', className='grid-load-change-slider',
+                               label_name="Load Change",
+                               )]),
             html.Br(),
-            common_switch(id='outage-switch', label_name='Unschedule Outage'),
-            html.Br(),
-            common_switch(id='external-switch', label_name='Regulation Signal'),
+            html.Div([common_switch(id='outage-switch', label_name='Unschedule Outage'),
+                      html.Br(),
+                      common_switch(id='external-switch', label_name='Regulation Signal')]),
+
             html.Br(),
             revenue_block(),
             html.Br(),
@@ -102,41 +104,42 @@ def build_simulation_controls():
 
 def revenue_block():
     return html.Div(
-        [html.Label("Revenue/ Cost Saving"),
-         html.Div(
-             id="revenue-block",
-             className="input-block",
-             children=[
-                 html.Div(
-                     id="revenue-label1",
-                     className="input-block__row",
-                     children=[
-                         html.Label("Day Ahead Estimate"),
-                         dcc.Input(id="revenue1", type='text', disabled=True),
-                     ]
-                 ),
+        [
+            html.Div(
+                id="revenue-block",
+                className="input-block",
+                children=[
+                    html.Label("Revenue/ Cost Saving", className="input-block__title"),
+                    html.Div([html.Div(
+                        id="revenue-label1",
+                        className="input-block__row",
+                        children=[
+                            html.Label("Day Ahead Estimate"),
+                            dcc.Input(id="revenue1", type='text', disabled=True),
+                        ]
+                    ),
 
-                 html.Br(),
-                 html.Div(
-                     id="revenue-label2",
-                     className="input-block__row",
-                     children=[
-                         html.Label("Actual, Not Adjusted"),
-                         dcc.Input(id="revenue2", type='text', disabled=True),
-                     ]
-                 ),
+                        html.Br(),
+                        html.Div(
+                            id="revenue-label2",
+                            className="input-block__row",
+                            children=[
+                                html.Label("Actual, Not Adjusted"),
+                                dcc.Input(id="revenue2", type='text', disabled=True),
+                            ]
+                        ),
 
-                 html.Br(),
-                 html.Div(
-                     id="revenue-label3",
-                     className="input-block__row",
-                     children=[
-                         html.Label("Actual, Real Time Adjusted"),
-                         dcc.Input(id="revenue3", type='text', disabled=True),
-                     ]
-                 ),
+                        html.Br(),
+                        html.Div(
+                            id="revenue-label3",
+                            className="input-block__row",
+                            children=[
+                                html.Label("Actual, Real Time Adjusted"),
+                                dcc.Input(id="revenue3", type='text', disabled=True),
+                            ]
+                        )], className="input-block__rows"),
 
-             ])])
+                ])])
 
 
 def build_top_panel():
