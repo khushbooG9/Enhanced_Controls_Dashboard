@@ -96,23 +96,24 @@ def build_navbar():
         className="banner",
         children=[
             dcc.Link(
-                className='banner__button',
+                className='banner__button banner__button__with-image',
                 id="banner-button-config",
                 href='/',
                 children=[
                     html.Img(id="logo", src=app.get_asset_url("pnnl_logo.svg"),
                              alt="Logo for Pacific Northwest "
                                  "National Laboratory"),
-                    html.H5('Config', className="banner__button--wide")
+                    html.H4(ROUTES[0]['name'], className="banner__button banner__button--wide")
                 ]
             ),
-            dcc.Link(className='banner__button', href='/charts', children=html.H6('Viewer'), id="banner-button-dash"),
+            dcc.Link(className='banner__button', href='/charts', children=html.H4(ROUTES[1]['name']),
+                     id="banner-button-dash"),
             html.Div(
                 id="banner-text",
                 className="banner__text",
                 children=[
-                    html.H5("Energy Storage Control"),
-                    html.H6("Enhanced Control Dashboard"),
+                    html.H4("Energy Storage Control"),
+                    html.H5("Enhanced Control Dashboard"),
                 ],
             )
         ],
