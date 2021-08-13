@@ -118,7 +118,6 @@ input[type=number] {
 .simulation-container__buttons-panel > *:not(:last-child) {
   margin: 0.5em auto;
   padding: 0.5em;
-  border: 2px dashed #007836;
   width: calc(100% - 2em);
 }
 .simulation-container .graphs-container {
@@ -147,6 +146,7 @@ input[type=number] {
 }
 .settings-container__upload {
   overflow-y: hidden;
+  width: 100%;
 }
 .settings-container__configuration {
   width: 100%;
@@ -185,6 +185,10 @@ input[type=number] {
   font-size: 1em;
 }
 
+.usecase-configuration {
+  margin: 0 1ch;
+  width: calc(100% - 2 * 1ch);
+}
 .usecase-configuration__header {
   display: flex;
   justify-content: space-between;
@@ -264,19 +268,24 @@ input[type=number] {
 }
 .upload__row {
   display: flex;
-  flex-direction: column;
+  flex-wrap: wrap;
   align-items: center;
+  justify-content: space-around;
   position: relative;
   text-align: left;
+  padding-top: 1em;
 }
 .upload__row::before {
+  position: absolute;
+  top: 0;
+  left: 1ch;
+  right: 1ch;
   content: "";
-  width: 80vw;
-  margin-bottom: 1em;
   border-bottom: 3px solid #007836;
 }
-.upload__row__break {
-  width: 100%;
+.upload__row > label {
+  flex: 1 1 100%;
+  text-align: center;
 }
 .upload__date-picker {
   margin: 1em 0;

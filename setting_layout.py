@@ -83,6 +83,8 @@ def data_upload_panel():
                             ),
                             html.Br(),
                             ess_parameter_block(),
+                            html.Br(),
+                            upload_model_block(),
                         ]
                     ),
                     html.Br(),
@@ -435,3 +437,15 @@ def ess_parameter_block():
             html.Br(),
             build_all_ess_inputs()
         ])
+
+
+def upload_model_block():
+    return html.Div(
+        id="upload-model-block",
+        className="upload__row",
+        children=[
+            html.Label("Upload Model"),
+            dcc_date_picker(),
+            upload_file("upload-model-data")
+        ]
+    )
