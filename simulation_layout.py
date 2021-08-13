@@ -24,7 +24,7 @@ def build_simulation_tab():
 
 
 def build_stop_button():
-    return daq.StopButton(id="stop-button", n_clicks=0, className="stop-button")
+    return daq.StopButton(id="stop-button", n_clicks=0, className="stop-button", size=120)
 
 
 def build_simulation_input_controls():
@@ -35,10 +35,10 @@ def build_simulation_input_controls():
             html.Div(
                 id="data_resolution",
                 children=[html.Button('Data Resolution', id='submit-data-resolution', n_clicks=0,
-                                className="button"),
-                    dcc.Input(id='update-data-resolution-box', type="number", min=1, max=3600, step=60, value=1,
-                              className="input-number-box")
-                ]),
+                                      className="button"),
+                          dcc.Input(id='update-data-resolution-box', type="number", min=1, max=3600, step=60, value=1,
+                                    className="input-number-box")
+                          ]),
             html.Div(
                 id="start-timer",
                 children=[
@@ -83,16 +83,12 @@ def build_simulation_controls():
         children=[
             build_simulation_input_controls(),
             html.Br(),
-            html.Div(
-                [common_slider(id="price-change-slider", className="price-change-slider", label_name="Price Change",
-                               ),
-                 common_slider(id='grid-load-change-slider', className='grid-load-change-slider',
-                               label_name="Load Change",
-                               )]),
+            common_slider(id="price-change-slider", className="price-change-slider", label_name="Price Change", ),
+            common_slider(id='grid-load-change-slider', className='grid-load-change-slider',
+                          label_name="Load Change", ),
+            html.Br(), common_switch(id='outage-switch', label_name='Unschedule Outage'),
             html.Br(),
-            html.Div([common_switch(id='outage-switch', label_name='Unschedule Outage'),
-                      html.Br(),
-                      common_switch(id='external-switch', label_name='Regulation Signal')]),
+            common_switch(id='external-switch', label_name='Regulation Signal'),
 
             html.Br(),
             revenue_block(),
@@ -104,42 +100,40 @@ def build_simulation_controls():
 
 def revenue_block():
     return html.Div(
-        [
-            html.Div(
-                id="revenue-block",
-                className="input-block",
+        id="revenue-block",
+        className="input-block",
+        children=[
+            html.Label("Revenue/ Cost Saving", className="input-block__title"),
+            html.Div([html.Div(
+                id="revenue-label1",
+                className="input-block__row",
                 children=[
-                    html.Label("Revenue/ Cost Saving", className="input-block__title"),
-                    html.Div([html.Div(
-                        id="revenue-label1",
-                        className="input-block__row",
-                        children=[
-                            html.Label("Day Ahead Estimate"),
-                            dcc.Input(id="revenue1", type='text', disabled=True),
-                        ]
-                    ),
+                    html.Label("Day Ahead Estimate"),
+                    dcc.Input(id="revenue1", type='text', disabled=True),
+                ]
+            ),
 
-                        html.Br(),
-                        html.Div(
-                            id="revenue-label2",
-                            className="input-block__row",
-                            children=[
-                                html.Label("Actual, Not Adjusted"),
-                                dcc.Input(id="revenue2", type='text', disabled=True),
-                            ]
-                        ),
+                html.Br(),
+                html.Div(
+                    id="revenue-label2",
+                    className="input-block__row",
+                    children=[
+                        html.Label("Actual, Not Adjusted"),
+                        dcc.Input(id="revenue2", type='text', disabled=True),
+                    ]
+                ),
 
-                        html.Br(),
-                        html.Div(
-                            id="revenue-label3",
-                            className="input-block__row",
-                            children=[
-                                html.Label("Actual, Real Time Adjusted"),
-                                dcc.Input(id="revenue3", type='text', disabled=True),
-                            ]
-                        )], className="input-block__rows"),
+                html.Br(),
+                html.Div(
+                    id="revenue-label3",
+                    className="input-block__row",
+                    children=[
+                        html.Label("Actual, Real Time Adjusted"),
+                        dcc.Input(id="revenue3", type='text', disabled=True),
+                    ]
+                )], className="input-block__rows"),
 
-                ])])
+        ])
 
 
 def build_top_panel():

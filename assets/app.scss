@@ -149,7 +149,6 @@ input[type="number"] {
     & > *:not(:last-child) {
       margin: 0.5em auto;
       padding: 0.5em;
-      border: 2px dashed $accent2;
       width: calc(100% - 2em);
     }
   }
@@ -191,6 +190,7 @@ input[type="number"] {
 
   &__upload {
     overflow-y: hidden;
+    width: 100%;
 
     &__wrapper {
       @extend %wrapper;
@@ -249,6 +249,9 @@ input[type="number"] {
 
 .usecase-configuration {
   @extend %main-content;
+  $usecase-block-margin: 1ch;
+  margin: 0 $usecase-block-margin;
+  width: calc(100% - 2 * #{$usecase-block-margin});
 
   &__header {
     display: flex;
@@ -356,21 +359,29 @@ input[type="number"] {
 
   &__row {
     display: flex;
-    flex-direction: column;
+    flex-wrap: wrap;
     align-items: center;
+    justify-content: space-around;
     position: relative;
     text-align: left;
+    padding-top: 1em;
 
+    // green line above the upload inputs
     &::before {
+      position: absolute;
+      top: 0;
+      left: 1ch;
+      right: 1ch;
       content: '';
-      width: 80vw;
-      margin-bottom: 1em;
       border-bottom: 3px solid $accent2;
     }
 
-    &__break {
-      width: 100%;
+    & > label {
+      flex: 1 1 100%;
+      text-align: center;
     }
+
+
   }
 
   &__date-picker {
