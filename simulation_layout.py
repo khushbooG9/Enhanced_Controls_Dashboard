@@ -24,7 +24,7 @@ def build_simulation_tab():
 
 
 def build_stop_button():
-    return daq.StopButton(id="stop-button", n_clicks=0, className="stop-button", size=120)
+    return daq.StopButton(id="stop-button", n_clicks=0, className="stop-button", size=160)
 
 
 def build_simulation_input_controls():
@@ -82,17 +82,14 @@ def build_simulation_controls():
         className="simulation-container__buttons-panel",
         children=[
             build_simulation_input_controls(),
-            html.Br(),
-            common_slider(id="price-change-slider", className="price-change-slider", label_name="Price Change", ),
-            common_slider(id='grid-load-change-slider', className='grid-load-change-slider',
-                          label_name="Load Change", ),
-            html.Br(), common_switch(id='outage-switch', label_name='Unschedule Outage'),
-            html.Br(),
-            common_switch(id='external-switch', label_name='Regulation Signal'),
-
-            html.Br(),
-            revenue_block(),
-            html.Br(),
+            common_slider(id="price-change-slider", className="price-change-slider", label_name="Price Change",
+                          container_class_name="simulation-block"),
+            common_slider(id='grid-load-change-slider', className='grid-load-change-slider', label_name="Load Change",
+                          container_class_name="simulation-block"),
+            common_switch(id='outage-switch', label_name='Unschedule Outage', container_class_name="simulation-block"),
+            common_switch(id='external-switch', label_name='Regulation Signal',
+                          container_class_name="simulation-block"),
+            html.Div(revenue_block(), className="simulation-block simulation-block--with-break"),
             build_stop_button(),
         ],
     )
