@@ -237,16 +237,14 @@ def stop_production(n_clicks, current):
            State('bottom-right-graph-dropdown', 'value'),
            State('max-soc', 'value'), State('min-soc', 'value'), State('energy-capacity', 'value'),
            State('max-power', 'value'), State("data-store", "data"), State("liveplot-store", "data"),
-           State("gen-config-store", "data"), State("data-config-store", "data"), State("usecase-store", "data")])
+           State("gen-config-store", "data"), State("usecase-store", "data")])
 # @cache.memoize
 # fig1= None
 
 def update_live_graph(ts, outage_flag, external_signal_flag, fig_start_time, fig_stop_time, price_change_value,
-                      grid_load_change_value, update_window,
-                      fig_leftdropdown, fig_rightdropdown, ess_soc_max_limit, ess_soc_min_limit, ess_capacity,
-                      max_power, data1, live1,
-                      gen_config, data_config,
-                      use_case_library):
+                      grid_load_change_value, update_window, fig_leftdropdown, fig_rightdropdown,
+                      ess_soc_max_limit, ess_soc_min_limit, ess_capacity, max_power, data1, live1,
+                      gen_config, use_case_library):
     update_buffer = 3600 * 24
     data = {}
     new_battery_setpoint = 0.0
@@ -263,7 +261,6 @@ def update_live_graph(ts, outage_flag, external_signal_flag, fig_start_time, fig
     # gen_config['bat_capacity_kWh'] = ess_capacity
     gen_config['rated_kW'] = max_power
     gen_config['reserve_soc'] = ess_soc_min_limit / 100
-    #    battery_obj = battery_class_new(use_case_library, gen_config, data_config)
     new_reserve_up_cap = 500  # kW/5 minutes
     new_reserve_down_cap = 500  # kW/5 minutes
 

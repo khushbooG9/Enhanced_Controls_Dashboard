@@ -138,7 +138,6 @@ def revenue_block():
                                 dcc.Input(id="revenue3", type='text', disabled=True),
                             ]
                         )], className="input-block__rows"),
-
                 ])])
 
 
