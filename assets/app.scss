@@ -60,6 +60,13 @@ $banner-height: calc(1em + #{$banner-logo-height});
     padding: .5rem;
     height: 100%;
 
+    & > h4 {
+      display: flex;
+      justify-content: space-evenly;
+      align-items: center;
+      min-width: 14ch;
+    }
+
     &__with-image {
       min-width: 25vw;
     }
@@ -589,8 +596,16 @@ input[type="number"] {
 
     & > button {
       @extend .main-button;
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
       margin: 0.5em 0.5em 0 0;
+      padding: 0;
       width: 20%;
+
+      & > p {
+        margin: 0;
+      }
     }
   }
 

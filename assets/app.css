@@ -43,6 +43,12 @@ html, body {
   padding: 0.5rem;
   height: 100%;
 }
+.banner__button > h4 {
+  display: flex;
+  justify-content: space-evenly;
+  align-items: center;
+  min-width: 14ch;
+}
 .banner__button__with-image {
   min-width: 25vw;
 }
@@ -465,8 +471,15 @@ input[type=number] {
   justify-content: flex-end;
 }
 .modal__close-container > button {
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
   margin: 0.5em 0.5em 0 0;
+  padding: 0;
   width: 20%;
+}
+.modal__close-container > button > p {
+  margin: 0;
 }
 .modal__content {
   display: flex;
