@@ -152,35 +152,29 @@ def serve_layout():
 app.layout = serve_layout
 
 
-@app.callback(
-    Output("markdown", "style"),
-    [Input("dcr", "n_clicks"), Input("markdown-close", "n_clicks")],
-)
-def update_click_output1(button_click, close_click):
+@app.callback(output=[Output(f"markdown{i + 1}", "style") for i in range(4)],
+              inputs=[Input("dcr", "n_clicks"), Input("markdown-close1", "n_clicks"), Input("pfc", "n_clicks"),
+                      Input("markdown-close2", "n_clicks"), Input("arb", "n_clicks"),
+                      Input("markdown-close3", "n_clicks"), Input("rp", "n_clicks"),
+                      Input("markdown-close4", "n_clicks")])
+def open_modals(m1, c1, m2, c2, m3, c3, m4, c4):
+    """
+    opens/closes the modal elements
+    """
     ctx = dash.callback_context
+    inputs = list(ctx.inputs.keys())
+    styles = [{"display": "none"} for _ in range(len(inputs) // 2)]
 
-    if ctx.triggered:
-        prop_id = ctx.triggered[0]["prop_id"].split(".")[0]
-        # print(prop_id)
-        if prop_id == "dcr" and button_click != 0:
-            return {"display": "block"}
+    if not ctx.triggered:
+        return styles
+    else:
+        # get the index of the button that was clicked
+        button_index = inputs.index(f"{ctx.triggered[0]['prop_id'].split('.')[0]}.n_clicks")
 
-    return {"display": "none"}
-
-
-@app.callback(
-    Output("markdown2", "style"),
-    [Input("pfc", "n_clicks"), Input("markdown-close2", "n_clicks")],
-)
-def update_click_output1(button_click, close_click):
-    ctx = dash.callback_context
-
-    if ctx.triggered:
-        prop_id = ctx.triggered[0]["prop_id"].split(".")[0]
-        if prop_id == "pfc" and button_click != 0:
-            return {"display": "block"}
-
-    return {"display": "none"}
+    # if the index of the button is even, show the corresponding modal element
+    if button_index % 2 == 0:
+        styles[button_index // 2] = {"display": "block"}
+    return styles
 
 
 @app.callback(

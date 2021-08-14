@@ -108,7 +108,7 @@ $banner-height: calc(1em + #{$banner-logo-height});
 }
 
 .slider-label, .switch-label {
-  font-size: 1.6rem;
+  //font-size: 1.6rem;
 }
 
 input[type="number"] {
@@ -481,12 +481,6 @@ input[type="number"] {
       margin: 0.5em 0.5em 0 0;
     }
   }
-
-}
-
-/* The Modal (background) */
-#markdown-container, #markdown-container2, #markdown-container3, #markdown-container4, #markdown-container5 {
-
 }
 
 .markdown-content, .markdown-content2, .markdown-content3, .markdown-content4, .markdown-content5 {
@@ -546,6 +540,13 @@ input[type="number"] {
   flex-direction: row;
 }
 
+.simulation-block {
+  font-size: 1.4rem;
+
+  &--with-break {
+    border-top: 2px dashed $accent2;
+  }
+}
 
 #value-setter-panel-header2, #usecase-dcr-header, #usecase-pfc-header {
   font-weight: bold;
@@ -571,4 +572,79 @@ input[type="number"] {
   overflow: auto; /* Enable scroll if needed */
   background-color: rgb(0, 0, 0); /* Fallback color */
   background-color: rgba(0, 0, 0, 0.6); /* Black w/ opacity */
+
+  &__container {
+    width: 40%;
+    background-color: #30363b;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    border-radius: 4px;
+  }
+
+  &__close-container {
+    display: flex;
+    justify-content: flex-end;
+
+    & > button {
+      @extend .main-button;
+      margin: 0.5em 0.5em 0 0;
+      width: 20%;
+    }
+  }
+
+  &__content {
+    display: flex;
+    flex-wrap: wrap;
+    text-align: center;
+    width: 70%;
+    justify-content: center;
+    margin: auto auto 1em;
+
+    & > h6 {
+      flex: 1 1 100%;
+    }
+  }
+
+  &__header {
+    flex: 1 1 100%;
+    font-weight: bold;
+    color: darkgray;
+    line-height: 1;
+    padding: 2rem 0;
+    border-top: 1px solid #4b5460;
+    border-bottom: 1px solid #4b5460;
+    display: flex;
+    justify-content: space-around;
+    font-size: 1.7rem;
+    margin-bottom: 1rem;
+  }
+
+  &__row {
+    flex: 1 1 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    &--margin-bottom {
+      margin-bottom: 1rem;
+    }
+  }
+
+  &__switches {
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    flex-wrap: wrap;
+    width: 100%;
+
+    & > label {
+      flex-basis: 100%;
+    }
+
+    &__switcher {
+      flex-basis: 50%;
+    }
+  }
 }

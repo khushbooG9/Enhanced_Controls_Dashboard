@@ -80,10 +80,6 @@ html, body {
   width: 100%;
 }
 
-.slider-label, .switch-label {
-  font-size: 1.6rem;
-}
-
 input[type=number] {
   width: 100px;
   margin-right: 5px;
@@ -176,7 +172,7 @@ input[type=number] {
   color: #007836;
 }
 
-.main-button, .usecase-set-button, .markdown-container .close-container button, .upload__button button, .button-panel > div button.button, .usecase-configuration__button > button {
+.main-button, .modal__close-container > button, .usecase-set-button, .markdown-container .close-container button, .upload__button button, .button-panel > div button.button, .usecase-configuration__button > button {
   border-radius: 4px;
   color: rgba(245, 245, 245, 0.6);
   background-color: #007836;
@@ -364,7 +360,6 @@ input[type=number] {
   margin: 0.5em 0.5em 0 0;
 }
 
-/* The Modal (background) */
 .markdown-content, .markdown-content2, .markdown-content3, .markdown-content4, .markdown-content5 {
   display: flex;
   margin-bottom: 1em;
@@ -416,6 +411,13 @@ input[type=number] {
   flex-direction: row;
 }
 
+.simulation-block {
+  font-size: 1.4rem;
+}
+.simulation-block--with-break {
+  border-top: 2px dashed #007836;
+}
+
 #value-setter-panel-header2, #usecase-dcr-header, #usecase-pfc-header {
   font-weight: bold;
   color: darkgray;
@@ -448,6 +450,69 @@ input[type=number] {
   /* Fallback color */
   background-color: rgba(0, 0, 0, 0.6);
   /* Black w/ opacity */
+}
+.modal__container {
+  width: 40%;
+  background-color: #30363b;
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  border-radius: 4px;
+}
+.modal__close-container {
+  display: flex;
+  justify-content: flex-end;
+}
+.modal__close-container > button {
+  margin: 0.5em 0.5em 0 0;
+  width: 20%;
+}
+.modal__content {
+  display: flex;
+  flex-wrap: wrap;
+  text-align: center;
+  width: 70%;
+  justify-content: center;
+  margin: auto auto 1em;
+}
+.modal__content > h6 {
+  flex: 1 1 100%;
+}
+.modal__header {
+  flex: 1 1 100%;
+  font-weight: bold;
+  color: darkgray;
+  line-height: 1;
+  padding: 2rem 0;
+  border-top: 1px solid #4b5460;
+  border-bottom: 1px solid #4b5460;
+  display: flex;
+  justify-content: space-around;
+  font-size: 1.7rem;
+  margin-bottom: 1rem;
+}
+.modal__row {
+  flex: 1 1 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.modal__row--margin-bottom {
+  margin-bottom: 1rem;
+}
+.modal__switches {
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  flex-wrap: wrap;
+  width: 100%;
+}
+.modal__switches > label {
+  flex-basis: 100%;
+}
+.modal__switches__switcher {
+  flex-basis: 50%;
 }
 
 /*# sourceMappingURL=app.css.map */
