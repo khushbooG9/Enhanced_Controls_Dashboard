@@ -247,6 +247,8 @@ def update_live_graph(ts, outage_flag, external_signal_flag, fig_start_time, fig
     new_SoC = 0.0
     new_battery_reactive_power = 0.0
     time_format = '%Y-%m-%d %H:%M:%S'
+    new_reserve_up_cap = 500  # kW/5 minutes
+    new_reserve_down_cap = 500  # kW/5 minutes
     start_time = gen_config['StartTime']
     start_time = datetime.strptime(start_time, time_format)
     print(f"start time = {start_time}")
@@ -262,8 +264,6 @@ def update_live_graph(ts, outage_flag, external_signal_flag, fig_start_time, fig
         print('at ts=0')
         simulation_duration = int((end_time - start_time).total_seconds())
         current_time = start_time
-        # next_day_hourly_interval = timedelta(days=+1)
-        # day_ahead_forecast_horizon = current_time + next_day_hourly_interval
 
         services_list = list(use_case_library.keys())
         priority_list = []
@@ -337,7 +337,6 @@ def update_live_graph(ts, outage_flag, external_signal_flag, fig_start_time, fig
                           legend=legend_dict, showlegend=True, title=title,
                           xaxis_title=dict_fig['xaxis_title'],
                           yaxis_title=dict_fig['yaxis_title'], font_color="rgba(245, 245, 245, 0.6)")
-
         return fig
 
     if ts < simulation_duration:
