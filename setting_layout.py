@@ -22,8 +22,8 @@ def dcc_date_picker():
 
 def upload_file(id):
     return dcc.Upload(id=id,
-                      children=html.Label("Drag and drop or select a file", htmlFor="file"),
-                      className="upload__file"
+                      children=[html.I(className="fas fa-upload"), html.Label(" Drag and drop or select a file",
+                                                                              htmlFor="file")], className="upload__file"
                       )
 
 
@@ -118,13 +118,13 @@ def build_popup(container_id, background_id, close_button_id, switch1_id, switch
                     html.Div(
                         className="modal__close-container",
                         children=html.Button(
-                            "Close",
+                            [html.P("Close"), html.I(className="far fa-times-circle")],
                             id=close_button_id,
                             n_clicks=0,
                             className="modal__close-button",
-
                         ),
                     ),
+
                     html.Div(
                         className="modal__content",
                         children=(

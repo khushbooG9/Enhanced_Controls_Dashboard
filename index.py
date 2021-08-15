@@ -103,11 +103,11 @@ def build_navbar():
                     html.Img(id="logo", src=app.get_asset_url("pnnl_logo.svg"),
                              alt="Logo for Pacific Northwest "
                                  "National Laboratory"),
-                    html.H4(ROUTES[0]['name'], className="banner__button banner__button--wide")
+                    html.H4([ROUTES[0]['name'], html.I(className="fas fa-cog")]),
                 ]
             ),
-            dcc.Link(className='banner__button', href='/charts', children=html.H4(ROUTES[1]['name']),
-                     id="banner-button-dash"),
+            dcc.Link(href='/charts', className='banner__button',
+                     children=html.H4([ROUTES[1]['name'], html.I(className="fas fa-chart-line")]), id="banner-button-dash"),
             html.Div(
                 id="banner-text",
                 className="banner__text",
