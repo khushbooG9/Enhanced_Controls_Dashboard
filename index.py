@@ -294,6 +294,7 @@ def update_live_graph(ts, outage_flag, external_signal_flag, fig_start_time, fig
             x=[i for i in range(max(0, ts - update_buffer), (ts + 1))],
             y=[i for i in deque(actual_data, maxlen=update_buffer)],
             name="Actual"))
+        margin_constant = 0.15
 
         if title == "SoC":
             fig.add_shape(type="line", x0=-2, y0=ess_soc_max_limit, x1=ts + 4, y1=ess_soc_max_limit,
@@ -302,8 +303,12 @@ def update_live_graph(ts, outage_flag, external_signal_flag, fig_start_time, fig
                           line=dict(color="MediumPurple", dash="dashdot"))
         ymin, ymax = min([prediction_data[0]] + actual_data[max(fig_start_time, ts - update_window):ts]), max(
             [prediction_data[0]] + actual_data[max(fig_start_time, ts - update_window):ts])
-        min_margin = abs(ymin * 0.15)
-        max_margin = abs(ymax * 0.15)
+
+        if ymin <= 1:
+            margin_constant =  0.05
+
+        min_margin = abs(ymin * margin_constant)
+        max_margin = abs(ymax * margin_constant)
 
         start_interval_figure = max(fig_start_time, ts - update_window)
         stop_interval_figure = max(ts, fig_stop_time)
