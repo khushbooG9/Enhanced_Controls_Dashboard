@@ -399,7 +399,7 @@ def update_live_graph(ts, outage_flag, external_signal_flag, fig_start_time, fig
                             0]))
 
                         new_battery_reactive_power = battery_obj.battery_react_power_prediction[
-                                                         0] + battery_ratio * reactive_power_mismatch
+                                                         0] - battery_ratio * reactive_power_mismatch
                         new_grid_reactive_power = battery_obj.load_pf * new_grid_load + new_battery_reactive_power
 
             if external_signal_flag:
