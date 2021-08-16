@@ -53,7 +53,7 @@ def build_simulation_input_controls():
             html.Div(id="rate",
                      children=[
                          html.Button('Update Rate', id='submit-rate', n_clicks=0, className="button"),
-                         dcc.Input(id='update-rate-box', type="number", min=800, max=5000, step=100, value=1000)
+                         dcc.Input(id='update-rate-box', type="number", min=100, max=5000, step=100, value=1000)
                      ]),
             html.Div(id="window",
                      children=[

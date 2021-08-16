@@ -59,7 +59,7 @@ _log = logging.getLogger(__name__)
 
 @app.callback(
     Output('graph-update', 'interval'),
-    [Input('clicked-button', 'n_clicks')],
+    [Input('submit-rate', 'n_clicks')],
     [State('update-rate-box', 'value')])
 def update_output(n_clicks, value):
     print("Trigger", value, n_clicks)
@@ -232,9 +232,6 @@ def stop_production(n_clicks, current):
            State('max-soc', 'value'), State('min-soc', 'value'), State('energy-capacity', 'value'),
            State('max-power', 'value'), State("data-store", "data"), State("liveplot-store", "data"),
            State("gen-config-store", "data"), State("usecase-store", "data")])
-# @cache.memoize
-# fig1= None
-
 def update_live_graph(ts, outage_flag, external_signal_flag, fig_start_time, fig_stop_time, price_change_value,
                       grid_load_change_value, update_window, fig_leftdropdown, fig_rightdropdown,
                       ess_soc_max_limit, ess_soc_min_limit, ess_capacity, max_power, data1, live1,
@@ -257,8 +254,6 @@ def update_live_graph(ts, outage_flag, external_signal_flag, fig_start_time, fig
     # gen_config['bat_capacity_kWh'] = ess_capacity
     gen_config['rated_kW'] = max_power
     gen_config['reserve_soc'] = ess_soc_min_limit / 100
-    new_reserve_up_cap = 500  # kW/5 minutes
-    new_reserve_down_cap = 500  # kW/5 minutes
 
     if ts == 0:
         print('at ts=0')
