@@ -41,8 +41,6 @@ def data_upload_panel():
                         children=[
                             html.H6("Upload"),
                             html.Br(),
-                            upload_model_block(),
-                            html.Br(),
                             html.Div(
                                 id="data-upload-dropdown-label-profile",
                                 children=[
@@ -70,6 +68,8 @@ def data_upload_panel():
                                     ),
                                 ]
                             ),
+                            html.Br(),
+                            upload_model_block(),
                             html.Br(),
                             html.Div(
                                 id="data-upload-dropdown-label-ess-data",
@@ -330,8 +330,7 @@ def upload_model_block():
         id="upload-model-block",
         className="upload__row",
         children=[
-            html.Label("Upload Model"),
-            dcc_date_picker(),
+            html.Label("Upload Network Model"),
             upload_file("upload-model-data")
         ]
     )

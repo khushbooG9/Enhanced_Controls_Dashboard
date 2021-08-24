@@ -49,8 +49,8 @@ ROUTES = [
     }
 ]
 CHART_BACKGROUND_COLOR = '#616265'
-CHART_HEIGHT = 400
-CHART_WIDTH = 600
+CHART_HEIGHT = 450
+CHART_WIDTH = 700
 
 logging.basicConfig(level=logging.DEBUG)
 logging.getLogger("pyomo.core").setLevel(logging.INFO)
@@ -75,16 +75,15 @@ def route(pathname):
     builds the routes
     """
     class_name = "banner__button"
-    active_class_name = f"{class_name} {class_name}--active"
 
     classes = []
     styles = []
     for i, r in enumerate(ROUTES):
         if r['pathname'] == pathname:
-            classes.append(active_class_name)
+            classes.append(f"{class_name}{f' {class_name}--with-image' if i == 0 else ''}  {class_name}--active")
             styles.append(dict(display="none"))
         else:
-            classes.append(class_name)
+            classes.append(class_name + (f" {class_name}--with-image" if i == 0 else ""))
             styles.append(None)
 
     return classes + styles

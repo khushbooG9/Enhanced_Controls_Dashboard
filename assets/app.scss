@@ -50,7 +50,7 @@ $banner-height: calc(1em + #{$banner-logo-height});
   &__button {
     display: flex;
     align-items: center;
-    justify-content: center;
+    justify-content: space-around;
     text-align: center;
     color: $accent2;
     font-weight: bold;
@@ -67,7 +67,7 @@ $banner-height: calc(1em + #{$banner-logo-height});
       min-width: 14ch;
     }
 
-    &__with-image {
+    &--with-image {
       min-width: 25vw;
     }
 

@@ -33,7 +33,7 @@ html, body {
 .banner__button {
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: space-around;
   text-align: center;
   color: #007836;
   font-weight: bold;
@@ -49,7 +49,7 @@ html, body {
   align-items: center;
   min-width: 14ch;
 }
-.banner__button__with-image {
+.banner__button--with-image {
   min-width: 25vw;
 }
 .banner__button--active {
