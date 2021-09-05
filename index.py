@@ -86,7 +86,6 @@ def route(pathname):
         else:
             classes.append(class_name)
             styles.append(None)
-
     return classes + styles
 
 
