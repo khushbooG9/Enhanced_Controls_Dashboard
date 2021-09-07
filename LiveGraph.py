@@ -47,6 +47,7 @@ class LiveGraph:
                      fig_stop_time, update_window_rate, title=None, **kwargs):
         dict_fig = {'linewidth': 2, 'linecolor': CHART_BACKGROUND_COLOR, 'width': CHART_WIDTH, 'height': CHART_HEIGHT,
                     'xaxis_title': 'Seconds', 'yaxis_title': 'kW'}
+        margin_constant = 0.15
         if kwargs:
             dict_fig.update(kwargs)
         legend_dict = dict(orientation="h", yanchor="bottom", y=1.05, xanchor="right", x=1)
@@ -71,8 +72,12 @@ class LiveGraph:
 
         ymin, ymax = min([prediction_data[0]] + actual_data[start_interval_figure:n_intervals]), max(
             [prediction_data[0]] + actual_data[start_interval_figure:n_intervals])
-        min_margin = abs(ymin * 0.15)
-        max_margin = abs(ymax * 0.15)
+
+        if ymin <= 1:
+            margin_constant = 0.05
+
+        min_margin = abs(ymin * margin_constant)
+        max_margin = abs(ymax * margin_constant)
 
         fig.update_xaxes(range=[start_interval_figure, stop_interval_figure], showline=True, linewidth=2,
                          linecolor='#e67300', mirror=True)
@@ -90,7 +95,7 @@ class LiveGraph:
                            text=str((start_time + timedelta(seconds=stop_interval_figure)).time()),
                            showarrow=False,
                            yshift=-50,
-                           xshift=450)
+                           xshift=550)
 
         fig.update_yaxes(range=[ymin, ymax], showline=True, linewidth=2, linecolor='#e67300', mirror=True)
         # fig.update_yaxes(showline=True, linewidth=2, linecolor='#e67300', mirror=True)

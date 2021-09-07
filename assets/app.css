@@ -106,7 +106,7 @@ input[type=number] {
 }
 .simulation-container__buttons-panel {
   text-align: center;
-  width: 30%;
+  width: 25%;
   min-width: 500px;
 }
 .simulation-container__buttons-panel .stop-button {
@@ -130,11 +130,10 @@ input[type=number] {
   display: flex;
 }
 .simulation-container .graphs-container__row .dash-graph__wrapper {
-  border-top: 2px dashed #007836;
-  border-left: 2px dashed #007836;
-  border-bottom: 2px dashed #007836;
+  border-top: 0.5px dashed #007836;
+  border-left: 0.5px dashed #007836;
+  border-bottom: 0.5px dashed #007836;
 }
-
 .settings-container {
   box-sizing: border-box;
   border-bottom: 2px solid #d47827;
