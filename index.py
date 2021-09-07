@@ -213,7 +213,7 @@ def stop_production(n_clicks, current):
             Output("revenue1", "value"),
             Output("revenue2", "value"), Output("revenue3", "value")],
     inputs=[Input("graph-update", "n_intervals"), Input("outage-switch", "value"), Input("external-switch", "value"),
-            Input('start-time', 'value'), Input('stop-time', 'value')],
+            Input('stop-time', 'value')],
     state=[State('price-change-slider', 'value'), State('grid-load-change-slider', 'value'),
            State('update-window', 'value'), State('bottom-left-graph-dropdown', 'value'),
            State('bottom-right-graph-dropdown', 'value'),
@@ -221,13 +221,12 @@ def stop_production(n_clicks, current):
            State('max-power', 'value'), State("data-store", "data"), State("liveplot-store", "data"),
            State("gen-config-store", "data"), State("usecase-store", "data")])
 # @cache.memoize
-def update_graph(n_intervals, has_outage, is_external, fig_start_time, fig_stop_time, price_value,
+def update_graph(n_intervals, has_outage, is_external, fig_stop_time, price_value,
                grid_load_value, update_window_rate, left_dropdown_value, right_dropdown_value, max_soc, min_soc,
                energy_capacity, max_power, data_store, live_data_store, config_store, use_case_store):
-    return graph.update(n_intervals, has_outage, is_external, fig_start_time, fig_stop_time, price_value,
+    return graph.update(n_intervals, has_outage, is_external, fig_stop_time, price_value,
                        grid_load_value, update_window_rate, left_dropdown_value, right_dropdown_value, max_soc, min_soc,
                        energy_capacity, max_power, data_store, live_data_store, config_store, use_case_store)
-
 
 if __name__ == '__main__':
     truthy_values = ('true', '1')

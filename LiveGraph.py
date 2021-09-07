@@ -43,7 +43,7 @@ class LiveGraph:
         self.control_data = control_config
         self.data_config = data_config
 
-    def create_graph(self, n_intervals, prediction_data, actual_data, max_soc, min_soc, start_time, fig_start_time,
+    def create_graph(self, n_intervals, prediction_data, actual_data, max_soc, min_soc, start_time,
                      fig_stop_time, update_window_rate, title=None, **kwargs):
         dict_fig = {'linewidth': 2, 'linecolor': CHART_BACKGROUND_COLOR, 'width': CHART_WIDTH, 'height': CHART_HEIGHT,
                     'xaxis_title': 'Seconds', 'yaxis_title': 'kW'}
@@ -65,18 +65,18 @@ class LiveGraph:
                           line=dict(color="LightSeaGreen", dash="dashdot"))
             fig.add_shape(type="line", x0=-2, y0=min_soc, x1=n_intervals + 4, y1=min_soc,
                           line=dict(color="MediumPurple", dash="dashdot"))
-        ymin, ymax = min(
-            [prediction_data[0]] + actual_data[max(fig_start_time, n_intervals - update_window_rate):n_intervals]), max(
-            [prediction_data[0]] + actual_data[max(fig_start_time, n_intervals - update_window_rate):n_intervals])
+
+        start_interval_figure = max(0, n_intervals - update_window_rate)
+        stop_interval_figure = max(n_intervals, fig_stop_time)
+
+        ymin, ymax = min([prediction_data[0]] + actual_data[start_interval_figure:n_intervals]), max(
+            [prediction_data[0]] + actual_data[start_interval_figure:n_intervals])
         min_margin = abs(ymin * 0.15)
         max_margin = abs(ymax * 0.15)
 
-        start_interval_figure = max(fig_start_time, n_intervals - update_window_rate)
-        stop_interval_figure = max(n_intervals, fig_stop_time)
-
         fig.update_xaxes(range=[start_interval_figure, stop_interval_figure], showline=True, linewidth=2,
-                         linecolor='#e67300',
-                         mirror=True)
+                         linecolor='#e67300', mirror=True)
+
         if title == "SoC":
             ymin, ymax = 0, 100
         else:
@@ -101,7 +101,7 @@ class LiveGraph:
         return fig
 
     # updates the charts
-    def update(self, n_intervals, has_outage, is_external, fig_start_time, fig_stop_time, price_value,
+    def update(self, n_intervals, has_outage, is_external, fig_stop_time, price_value,
                grid_load_value, update_window_rate, left_dropdown_value, right_dropdown_value, max_soc, min_soc,
                energy_capacity, max_power, data_store, live_data_store, config_store, use_case_store):
         start_time, end_time = get_date_range(config_store)
@@ -240,11 +240,11 @@ class LiveGraph:
         fig_soc_dict = {'yaxis_title': '%'}
         fig1 = self.create_graph(ln, [x * (100 / battery_obj.rated_kWh) for x in battery_obj.SoC_prediction],
                                  [y * (100 / battery_obj.rated_kWh) for y in battery_obj.SoC_actual], max_soc,
-                                 min_soc, start_time, fig_start_time, fig_stop_time, update_window_rate,
+                                 min_soc, start_time, fig_stop_time, update_window_rate,
                                  "SoC", **fig_soc_dict)
 
         fig2 = self.create_graph(ln, battery_obj.battery_setpoints_prediction,
-                                 battery_obj.battery_setpoints_actual, max_soc, min_soc, start_time, fig_start_time,
+                                 battery_obj.battery_setpoints_actual, max_soc, min_soc, start_time,
                                  fig_stop_time, update_window_rate,
                                  "Battery Setpoint", **fig_dict)
 
@@ -262,10 +262,10 @@ class LiveGraph:
                           fig_pf_dict]}
 
         fig3 = self.create_graph(ln, fig_obj[left_dropdown_value][0], fig_obj[left_dropdown_value][1], max_soc,
-                                 min_soc, start_time, fig_start_time, fig_stop_time, update_window_rate,
+                                 min_soc, start_time, fig_stop_time, update_window_rate,
                                  **fig_obj[left_dropdown_value][2])
         fig4 = self.create_graph(ln, fig_obj[right_dropdown_value][0], fig_obj[right_dropdown_value][1], max_soc,
-                                 min_soc, start_time, fig_start_time, fig_stop_time, update_window_rate,
+                                 min_soc, start_time, fig_stop_time, update_window_rate,
                                  **fig_obj[right_dropdown_value][2])
 
         data["SoC_temp"] = SoC_temp
