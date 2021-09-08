@@ -39,20 +39,20 @@ def build_simulation_input_controls():
                           dcc.Input(id='update-data-resolution-box', type="number", min=1, max=3600, step=60, value=1,
                                     className="input-number-box")
                           ]),
-            html.Div(
-                id="start-timer",
-                children=[
-                    html.Button('Start Time', id='submit-start-time', n_clicks=0, className="button"),
-                    dcc.Input(id='start-time', type="number", min=0, max=5000, step=1, value=0)
-                ]),
+            # html.Div(
+            #     id="start-timer",
+            #     children=[
+            #         html.Button('Start Time', id='submit-start-time', n_clicks=0, className="button"),
+            #         dcc.Input(id='start-time', type="number", min=0, max=5000, step=1, value=0)
+            #     ]),
             html.Div(id="stop-timer",
                      children=[
-                         html.Button('Stop Time', id='submit-stop-time', n_clicks=0, className="button"),
+                         html.Button('End Time', id='submit-stop-time', n_clicks=0, className="button"),
                          dcc.Input(id='stop-time', type="number", min=0, max=3600 * 24, step=1, value=0)
                      ]),
             html.Div(id="rate",
                      children=[
-                         html.Button('Update Rate', id='submit-rate', n_clicks=0, className="button"),
+                         html.Button('Update Rate (ms)', id='submit-rate', n_clicks=0, className="button"),
                          dcc.Input(id='update-rate-box', type="number", min=100, max=5000, step=100, value=1000)
                      ]),
             html.Div(id="window",

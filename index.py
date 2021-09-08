@@ -224,14 +224,14 @@ def stop_production(n_clicks, current):
             Output("revenue1", "value"),
             Output("revenue2", "value"), Output("revenue3", "value")],
     inputs=[Input("graph-update", "n_intervals"), Input("outage-switch", "value"), Input("external-switch", "value"),
-            Input('start-time', 'value'), Input('stop-time', 'value')],
+            Input('stop-time', 'value')],
     state=[State('price-change-slider', 'value'), State('grid-load-change-slider', 'value'),
            State('update-window', 'value'), State('bottom-left-graph-dropdown', 'value'),
            State('bottom-right-graph-dropdown', 'value'),
            State('max-soc', 'value'), State('min-soc', 'value'), State('energy-capacity', 'value'),
            State('max-power', 'value'), State("data-store", "data"), State("liveplot-store", "data"),
            State("gen-config-store", "data"), State("usecase-store", "data")])
-def update_live_graph(ts, outage_flag, external_signal_flag, fig_start_time, fig_stop_time, price_change_value,
+def update_live_graph(ts, outage_flag, external_signal_flag,fig_stop_time, price_change_value,
                       grid_load_change_value, update_window, fig_leftdropdown, fig_rightdropdown,
                       ess_soc_max_limit, ess_soc_min_limit, ess_capacity, max_power, data1, live1,
                       gen_config, use_case_library):
@@ -300,8 +300,8 @@ def update_live_graph(ts, outage_flag, external_signal_flag, fig_start_time, fig
                           line=dict(color="LightSeaGreen", dash="dashdot"))
             fig.add_shape(type="line", x0=-2, y0=ess_soc_min_limit, x1=ts + 4, y1=ess_soc_min_limit,
                           line=dict(color="MediumPurple", dash="dashdot"))
-        ymin, ymax = min([prediction_data[0]] + actual_data[max(fig_start_time, ts - update_window):ts]), max(
-            [prediction_data[0]] + actual_data[max(fig_start_time, ts - update_window):ts])
+        ymin, ymax = min([prediction_data[0]] + actual_data[max(0, ts - update_window):ts]), max(
+            [prediction_data[0]] + actual_data[max(0, ts - update_window):ts])
 
         if ymin <= 1:
             margin_constant =  0.05
@@ -309,7 +309,7 @@ def update_live_graph(ts, outage_flag, external_signal_flag, fig_start_time, fig
         min_margin = abs(ymin * margin_constant)
         max_margin = abs(ymax * margin_constant)
 
-        start_interval_figure = max(fig_start_time, ts - update_window)
+        start_interval_figure = max(0, ts - update_window)
         stop_interval_figure = max(ts, fig_stop_time)
 
         fig.update_xaxes(range=[start_interval_figure, stop_interval_figure], showline=True, linewidth=2,
