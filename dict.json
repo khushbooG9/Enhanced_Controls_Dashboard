@@ -19,7 +19,7 @@
   "price_dev": 0.05,
   "load_dev": 0.05,
   "load_data_resolution": 0.25,
-  "peak_price": 0.05,
+  "peak_price": 10.0,
   "pf_limit": 0.90,
   "load_pf": 0.7,
   "pf_penalty": 1e-9,
