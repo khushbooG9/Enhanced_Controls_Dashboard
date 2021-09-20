@@ -22,7 +22,6 @@ def build_simulation_tab():
         ]
     )
 
-
 def build_stop_button():
     return daq.StopButton(id="stop-button", n_clicks=0, className="stop-button", size=160)
 
