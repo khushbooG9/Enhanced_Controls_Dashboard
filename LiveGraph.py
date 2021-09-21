@@ -145,9 +145,6 @@ class LiveGraph:
                 battery_obj.set_hourly_price_forecast(current_time, current_time + timedelta(days=1), n_intervals)
                 battery_obj.DA_optimal_quantities()
 
-            battery_obj.set_load_actual(battery_obj.load_predict[0],
-                                        np.mean(np.diff(battery_obj.load_predict[0:3])) * battery_obj.hrs_to_secs)
-
             # if (n_intervals % 300 == 0):
             battery_obj.set_price_actual(battery_obj.price_predict[0],
                                          (battery_obj.price_predict[1] - battery_obj.price_predict[
@@ -157,11 +154,14 @@ class LiveGraph:
             new_actual_price = max(0.0001,
                                    battery_obj.actual_price[-1] + battery_obj.actual_price[
                                        -1] * price_value / 100)
-            new_actual_load = max(0, battery_obj.actual_load[-1] + battery_obj.actual_load[-1] * (
-                    grid_load_value / 100))
+            battery_obj.set_load_actual(battery_obj.load_predict[0],
+                                        np.mean(np.diff(battery_obj.load_predict[0:3])) * battery_obj.hrs_to_secs, grid_load_value)
+            # new_actual_load = max(0, battery_obj.actual_load[-1] + battery_obj.actual_load[-1] * (
+            #         grid_load_value / 100))
 
             current_reg_signal = battery_obj.get_reg_signal(current_time, n_intervals)
             print(f"current reg signal = {current_reg_signal}")
+            new_actual_load = battery_obj.actual_load[-1]
             if has_outage:
                 check = 1
                 # outage mitigation
@@ -220,7 +220,7 @@ class LiveGraph:
         battery_obj.battery_setpoints_actual.append(new_battery_setpoint)
         battery_obj.grid_load_actual.append(new_grid_load)
         battery_obj.battery_react_power_actual.append(new_battery_reactive_power)
-        battery_obj.actual_load.append(new_actual_load)
+        #battery_obj.actual_load.append(new_actual_load)
 
         # battery_obj.grid_react_power_actual.append(battery_obj.load_pf * new_grid_load + new_battery_reactive_power)
 
@@ -248,7 +248,6 @@ class LiveGraph:
                                  fig_stop_time, update_window_rate,
                                  "Battery Setpoint", **fig_dict)
 
-        # print(f"price predict = {battery_obj.price_predict}")
         peak_load_prediction = [battery_obj.peak_load_prediction] * 24
 
         fig_obj = {"PL": [peak_load_prediction, battery_obj.peak_load_actual, fig_dict],
@@ -260,7 +259,7 @@ class LiveGraph:
                    "EP": [battery_obj.price_predict, battery_obj.actual_price, fig_price_dict],
                    "PF": [battery_obj.grid_power_factor_prediction, battery_obj.grid_power_factor_actual,
                           fig_pf_dict],
-                   "D": [battery_obj.load_up, battery_obj.grid_load_actual,
+                   "D": [battery_obj.load_up, battery_obj.actual_load,
                           fig_pf_dict]
                    }
 
@@ -280,16 +279,19 @@ class LiveGraph:
 
         battery_obj.metrics['peak_surcharge_da'].append(battery_obj.peak_load_prediction * battery_obj.peak_price)
         battery_obj.metrics['original_surcharge'].append(max(battery_obj.peak_load_actual) * battery_obj.peak_price)
-        print(f"battery_obj.load_up = {battery_obj.load_up}")
-        print(f"new_actual_load = {new_actual_load}")
-        print(f"peak price = {battery_obj.peak_price}")
+        # print(f"battery_obj.load_up = {battery_obj.load_up}")
+        # print(f"New actual load = {new_actual_load}")
+        # print(f"Actual load = {battery_obj.actual_load}")
+        # print(f"peak price = {battery_obj.peak_price}")
         nonoptimized_surcharge = max(battery_obj.load_up)*battery_obj.peak_price
-        noncorrected_surcharge = max(max(battery_obj.load_up),new_actual_load)*battery_obj.peak_price # check whether this is the actual load in real-time when not corrected
+        noncorrected_surcharge = max(battery_obj.actual_load)*battery_obj.peak_price
+        corrected_surcharge = max(battery_obj.peak_load_actual)*battery_obj.peak_price
+        # check whether this is the actual load in real-time when not corrected
         # print('da surcharge' + str(battery_obj.metrics['peak_surcharge_da'][-1]))
         # print('real time surcharge' + str(battery_obj.metrics['original_surcharge'][-1]))
-        revenue1 = round(nonoptimized_surcharge-battery_obj.metrics['peak_surcharge_da'][-1], 2)# estimated savings
-        revenue2 = round(noncorrected_surcharge-battery_obj.metrics['peak_surcharge_da'][-1], 2)# estimated actual savings, but when no correction is done
-        revenue3 = round(battery_obj.metrics['peak_surcharge_da'][-1]-battery_obj.metrics['original_surcharge'][-1], 2)# estimated actual savings, with correction
+        revenue1 = round(nonoptimized_surcharge - battery_obj.metrics['peak_surcharge_da'][-1], 2)# estimated savings
+        revenue2 = round(battery_obj.metrics['peak_surcharge_da'][-1] - noncorrected_surcharge, 2)# estimated actual savings, but when no correction is done
+        revenue3 = round(battery_obj.metrics['peak_surcharge_da'][-1] - corrected_surcharge, 2)# estimated actual savings, with correction
 
         battery_dict = battery_obj.todict()
         print('at the end', gen_config['rated_kW'])

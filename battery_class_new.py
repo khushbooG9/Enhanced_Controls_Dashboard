@@ -514,11 +514,15 @@ class battery_class_new:
         self.grid_original_apparant_power = np.sqrt(self.load_predict ** 2 + (self.load_pf * self.load_predict) ** 2)
         self.grid_original_power_factor = (self.load_predict + 1e-4) / (self.grid_original_apparant_power + 1e-4)
 
-    def set_load_actual(self, load_val, diff):
+    def set_load_actual(self, load_val, diff, load_change_in_percentage=None):
         dev = ((self.load_dev * np.random.randn(1)[0] * 0.3) - (self.load_dev * np.random.randn(1)[0] * 0.3))
         # dev = 0.0
-        self.actual_load.append(load_val + diff + dev)
-        self.actual_reactive_load.append((load_val + diff + dev) * self.load_pf)
+        load = load_val + diff + dev
+        if load_change_in_percentage:
+            load = load + load * (load_change_in_percentage/100)
+
+        self.actual_load.append(max(0, load))
+        self.actual_reactive_load.append(load * self.load_pf)
 
     def set_hourly_price_forecast(self, current_time, forecast_time, ts):
         """ Set the forecast price
