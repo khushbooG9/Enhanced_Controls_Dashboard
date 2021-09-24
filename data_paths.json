@@ -4,8 +4,8 @@
   "ReservePriceDataPath": "data/reserve_price_data.csv",
   "regSignalDataPath": "data/reg_signal.csv",
   "networkInfo": {
-    "feederDir": "\\ckts\\opendss-ckts\\IEEE13_opf",
+    "feederDir": "\\ckts\\opendss-ckts\\IEEE13",
     "cktName": "MasterIEEE13.dss",
-    "data_path_name": "\\ckts\\opendss-ckts\\IEEE13_opf\\data"
+    "data_path_name": "\\ckts\\opendss-ckts\\IEEE13\\data",
   }
 }

@@ -3,20 +3,20 @@ import os
 from scipy.sparse import csc_matrix, linalg
 import numpy as np
 import pandas as pd
-
+import matplotlib.pyplot as plt
 
 class dss_utils:
     """
     Class to collect useful opendss utilities using opendssdirect package
     """
 
-    def __init__(self, dir_name='ckts\\opendss-ckts\\IEEE13', ckt_name='MasterIEEE13.dss', data_path_name='ckts\\opendss-ckts\\IEEE13\\data'):
+    def __init__(self, dir_name='ckts\\opendss-ckts\\IEEE13', ckt_name='MasterIEEE13.dss', data_path_name='ckts\\opendss-ckts\\IEEE13\\data',loc_file='IEEE13Node_BusXY.csv'):
         "initialize the ckt with its name and directory name"
 
         self.FeederDir = os.path.join(os.getcwd(), dir_name)
         self.MasterFileDir = os.path.join(self.FeederDir, ckt_name)
         self.data_path_name = os.path.join(os.getcwd(), data_path_name)
-
+        self.gridLocFile = os.path.join(self.FeederDir, loc_file)
         if os.path.isfile(self.MasterFileDir):
             print(f"Ckt Name Loaded: {self.MasterFileDir}")
             print(f"Directory: {self.FeederDir}")
@@ -24,6 +24,12 @@ class dss_utils:
         else:
             print(f"Wrong path provided for the directory")
 #        print("Ckt Loaded" + MasterFileDir + "located at" + FeederDir)
+
+        if os.path.isfile(self.gridLocFile):
+            #TODO: read_csv is putting first row as the indices, rather than rows - change that.
+            self.grid_xy_data = pd.read_csv(self.gridLocFile)
+        else:
+            print(f"No grid location points provided")
 
         # print(FeederDir)
 
@@ -39,6 +45,8 @@ class dss_utils:
 
         # node information
         self.y_ordered_voltage_array()
+
+        #
 
     def snapshot_run(self):
         """ Function used for getting the snapshot run result
@@ -80,11 +88,25 @@ class dss_utils:
         self.vL = self.voltages[3:]
         # print(self.vL)
 
+    def plot_grid_dss(self):
+
+        """
+            Function to plot DSS results:
+
+        """
+        # bus_name = self.grid_xy_data[ ,:0]
+        # x = self.grid_xy_data[, :1]
+        # y = self.grid_xy_data[,: 2]
+
+        # plt.plot(x,y)
+        # text = 1
+
 if __name__ == "__main__":
     # FeederDir = os.path.join(os.getcwd(), '..\ckts\opendss-ckts\IEEE13')
     # MasterFileDir = os.path.join(FeederDir, 'IEEE13Nodeckt.dss')
     # print(MasterFileDir)
     # print(FeederDir)
+    coord_file = "IEEE13Node_BusXY.csv"
     utils = dss_utils()
     # utils.snapshot_run()
     utils.y_ordered_voltage_array()
