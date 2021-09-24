@@ -51,7 +51,7 @@ def common_graph(id: str, dropdown_default: Optional[str] = None):
 
 
 def common_slider(id: str, className: str, label_name,
-                  default_value=0, min=-100, max=100, step=20, updatemode='drag'):
+                  default_value=0, min=-100, max=100, step=20, updatemode='drag', container_class_name=None):
     """
     Create a slide component
     """
@@ -77,11 +77,11 @@ def common_slider(id: str, className: str, label_name,
             value=default_value,
             updatemode=updatemode
         ),
-    ])
+    ], className=container_class_name)
 
 
 def common_switch(id, label_name, switch_label=None,
-                  label_position='bottom', color='green', value=False):
+                  label_position='bottom', color='green', value=False, container_class_name=None):
     if switch_label is None:
         switch_label = ['OFF', 'ON']
     return html.Div([
@@ -93,5 +93,4 @@ def common_switch(id, label_name, switch_label=None,
             color=color,
             value=value
         ),
-    ],
-    )
+    ], className=container_class_name)

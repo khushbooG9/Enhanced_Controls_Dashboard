@@ -4,6 +4,7 @@ NOTE: EDITS IN THIS FILE WILL NOT SHOW UP UNLESS YOU HAVE A SCSS FILE WATCHER EN
 
 $primary: #616265;
 $secondary: #191C1F;
+$secondary-background-color: lighten($secondary, 10%);
 $text-color: rgba(whitesmoke, 0.6);
 $accent1: #d47827;
 $accent2: #007836;
@@ -31,11 +32,11 @@ $app-width: calc(100% - #{2 * $app-padding});
 
 /* Pieces */
 
-$banner-logo-height: 5em;
+$banner-logo-height: 6em;
 $banner-height: calc(1em + #{$banner-logo-height});
 .banner {
   height: $banner-height;
-  background-color: lighten($secondary, 10%);
+  background-color: $secondary-background-color;
   display: flex;
   flex-direction: row;
   align-items: center;
@@ -43,25 +44,35 @@ $banner-height: calc(1em + #{$banner-logo-height});
   position: sticky;
   top: 0;
   border-bottom: 2px solid $accent1;
-  // place just underneath the dash error list, above the rest of the content
-  z-index: 1099;
+  // place just underneath the dash error list and below the modal, above the rest of the content
+  z-index: 1000;
 
   &__button {
     display: flex;
     align-items: center;
-    justify-content: center;
+    justify-content: space-around;
     text-align: center;
     color: $accent2;
     font-weight: bold;
-    max-width: 20ch;
-    min-width: 12ch;
+    min-width: 20ch;
     line-height: $banner-height;
     box-sizing: border-box;
     padding: .5rem;
     height: 100%;
 
+    & > h4 {
+      display: flex;
+      justify-content: space-evenly;
+      align-items: center;
+      min-width: 14ch;
+    }
+
+    &--with-image {
+      min-width: 25vw;
+    }
+
     &--active {
-      background-color: lighten($secondary, 5%);
+      background-color: $secondary;
     }
 
     & > img {
@@ -69,12 +80,12 @@ $banner-height: calc(1em + #{$banner-logo-height});
       height: $banner-logo-height;
     }
 
-    & > h5.banner__button--wide {
+    & > .banner__button--wide {
       padding: 0 0.5em;
     }
 
     &:hover {
-      background-color: lighten($secondary, 15%);
+      background-color: lighten($secondary, 20%);
     }
   }
 
@@ -104,7 +115,7 @@ $banner-height: calc(1em + #{$banner-logo-height});
 }
 
 .slider-label, .switch-label {
-  font-size: 1.6rem;
+  //font-size: 1.6rem;
 }
 
 input[type="number"] {
@@ -120,6 +131,7 @@ input[type="number"] {
 
 .simulation-container {
   @extend %container;
+  justify-content: space-between;
 
   & *[id*="switch"] {
     width: 50%;
@@ -128,7 +140,8 @@ input[type="number"] {
 
   &__buttons-panel {
     text-align: center;
-    width: 50%;
+    width: 30%;
+    min-width: 500px;
 
     & .stop-button {
       display: flex;
@@ -139,10 +152,15 @@ input[type="number"] {
         border-radius: 4px;
       }
     }
+
+    & > *:not(:last-child) {
+      margin: 0.5em auto;
+      padding: 0.5em;
+      width: calc(100% - 2em);
+    }
   }
 
   & .graphs-container {
-    width: 50%;
     display: flex;
     flex-direction: column;
 
@@ -169,17 +187,39 @@ input[type="number"] {
   box-sizing: border-box;
   border-bottom: 2px solid $accent1;
 
-  &__upload {
-    overflow-y: hidden;
-  }
-
-  &__configuration__wrapper, &__upload__wrapper {
+  %wrapper {
     width: 50%;
     display: flex;
     flex-direction: row;
     justify-content: space-evenly;
     align-items: center;
   }
+
+  &__upload {
+    overflow-y: hidden;
+    width: 100%;
+
+    &__wrapper {
+      @extend %wrapper;
+    }
+  }
+
+  &__configuration {
+    width: 100%;
+
+    &__wrapper {
+      @extend %wrapper;
+      margin: 0 1em;
+    }
+  }
+
+  //&__configuration__wrapper, &__upload__wrapper {
+  //  width: 50%;
+  //  display: flex;
+  //  flex-direction: row;
+  //  justify-content: space-evenly;
+  //  align-items: center;
+  //}
 }
 
 %main-content {
@@ -216,6 +256,9 @@ input[type="number"] {
 
 .usecase-configuration {
   @extend %main-content;
+  $usecase-block-margin: 1ch;
+  margin: 0 $usecase-block-margin;
+  width: calc(100% - 2 * #{$usecase-block-margin});
 
   &__header {
     display: flex;
@@ -274,16 +317,25 @@ input[type="number"] {
 }
 
 .button-panel {
-  margin: 0 auto;
-  width: 60%;
+  max-width: 400px;
 
   & > div {
+    &:not(:first-child) {
+      margin-top: 1em;
+    }
+
     display: flex;
     justify-content: space-between;
-    margin-top: 1em;
 
-    & .button {
+    & button.button {
       @extend .main-button;
+      flex: 2 2 auto;
+      padding: 1px 6px;
+      margin-right: 1em;
+    }
+
+    & input {
+      flex: 2 1 auto;
     }
   }
 }
@@ -308,53 +360,35 @@ input[type="number"] {
   }
 }
 
-.input-block {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  position: relative;
-  text-align: left;
-
-  &__row {
-    width: 90%;
-    margin: 0 auto;
-    display: flex;
-    justify-content: space-around;
-    align-items: center;
-
-    & label {
-      flex: 1 1 auto;
-      max-width: 20ch;
-    }
-
-    & input {
-      flex: 3 2 auto;
-      text-align: right;
-    }
-  }
-}
-
 .upload {
   @extend %main-content;
   overflow: hidden;
 
   &__row {
     display: flex;
-    flex-direction: column;
+    flex-wrap: wrap;
     align-items: center;
+    justify-content: space-around;
     position: relative;
     text-align: left;
+    padding-top: 1em;
 
+    // green line above the upload inputs
     &::before {
+      position: absolute;
+      top: 0;
+      left: 1ch;
+      right: 1ch;
       content: '';
-      width: 80vw;
-      margin-bottom: 1em;
       border-bottom: 3px solid $accent2;
     }
 
-    &__break {
-      width: 100%;
+    & > label {
+      flex: 1 1 100%;
+      text-align: center;
     }
+
+
   }
 
   &__date-picker {
@@ -400,46 +434,65 @@ input[type="number"] {
   font-weight: 500;
 }
 
-
-/* panels on the settings tab */
-/*
-#settings-container {
+.input-block {
   display: flex;
-  flex-direction: row;
-  align-items: flex-start;
-  justify-content: space-evenly;
-  margin: 4rem 5rem 1rem;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+  text-align: left;
+
+  &__row {
+    width: 25%;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    align-content: space-between;
+
+    & label {
+      flex: 2 1 auto;
+      text-align: center;
+    }
+
+    & input {
+      flex: 1 1 auto;
+      text-align: right;
+      margin: 0.5em 0;
+      max-width: 75%;
+    }
+  }
+
+  &__rows {
+    width: 100%;
+    display: flex;
+    justify-content: space-around;
+  }
 }
-*/
 
-//#simulation-container {
-//  width: 100%;
-//  max-width: 100%;
-//  height: 100%;
-//  display: flex;
-//  flex-direction: row;
-//  background-color: #EFEDED;
-//  justify-content: center;
-//  margin: 0;
-//  padding: 0;
-//}
-
-/* The Modal (background) */
-#markdown-container, #markdown-container2, #markdown-container3, #markdown-container4, #markdown-container5 {
+.markdown-container {
   width: 40%;
-  background-color: #EFEDED;
+  background-color: $secondary-background-color;
   position: fixed;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
+  border-radius: 4px;
+
+  & .close-container {
+    display: flex;
+    justify-content: flex-end;
+
+    & button {
+      @extend .main-button;
+      margin: 0.5em 0.5em 0 0;
+    }
+  }
 }
 
 .markdown-content, .markdown-content2, .markdown-content3, .markdown-content4, .markdown-content5 {
   display: flex;
-  flex-direction: row;
-  border-left: white solid 0.8rem;
-  border-right: white solid 0.8rem;
-  border-bottom: white solid 0.8rem;
+  margin-bottom: 1em;
 }
 
 .usecase-set-button {
@@ -463,23 +516,29 @@ input[type="number"] {
 
 .usecase-line-row {
   display: flex;
-  flex-direction: row;
+
+  & > *:first-child {
+    margin-right: 0.5em;
+  }
 }
 
 .usecase-switch {
-  //margin-left: auto;
-  //margin-right: auto;
-}
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  width: 100%;
 
-.usecase-dropdown {
-  width: 100px;
-  align-items: right;
-  border-radius: 4px;
-  /*margin-right: 60px;*/
+  &__switch {
+    flex: 1 1 50%;
+  }
+
+  & label {
+    flex-basis: 100%;
+    text-align: center;
+  }
 }
 
 .usecase-setting-input {
-
   margin-left: auto;
 }
 
@@ -488,6 +547,13 @@ input[type="number"] {
   flex-direction: row;
 }
 
+.simulation-block {
+  font-size: 1.4rem;
+
+  &--with-break {
+    border-top: 2px dashed $accent2;
+  }
+}
 
 #value-setter-panel-header2, #usecase-dcr-header, #usecase-pfc-header {
   font-weight: bold;
@@ -502,25 +568,98 @@ input[type="number"] {
   text-align: center;
 }
 
-#control-type-input1, #control-type-input21 {
-
-  align-items: center;
-  margin-right: -40%;
-}
-
-#control-type-input2, #control-type-input22 {
-  margin-right: 2px;
-}
-
 .modal {
   display: none; /*Hidden by default */
   position: fixed; /* Stay in place */
-  z-index: 1005; /* Sit on top */
+  z-index: 1001; /* Sit on top */
   left: 0;
   top: 0;
   width: 100vw; /* Full width */
   height: 100vh; /* Full height */
   overflow: auto; /* Enable scroll if needed */
   background-color: rgb(0, 0, 0); /* Fallback color */
-  background-color: rgba(0, 0, 0, 0.4); /* Black w/ opacity */
+  background-color: rgba(0, 0, 0, 0.6); /* Black w/ opacity */
+
+  &__container {
+    width: 40%;
+    background-color: #30363b;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    border-radius: 4px;
+  }
+
+  &__close-container {
+    display: flex;
+    justify-content: flex-end;
+
+    & > button {
+      @extend .main-button;
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      margin: 0.5em 0.5em 0 0;
+      padding: 0;
+      width: 20%;
+
+      & > p {
+        margin: 0;
+      }
+    }
+  }
+
+  &__content {
+    display: flex;
+    flex-wrap: wrap;
+    text-align: center;
+    width: 70%;
+    justify-content: center;
+    margin: auto auto 1em;
+
+    & > h6 {
+      flex: 1 1 100%;
+    }
+  }
+
+  &__header {
+    flex: 1 1 100%;
+    font-weight: bold;
+    color: darkgray;
+    line-height: 1;
+    padding: 2rem 0;
+    border-top: 1px solid #4b5460;
+    border-bottom: 1px solid #4b5460;
+    display: flex;
+    justify-content: space-around;
+    font-size: 1.7rem;
+    margin-bottom: 1rem;
+  }
+
+  &__row {
+    flex: 1 1 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    &--margin-bottom {
+      margin-bottom: 1rem;
+    }
+  }
+
+  &__switches {
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    flex-wrap: wrap;
+    width: 100%;
+
+    & > label {
+      flex-basis: 100%;
+    }
+
+    &__switcher {
+      flex-basis: 50%;
+    }
+  }
 }
