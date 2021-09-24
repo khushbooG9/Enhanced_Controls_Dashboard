@@ -17,8 +17,7 @@ class dss_utils:
         self.MasterFileDir = os.path.join(self.FeederDir, ckt_name)
         self.data_path_name = os.path.join(os.getcwd(), data_path_name)
 
-
-        if print(os.path.isfile(self.MasterFileDir )):
+        if os.path.isfile(self.MasterFileDir):
             print(f"Ckt Name Loaded: {self.MasterFileDir}")
             print(f"Directory: {self.FeederDir}")
             print(f"DataPath: {self.data_path_name}")
@@ -66,11 +65,12 @@ class dss_utils:
                     self.dss_obj.CktElement.Powers()[2] + np.multiply(1j, self.dss_obj.CktElement.Powers()[3]))
             self.s0.s0['SOURCEBUS' + '.3'] = -(
                     self.dss_obj.CktElement.Powers()[4] + np.multiply(1j, self.dss_obj.CktElement.Powers()[5]))
-
+        # print(self.s0)
     def y_ordered_voltage_array(self):
         """
         Function used for extracting Voltage phasor information at all nodes from OpenDSS model
         The order of voltage is similar to what Y-bus uses
+        I = Y*V
         """
         Vol = self.dss_obj.Circuit.YNodeVArray()
         V_real = np.array([Vol[i] for i in range(len(Vol)) if i % 2 == 0])
@@ -78,7 +78,7 @@ class dss_utils:
         self.voltages = V_real + np.multiply(1j, V_imag)
         self.v0 = self.voltages[0:3]
         self.vL = self.voltages[3:]
-        print(self.vL)
+        # print(self.vL)
 
 if __name__ == "__main__":
     # FeederDir = os.path.join(os.getcwd(), '..\ckts\opendss-ckts\IEEE13')
