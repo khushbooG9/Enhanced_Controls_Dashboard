@@ -2,5 +2,10 @@
   "FacilityLoadDataPath": "data/load_data.csv",
   "PriceDataPath": "data/price_data.csv",
   "ReservePriceDataPath": "data/reserve_price_data.csv",
-  "regSignalDataPath": "data/reg_signal.csv"
+  "regSignalDataPath": "data/reg_signal.csv",
+  "networkInfo": {
+    "feederDir": "\\ckts\\opendss-ckts\\IEEE13_opf",
+    "cktName": "MasterIEEE13.dss",
+    "data_path_name": "\\ckts\\opendss-ckts\\IEEE13_opf\\data"
+  }
 }
