@@ -8,6 +8,8 @@ import matplotlib.pyplot as plt
 # from matplotlib.colors import ColorConverter
 # import matplotlib.text as text
 # colorConverter = ColorConverter()
+import matplotlib as mpl
+
 import re
 import networkx as nx
 
@@ -178,6 +180,8 @@ class dss_utils:
         I = np.zeros((n, 3), dtype=complex)
         V = np.zeros((n, 3), dtype=complex)
         Vto = np.zeros((n, 3), dtype=complex)
+        P = np.zeros((n, 3))
+        Q = np.zeros((n, 3))
         linename = np.array("                      ").repeat(n)
         i = 0
         for Line in self.dss_obj.Lines.AllNames():
@@ -186,9 +190,18 @@ class dss_utils:
             # bus1.append(self.dss_obj.CktElement.BusNames()[0])
             busnameto[i]  = re.sub(r"\..*", "", self.dss_obj.CktElement.BusNames()[1])
             bus_idto = self.bus_data["Name"].tolist().index(busnameto[i])
-            xto[i] = self.bus_data["X"][bus_idto]
-            yto[i] = self.bus_data["Y"][bus_idto]
-            if self.bus_data["X"][bus_idto] == 0 or self.bus_data["Y"][bus_idto] == 0: continue
+
+            # check whether bus has the x,y data defined, if not, then go ahead
+            try:
+                xto[i] = self.bus_data["X"][bus_idto]
+                yto[i] = self.bus_data["Y"][bus_idto]
+            except IndexError:
+                xto[i] = []
+                yto[i] = []
+                continue
+
+
+            #if self.bus_data["X"][bus_idto] == 0 or self.bus_data["Y"][bus_idto] == 0: continue
             distance[i] = self.bus_data["Distance"][bus_idto]
             v = self.bus_data["Voltages"][bus_idto]
             nodes = np.array( self.bus_data["Nodes"][bus_idto])
@@ -196,19 +209,30 @@ class dss_utils:
             nphases[i] = nodes.size
             if nodes.size > 3: nodes = nodes[0:3]
             cidx = 2 * np.array(range(0, int(min(v.size / 2, 3))))
-            Vto[i, nodes-1] = v[cidx] + 1j * v[cidx + 1]
+            Vto[i, nodes-1] = v[nodes-1]#v[cidx] + 1j * v[cidx + 1]
 
             busname[i]  = re.sub(r"\..*", "", self.dss_obj.CktElement.BusNames()[0])
             bus_id = self.bus_data["Name"].tolist().index(busname[i])
-            x[i] = self.bus_data["X"][bus_id]
-            y[i] = self.bus_data["Y"][bus_id]
-            if self.bus_data["X"][bus_id] == 0 or self.bus_data["Y"][bus_id] == 0: continue # skip lines without proper bus coordinates
+
+            try:
+                x[i] = self.bus_data["X"][bus_id]
+                y[i] = self.bus_data["Y"][bus_id]
+            except IndexError:
+                x[i] = []
+                y[i] = []
+                continue
+
+            # x[i] = self.bus_data["X"][bus_id]
+            # y[i] = self.bus_data["Y"][bus_id]
+            #if self.bus_data["X"][bus_id] == 0 or self.bus_data["Y"][bus_id] == 0: continue # skip lines without proper bus coordinates
 
             v = self.bus_data["Voltages"][bus_id]
 
-            V[i, nodes-1] = v[cidx] + 1j * v[cidx + 1]
+            V[i, nodes-1] = v[nodes-1]#v[cidx] + 1j * v[cidx + 1]
             current = np.array(self.dss_obj.CktElement.Currents())
-            I[i, nodes-1] = current[cidx] + 1j * current[cidx + 1]
+            I[i, nodes-1] = current[np.arange(0,len(nodes)*2,2)] + 1j*current[np.arange(0,len(nodes)*2,2)+1]
+            P[i, nodes-1] = np.real(V[i, nodes-1]*np.conj(I[i, nodes-1]))
+            Q[i, nodes-1] = np.imag(V[i, nodes-1]*np.conj(I[i, nodes-1]))
             i = i + 1
         self.branch_data = {'Name': linename[0:i],
                             'BusTo': busnameto[0:i],
@@ -222,7 +246,9 @@ class dss_utils:
                             'Distance': distance[0:i],
                             "VoltageTo": Vto[0:i],
                             "VoltageFrom": V[0:i],
-                            "Current": I[0:i]}
+                            "Current": I[0:i],
+                            "power_real": P[0:i],
+                            "power_imag": Q[0:i]}
         print(self.branch_data)
 
 
@@ -235,38 +261,52 @@ class dss_utils:
             OpenDSS github python example
 
         """
-
+        #TODO: check voltage profile, if they are accurate
         def voltage_plot(self):
             """
                 Function to plot OpenDSS voltages
             """
-            v_min = 0.95 * np.ones(len(self.bus_data['Name']))
-            v_max = 1.05 * np.ones(len(self.bus_data['Name']))
+            v_min = 0.95 * np.ones(len(self.branch_data['Name']))
+            v_max = 1.05 * np.ones(len(self.branch_data['Name']))
 
-            x = self.bus_data['Distance']
-            y_a = np.abs(self.bus_data['Voltages'])[:, 0] / (self.bus_data['kVBase'] * 1e3)
-            y_b = np.abs(self.bus_data['Voltages'])[:, 1] / (self.bus_data['kVBase'] * 1e3)
-            y_c = np.abs(self.bus_data['Voltages'])[:, 2] / (self.bus_data['kVBase'] * 1e3)
-            x_a = x[y_a > 0.0]
-            y_a = y_a[y_a > 0.0]
-            x_b = x[y_b > 0.0]
-            y_b = y_b[y_b > 0.0]
-            x_c = x[y_c > 0.0]
-            y_c = y_c[y_c > 0.0]
+
+
+            #get distance ids in acending order
+            idx = np.argsort(self.branch_data['Distance'])
+            # collect voltages
+            v_a = np.abs(self.branch_data['VoltageFrom'][idx, 0])/ (self.branch_data['kVBase'][idx] * 1e3)
+            v_b = np.abs(self.branch_data['VoltageFrom'][idx, 1])/ (self.branch_data['kVBase'][idx] * 1e3)
+            v_c = np.abs(self.branch_data['VoltageFrom'][idx, 2])/ (self.branch_data['kVBase'][idx] * 1e3)
+
+            # y_a = np.abs(self.branch_data['VoltageFrom'])[:, 0] / (self.branch_data['kVBase'] * 1e3)
+            # y_b = np.abs(self.branch_data['VoltageFrom'])[:, 1] / (self.branch_data['kVBase'] * 1e3)
+            # y_c = np.abs(self.branch_data['VoltageFrom'])[:, 2] / (self.branch_data['kVBase'] * 1e3)
+
+            #sort the distances
+            x = self.branch_data['Distance'][idx]
+
+            x_a = x[v_a > 0.0]
+            v_a = v_a[v_a > 0.0]
+            x_b = x[v_b > 0.0]
+            v_b = v_b[v_b > 0.0]
+            x_c = x[v_c > 0.0]
+            v_c = v_c[v_c > 0.0]
             fig, ax = plt.subplots()
-            ax.scatter(x_a, y_a, label='phase a')
-            ax.scatter(x_b, y_b, label='phase b')
-            ax.scatter(x_c, y_c, label='phase c')
+            ax.scatter(x_a, v_a, label='phase a', c="g")
+            ax.plot(x_a, v_a, c="g")
+            ax.scatter(x_b, v_b, label='phase b', c="r")
+            ax.plot(x_b, v_b, c="r")
+            ax.scatter(x_c, v_c, label='phase c', c="b")
+            ax.plot(x_c, v_c, c="b")
             ax.plot(x, v_min, color='k')
             ax.plot(x, v_max, color='k')
             ax.set_xlabel('Distance from Feeder')
             ax.set_ylabel('(per unit)')
             ax.legend()
+            plt.show()
 
 
-
-
-        def map_plot(self):
+        def grid_plot(self, option='voltage'):
             """
                 Function to plot DSS grid map with similar to OPENDSS format:
             """
@@ -304,10 +344,33 @@ class dss_utils:
             #ax.set_ylim(0, 11)
             #ax.tick_params(left=True, bottom=True, labelleft=True, labelbottom=True)
             # plt.show()
+
+            if option == 'voltage':
+                weight = 'VoltageFrom'
+                title_text = 'Voltage Across Network'
+                weight_val = np.mean(np.abs(self.branch_data[weight]), axis=1) # we just have one edge representing multiphases, so using something simple
+            elif option == 'current':
+                weight = 'Current'
+                title_text = 'Current Across Network'
+                weight_val = np.mean(np.abs(self.branch_data[weight]), axis=1) # we just have one edge representing multiphases, so using something simple
+
+            elif option == 'power_real':
+                weight = 'power_real'
+                title_text = 'Real Power Across Network'
+                weight_val = np.sum(self.branch_data[weight], axis=1)
+            elif option == 'power_imag':
+                weight = 'power_imag'
+                title_text = 'Reactive Power Across Network'
+                weight_val = np.sum(self.branch_data[weight], axis=1)
+            else:
+                weight = 'VoltageFrom'
+                title_text = 'Voltage Across Network'
+                weight_val = np.mean(np.abs(self.branch_data[weight]), axis=1) # we just have one edge representing multiphases, so using something simple
+
             G = nx.Graph()
 
             for i in range(len(self.branch_data['Name'])):
-                G.add_edge(self.branch_data['BusFrom'][i], self.branch_data['BusTo'][i])
+                G.add_edge(self.branch_data['BusFrom'][i], self.branch_data['BusTo'][i], weight = weight_val[i])
                 x1 = self.bus_data['X'][self.bus_data['Name'].tolist().index(self.branch_data['BusFrom'][i])]
                 y1 = self.bus_data['Y'][self.bus_data['Name'].tolist().index(self.branch_data['BusFrom'][i])]
                 G.add_node(self.branch_data['BusFrom'][i], pos=(x1, y1))
@@ -315,15 +378,44 @@ class dss_utils:
                 y2 = self.bus_data['Y'][self.bus_data['Name'].tolist().index(self.branch_data['BusTo'][i])]
                 G.add_node(self.branch_data['BusTo'][i], pos=(x2, y2))
             pos = nx.get_node_attributes(G, 'pos')
+
+
+            # number_of_edges = G.number_of_edges()
+            # edge_colors = range(2, number_of_edges + 2)
+            # edge_alphas = [(5 + i) / (number_of_edges + 4) for i in range(number_of_edges)]
+            # cmap = plt.cm.plasma
+            #colors = 2 + 2*weight_val/max(weight_val)
+
             fig, ax = plt.subplots()
-            nx.draw(G, pos=pos, node_color='k', ax=ax, with_labels=True)
-            nx.draw(G, pos=pos, node_size=500, ax=ax, with_labels=True)  # draw nodes and edges
 
-            ax.set_xlim(min(min(self.branch_data["xto"]),min(self.branch_data["x"]))-10, max(max(self.branch_data["xto"]),max(self.branch_data["x"]))+10)
-            ax.set_ylim(min(min(self.branch_data["yto"]),min(self.branch_data["y"]))-10, max(max(self.branch_data["yto"]),max(self.branch_data["y"]))+10)
-            ax.tick_params(left=True, bottom=True, labelleft=True, labelbottom=True)
-
+            nodes = nx.draw_networkx_nodes(G, pos=pos, node_color="indigo")
+            edges = nx.draw_networkx_edges(G, pos=pos, edge_color=weight_val, width=4,
+                                           edge_cmap=plt.cm.Blues)
+            fig.colorbar(edges)
+            plt.axis('off')
+            ax.set_title(title_text)
             plt.show()
+
+            # edges = nx.draw_networkx_edges(G, pos, edge_color=edge_colors, edge_cmap=cmap, width=2)
+            # print(str(number_of_edges))
+            # print(str(edge_alphas))
+
+            # for i in range(number_of_edges):
+            #     edges[i].set_alpha(edge_alphas[i])
+            # pc = mpl.collections.PatchCollection(edges, cmap=cmap)
+            # pc.set_array(edge_colors)
+            # plt.colorbar(pc)
+            #
+            # ax = plt.gca()
+            # ax.set_axis_off()
+            # plt.show()
+            # nx.draw(G, pos=pos, node_color="indigo", ax=ax, with_labels=True)
+            # nx.draw(G, pos=pos, node_size=200, ax=ax, with_labels=True)  # draw nodes and edges
+
+            # ax.set_xlim(min(min(self.branch_data["xto"]),min(self.branch_data["x"]))-10, max(max(self.branch_data["xto"]),max(self.branch_data["x"]))+10)
+            # ax.set_ylim(min(min(self.branch_data["yto"]),min(self.branch_data["y"]))-10, max(max(self.branch_data["yto"]),max(self.branch_data["y"]))+10)
+            # ax.tick_params(left=True, bottom=True, labelleft=True, labelbottom=True)
+            # ax.set_title(title_text)
 
 
 
@@ -332,8 +424,9 @@ class dss_utils:
 
         self.branch_data_for_plot()
 
-        # bp = 1
-        map_plot(self)
+        plot_options = ['voltage', 'current', 'power_real', 'power_imag']
+
+        grid_plot(self, plot_options[2])
         voltage_plot(self)
 
 if __name__ == "__main__":
@@ -345,3 +438,4 @@ if __name__ == "__main__":
     utils = dss_utils()
     # utils.snapshot_run()
     utils.y_ordered_voltage_array()
+    #TODO: Add function for adding battery point, charge/discharge level
