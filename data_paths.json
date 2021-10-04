@@ -6,6 +6,6 @@
   "networkInfo": {
     "feederDir": "\\ckts\\opendss-ckts\\IEEE13",
     "cktName": "MasterIEEE13.dss",
-    "data_path_name": "\\ckts\\opendss-ckts\\IEEE13\\data",
+    "data_path_name": "\\ckts\\opendss-ckts\\IEEE13\\data"
   }
 }
