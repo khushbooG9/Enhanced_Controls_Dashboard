@@ -16,10 +16,20 @@ import networkx as nx
 class dss_utils:
     """
     Class to collect useful opendss utilities using opendssdirect package
+    "dir_name" --> path to where dss data is located, default =ckts\\opendss-ckts\\IEEE13
+    "ckt_name" --> .dss circuit name, default = MasterIEEE13.dss
+    "data_path_name" = path to where data will be located once generated from OpenDSS, default = 'ckts\\opendss-ckts\\IEEE13\\data'
+    "loc_file" --> name of the coordinate file for grid map, path is the same as the ckt_name, default = 'IEEE13Node_BusXY.csv'
+    "plot_snapshot" --> whethere to plot or not plot the snapshot results, default = False
+    "plot_options" --> id of which quantity to be plotted on the grid map, the list of quantites are  ['voltage', 'current', 'power_real', 'power_imag'], default = 2
     """
 
-    def __init__(self, dir_name='ckts\\opendss-ckts\\IEEE13', ckt_name='MasterIEEE13.dss', data_path_name='ckts\\opendss-ckts\\IEEE13\\data',loc_file='IEEE13Node_BusXY.csv'):
-        "initialize the ckt with its name and directory name"
+    def __init__(self, dir_name='ckts\\opendss-ckts\\IEEE13',
+                 ckt_name='MasterIEEE13.dss', data_path_name='ckts\\opendss-ckts\\IEEE13\\data',
+                 loc_file='IEEE13Node_BusXY.csv',
+                 plot_snapshot=False,
+                 plot_option=2):
+
 
         self.FeederDir = os.path.join(os.getcwd(), dir_name)
         self.MasterFileDir = os.path.join(self.FeederDir, ckt_name)
@@ -33,11 +43,7 @@ class dss_utils:
             print(f"Wrong path provided for the directory")
 #        print("Ckt Loaded" + MasterFileDir + "located at" + FeederDir)
 
-
-
         self.dss_obj = dss
-
-        # print(FeederDir)
 
         self.dss_obj.run_command('set datapath = ' + self.data_path_name)
         self.dss_obj.run_command('Compile ' + self.MasterFileDir)
@@ -49,21 +55,21 @@ class dss_utils:
         else:
             print(f"No grid location points provided")
 
-        self.snapshot_run()
-        # self.dss_obj.run_command('set mode=snap')
-        # self.dss_obj.run_command('solve')
+        grid_map_plot_option_ids = ['voltage', 'current', 'power_real', 'power_imag']
+
+        self.snapshot_run(plot_snapshot, grid_map_plot_option_ids[plot_option])
+
         self.nodes = np.array(self.dss_obj.Circuit.YNodeOrder())
         self.num_nodes = self.dss_obj.Circuit.NumNodes()
-        self.substation_injections()
+        self.get_substation_injections()
 
         # node voltage information
-        self.y_ordered_voltage_array()
+        self.get_y_ordered_voltage_array()
 
-        #
-        # self.dss_obj.ActiveCircuit
-        self.plot_grid_dss()
+        # function for plots
+        # self.plot_grid_dss()
 
-    def snapshot_run(self):
+    def snapshot_run(self, plot_snapshot, plot_snapshot_id):
         """ Function used for getting the snapshot run result
         """
         print(f"Solving OpenDSS PowerFlow in Snapshot Mode")
@@ -71,10 +77,18 @@ class dss_utils:
         self.dss_obj.run_command('solve')
         print(f"solution converged? {self.dss_obj.Solution.Converged()}")
         print(f"number of iterations took: {self.dss_obj.Solution.Iterations()}")
+        if plot_snapshot:
+            self.get_bus_branch_data_for_plots()
+            print(f"plotting snapshot results")
+            self.grid_plot(plot_snapshot_id)
+            self.voltage_plot()
+        else:
+            print(f"Snapshot plot option not selected")
+
         # self.dss_obj.run_command('Show convergence')
         # self.dss_obj.Solution.Solve()
 
-    def substation_injections(self):
+    def get_substation_injections(self):
         """ Function used for extracting power injection information at only slack bus from OpenDSS model
         """
         #TODO: make this dictionary of the size of substation source bus, instead of whole node
@@ -89,7 +103,7 @@ class dss_utils:
             self.s0.s0['SOURCEBUS' + '.3'] = -(
                     self.dss_obj.CktElement.Powers()[4] + np.multiply(1j, self.dss_obj.CktElement.Powers()[5]))
         # print(self.s0)
-    def y_ordered_voltage_array(self):
+    def get_y_ordered_voltage_array(self):
         """
         Function used for extracting Voltage phasor information at all nodes from OpenDSS model
         The order of voltage is similar to what Y-bus uses
@@ -102,6 +116,17 @@ class dss_utils:
         self.v0 = self.voltages[0:3]
         self.vL = self.voltages[3:]
         # print(self.vL)
+
+
+
+    def get_bus_branch_data_for_plots(self):
+        """
+        this function calls bus_data_input_for plots and branch_data_for_plot, so that they are not called in a wrong order
+        """
+        self.bus_data_input_for_plot()
+
+        self.branch_data_for_plot()
+
 
     def bus_data_input_for_plot(self):
         """
@@ -249,185 +274,138 @@ class dss_utils:
                             "Current": I[0:i],
                             "power_real": P[0:i],
                             "power_imag": Q[0:i]}
-        print(self.branch_data)
+        #print(self.branch_data)
 
 
-    def plot_grid_dss(self):
-
+    def voltage_plot(self):
         """
-            Function to plot DSS results:
-            First it inputs the coordinates information for buses
-            Bus and Branch Creation are the Dssdirect version of dssvlplot in
-            OpenDSS github python example
-
+            Function to plot OpenDSS voltages as a function of feeder distances
         """
-        #TODO: check voltage profile, if they are accurate
-        def voltage_plot(self):
-            """
-                Function to plot OpenDSS voltages
-            """
-            v_min = 0.95 * np.ones(len(self.branch_data['Name']))
-            v_max = 1.05 * np.ones(len(self.branch_data['Name']))
+        v_min = 0.95 * np.ones(len(self.branch_data['Name']))
+        v_max = 1.05 * np.ones(len(self.branch_data['Name']))
 
 
 
-            #get distance ids in acending order
-            idx = np.argsort(self.branch_data['Distance'])
-            # collect voltages
-            v_a = np.abs(self.branch_data['VoltageFrom'][idx, 0])/ (self.branch_data['kVBase'][idx] * 1e3)
-            v_b = np.abs(self.branch_data['VoltageFrom'][idx, 1])/ (self.branch_data['kVBase'][idx] * 1e3)
-            v_c = np.abs(self.branch_data['VoltageFrom'][idx, 2])/ (self.branch_data['kVBase'][idx] * 1e3)
+        #get distance ids in acending order
+        idx = np.argsort(self.branch_data['Distance'])
+        # collect voltages
+        v_a = np.abs(self.branch_data['VoltageFrom'][idx, 0])/ (self.branch_data['kVBase'][idx] * 1e3)
+        v_b = np.abs(self.branch_data['VoltageFrom'][idx, 1])/ (self.branch_data['kVBase'][idx] * 1e3)
+        v_c = np.abs(self.branch_data['VoltageFrom'][idx, 2])/ (self.branch_data['kVBase'][idx] * 1e3)
 
-            # y_a = np.abs(self.branch_data['VoltageFrom'])[:, 0] / (self.branch_data['kVBase'] * 1e3)
-            # y_b = np.abs(self.branch_data['VoltageFrom'])[:, 1] / (self.branch_data['kVBase'] * 1e3)
-            # y_c = np.abs(self.branch_data['VoltageFrom'])[:, 2] / (self.branch_data['kVBase'] * 1e3)
+        # y_a = np.abs(self.branch_data['VoltageFrom'])[:, 0] / (self.branch_data['kVBase'] * 1e3)
+        # y_b = np.abs(self.branch_data['VoltageFrom'])[:, 1] / (self.branch_data['kVBase'] * 1e3)
+        # y_c = np.abs(self.branch_data['VoltageFrom'])[:, 2] / (self.branch_data['kVBase'] * 1e3)
 
-            #sort the distances
-            x = self.branch_data['Distance'][idx]
+        #sort the distances
+        x = self.branch_data['Distance'][idx]
 
-            x_a = x[v_a > 0.0]
-            v_a = v_a[v_a > 0.0]
-            x_b = x[v_b > 0.0]
-            v_b = v_b[v_b > 0.0]
-            x_c = x[v_c > 0.0]
-            v_c = v_c[v_c > 0.0]
-            fig, ax = plt.subplots()
-            ax.scatter(x_a, v_a, label='phase a', c="g")
-            ax.plot(x_a, v_a, c="g")
-            ax.scatter(x_b, v_b, label='phase b', c="r")
-            ax.plot(x_b, v_b, c="r")
-            ax.scatter(x_c, v_c, label='phase c', c="b")
-            ax.plot(x_c, v_c, c="b")
-            ax.plot(x, v_min, color='k')
-            ax.plot(x, v_max, color='k')
-            ax.set_xlabel('Distance from Feeder')
-            ax.set_ylabel('(per unit)')
-            ax.legend()
-            plt.show()
-
-
-        def grid_plot(self, option='voltage'):
-            """
-                Function to plot DSS grid map with similar to OPENDSS format:
-            """
-            # TODO: scale the edges using
-            # def add_edge_to_graph(G, e1, e2, w):
-            #     G.add_edge(e1, e2, weight=w)
-            #
-            # def add_node_to_graph(G, n, pos):
-            #     G.add_node(n, pos=pos)
-
-            # ------------------- For reference: sample code for adding nodes to graph
-            # G = nx.Graph()
-            # node_label = ['b1', 'b2', 'b3', 'b4', 'b5']
-            # points = [(200.0, 200.0), (200.0, 150.0), (300.0, 150.0), (150.0, 150.0), (200.0, 100.0)]
-            # edges = [(0, 1, 10), (1, 2, 10), (1, 3, 10), (1, 4, 10)]
-            #
-            # for i in range(len(edges)):
-            #     # add_edge_to_graph(G, points[edges[i][0]], points[edges[i][1]], edges[i][2])
-            #     add_edge_to_graph(G, node_label[edges[i][0]], node_label[edges[i][1]], edges[i][2])
-            # for i in range(len(node_label)):
-            #     add_node_to_graph(G, node_label[i], points[i])
-            # # pos = {point: point for point in points}
-            # pos = nx.get_node_attributes(G, 'pos')
-            # # add axis
-            # fig, ax = plt.subplots()
-            # nx.draw(G, pos=pos, node_color='k', ax=ax, with_labels=True)
-            # nx.draw(G, pos=pos, node_size=1500, ax=ax, with_labels=True)  # draw nodes and edges
-            #nx.draw_networkx_labels(G, pos=pos)  # draw node labels/names
-            #nx.draw_networkx_nodes(G, pos=pos, label=node_label)
-            # draw edge weights
-            # labels = nx.get_edge_attributes(G, 'weight')
-            # nx.draw_networkx_edge_labels(G, pos, edge_labels=labels, ax=ax)
-            # plt.axis("on")
-            #ax.set_xlim(0, 11)
-            #ax.set_ylim(0, 11)
-            #ax.tick_params(left=True, bottom=True, labelleft=True, labelbottom=True)
-            # plt.show()
-
-            if option == 'voltage':
-                weight = 'VoltageFrom'
-                title_text = 'Voltage Across Network'
-                weight_val = np.mean(np.abs(self.branch_data[weight]), axis=1) # we just have one edge representing multiphases, so using something simple
-            elif option == 'current':
-                weight = 'Current'
-                title_text = 'Current Across Network'
-                weight_val = np.mean(np.abs(self.branch_data[weight]), axis=1) # we just have one edge representing multiphases, so using something simple
-
-            elif option == 'power_real':
-                weight = 'power_real'
-                title_text = 'Real Power Across Network'
-                weight_val = np.sum(self.branch_data[weight], axis=1)
-            elif option == 'power_imag':
-                weight = 'power_imag'
-                title_text = 'Reactive Power Across Network'
-                weight_val = np.sum(self.branch_data[weight], axis=1)
-            else:
-                weight = 'VoltageFrom'
-                title_text = 'Voltage Across Network'
-                weight_val = np.mean(np.abs(self.branch_data[weight]), axis=1) # we just have one edge representing multiphases, so using something simple
-
-            G = nx.Graph()
-
-            for i in range(len(self.branch_data['Name'])):
-                G.add_edge(self.branch_data['BusFrom'][i], self.branch_data['BusTo'][i], weight = weight_val[i])
-                x1 = self.bus_data['X'][self.bus_data['Name'].tolist().index(self.branch_data['BusFrom'][i])]
-                y1 = self.bus_data['Y'][self.bus_data['Name'].tolist().index(self.branch_data['BusFrom'][i])]
-                G.add_node(self.branch_data['BusFrom'][i], pos=(x1, y1))
-                x2 = self.bus_data['X'][self.bus_data['Name'].tolist().index(self.branch_data['BusTo'][i])]
-                y2 = self.bus_data['Y'][self.bus_data['Name'].tolist().index(self.branch_data['BusTo'][i])]
-                G.add_node(self.branch_data['BusTo'][i], pos=(x2, y2))
-            pos = nx.get_node_attributes(G, 'pos')
+        x_a = x[v_a > 0.0]
+        v_a = v_a[v_a > 0.0]
+        x_b = x[v_b > 0.0]
+        v_b = v_b[v_b > 0.0]
+        x_c = x[v_c > 0.0]
+        v_c = v_c[v_c > 0.0]
+        fig, ax = plt.subplots()
+        ax.scatter(x_a, v_a, label='phase a', c="g")
+        ax.plot(x_a, v_a, c="g")
+        ax.scatter(x_b, v_b, label='phase b', c="r")
+        ax.plot(x_b, v_b, c="r")
+        ax.scatter(x_c, v_c, label='phase c', c="b")
+        ax.plot(x_c, v_c, c="b")
+        ax.plot(x, v_min, color='k')
+        ax.plot(x, v_max, color='k')
+        ax.set_xlabel('Distance from Feeder')
+        ax.set_ylabel('(per unit)')
+        ax.legend()
+        plt.show()
 
 
-            # number_of_edges = G.number_of_edges()
-            # edge_colors = range(2, number_of_edges + 2)
-            # edge_alphas = [(5 + i) / (number_of_edges + 4) for i in range(number_of_edges)]
-            # cmap = plt.cm.plasma
-            #colors = 2 + 2*weight_val/max(weight_val)
+    def grid_plot(self, option='voltage'):
+        """
+            Function to plot DSS grid map with similar to OPENDSS format:
+        """
+        # def add_edge_to_graph(G, e1, e2, w):
+        #     G.add_edge(e1, e2, weight=w)
+        #
+        # def add_node_to_graph(G, n, pos):
+        #     G.add_node(n, pos=pos)
 
-            fig, ax = plt.subplots()
+        # ------------------- For reference: sample code for adding nodes to graph
+        # G = nx.Graph()
+        # node_label = ['b1', 'b2', 'b3', 'b4', 'b5']
+        # points = [(200.0, 200.0), (200.0, 150.0), (300.0, 150.0), (150.0, 150.0), (200.0, 100.0)]
+        # edges = [(0, 1, 10), (1, 2, 10), (1, 3, 10), (1, 4, 10)]
+        #
+        # for i in range(len(edges)):
+        #     # add_edge_to_graph(G, points[edges[i][0]], points[edges[i][1]], edges[i][2])
+        #     add_edge_to_graph(G, node_label[edges[i][0]], node_label[edges[i][1]], edges[i][2])
+        # for i in range(len(node_label)):
+        #     add_node_to_graph(G, node_label[i], points[i])
+        # # pos = {point: point for point in points}
+        # pos = nx.get_node_attributes(G, 'pos')
+        # # add axis
+        # fig, ax = plt.subplots()
+        # nx.draw(G, pos=pos, node_color='k', ax=ax, with_labels=True)
+        # nx.draw(G, pos=pos, node_size=1500, ax=ax, with_labels=True)  # draw nodes and edges
+        #nx.draw_networkx_labels(G, pos=pos)  # draw node labels/names
+        #nx.draw_networkx_nodes(G, pos=pos, label=node_label)
+        # draw edge weights
+        # labels = nx.get_edge_attributes(G, 'weight')
+        # nx.draw_networkx_edge_labels(G, pos, edge_labels=labels, ax=ax)
+        # plt.axis("on")
+        #ax.set_xlim(0, 11)
+        #ax.set_ylim(0, 11)
+        #ax.tick_params(left=True, bottom=True, labelleft=True, labelbottom=True)
+        # plt.show()
 
-            nodes = nx.draw_networkx_nodes(G, pos=pos, node_color="indigo")
-            edges = nx.draw_networkx_edges(G, pos=pos, edge_color=weight_val, width=4,
-                                           edge_cmap=plt.cm.Blues)
-            fig.colorbar(edges)
-            plt.axis('off')
-            ax.set_title(title_text)
-            plt.show()
+        if option == 'voltage':
+            weight = 'VoltageFrom'
+            title_text = 'Voltage Across Network'
+            weight_val = np.mean(np.abs(self.branch_data[weight]), axis=1) # we just have one edge representing multiphases, so using something simple
+        elif option == 'current':
+            weight = 'Current'
+            title_text = 'Current Across Network'
+            weight_val = np.mean(np.abs(self.branch_data[weight]), axis=1) # we just have one edge representing multiphases, so using something simple
 
-            # edges = nx.draw_networkx_edges(G, pos, edge_color=edge_colors, edge_cmap=cmap, width=2)
-            # print(str(number_of_edges))
-            # print(str(edge_alphas))
+        elif option == 'power_real':
+            weight = 'power_real'
+            title_text = 'Real Power Across Network'
+            weight_val = np.sum(self.branch_data[weight], axis=1)
+        elif option == 'power_imag':
+            weight = 'power_imag'
+            title_text = 'Reactive Power Across Network'
+            weight_val = np.sum(self.branch_data[weight], axis=1)
+        else:
+            weight = 'VoltageFrom'
+            title_text = 'Voltage Across Network'
+            weight_val = np.mean(np.abs(self.branch_data[weight]), axis=1) # we just have one edge representing multiphases, so using something simple
 
-            # for i in range(number_of_edges):
-            #     edges[i].set_alpha(edge_alphas[i])
-            # pc = mpl.collections.PatchCollection(edges, cmap=cmap)
-            # pc.set_array(edge_colors)
-            # plt.colorbar(pc)
-            #
-            # ax = plt.gca()
-            # ax.set_axis_off()
-            # plt.show()
-            # nx.draw(G, pos=pos, node_color="indigo", ax=ax, with_labels=True)
-            # nx.draw(G, pos=pos, node_size=200, ax=ax, with_labels=True)  # draw nodes and edges
+        G = nx.Graph()
 
-            # ax.set_xlim(min(min(self.branch_data["xto"]),min(self.branch_data["x"]))-10, max(max(self.branch_data["xto"]),max(self.branch_data["x"]))+10)
-            # ax.set_ylim(min(min(self.branch_data["yto"]),min(self.branch_data["y"]))-10, max(max(self.branch_data["yto"]),max(self.branch_data["y"]))+10)
-            # ax.tick_params(left=True, bottom=True, labelleft=True, labelbottom=True)
-            # ax.set_title(title_text)
+        for i in range(len(self.branch_data['Name'])):
+            G.add_edge(self.branch_data['BusFrom'][i], self.branch_data['BusTo'][i], weight = weight_val[i])
+            x1 = self.bus_data['X'][self.bus_data['Name'].tolist().index(self.branch_data['BusFrom'][i])]
+            y1 = self.bus_data['Y'][self.bus_data['Name'].tolist().index(self.branch_data['BusFrom'][i])]
+            G.add_node(self.branch_data['BusFrom'][i], pos=(x1, y1))
+            x2 = self.bus_data['X'][self.bus_data['Name'].tolist().index(self.branch_data['BusTo'][i])]
+            y2 = self.bus_data['Y'][self.bus_data['Name'].tolist().index(self.branch_data['BusTo'][i])]
+            G.add_node(self.branch_data['BusTo'][i], pos=(x2, y2))
+        pos = nx.get_node_attributes(G, 'pos')
 
 
 
-        self.bus_data_input_for_plot()
-        # self.bus_data_input()
+        fig, ax = plt.subplots()
 
-        self.branch_data_for_plot()
+        nodes = nx.draw_networkx_nodes(G, pos=pos, node_color="indigo")
+        edges = nx.draw_networkx_edges(G, pos=pos, edge_color=weight_val, width=4,
+                                       edge_cmap=plt.cm.Blues)
+        fig.colorbar(edges)
+        plt.axis('off')
+        ax.set_title(title_text)
+        plt.show()
 
-        plot_options = ['voltage', 'current', 'power_real', 'power_imag']
 
-        grid_plot(self, plot_options[2])
-        voltage_plot(self)
 
 if __name__ == "__main__":
     # FeederDir = os.path.join(os.getcwd(), '..\ckts\opendss-ckts\IEEE13')
@@ -435,7 +413,14 @@ if __name__ == "__main__":
     # print(MasterFileDir)
     # print(FeederDir)
     coord_file = "IEEE13Node_BusXY.csv"
-    utils = dss_utils()
+
+    utils = dss_utils(plot_snapshot=True)
     # utils.snapshot_run()
-    utils.y_ordered_voltage_array()
+    utils.get_y_ordered_voltage_array()
+    utils.bus_data_input_for_plot()
+
+    utils.branch_data_for_plot()
+
+
+
     #TODO: Add function for adding battery point, charge/discharge level
