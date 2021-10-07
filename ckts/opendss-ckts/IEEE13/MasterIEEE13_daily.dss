@@ -1,0 +1,26 @@
+clear
+Set DefaultBaseFrequency=60
+Set datapath= C:\devs\repo\ess\enhanced_control_ess\Enhanced_Controls_Dashboard\ckts\opendss-ckts\IEEE13\data
+new circuit.MasterIEEE13 ! Name of file MasterIEEE13
+~ basekv=115 pu=1.0 phases=3 bus1=SourceBus  
+~ Angle=30  MVAsc3=2000000 MVASC1=2100000 ! to make an infinite source
+!Redirect loadshapes.DSS
+Redirect Transformers.txt 
+Redirect Lines.txt
+Redirect Loads.txt
+Redirect Capacitors.txt
+New EnergyMeter.EM1 Element=Line.650632 1
+
+Set Voltagebases=[115, 4.16, .48] ! Three Voltage levels
+
+
+New Loadshape.dailyshape Interval=1 npts=86400 mult=(file=load_daily.csv)
+
+
+
+calcv
+Set Voltagebases=[115, 4.16, .48]
+batchedit load..* vminpu=0.65
+batchedit load..* vmaxpu=1.20
+Solve
+BusCoords IEEE13Node_BusXY.csv
