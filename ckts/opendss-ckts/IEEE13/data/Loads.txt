@@ -24,16 +24,16 @@ New Load.670c Bus1=670.3     Phases=1 Conn=Wye   Model=1 kV=2.4    kW=117   kvar
 
 
 !Adding monitors to all PQ loads
-New Monitor.MonLoad671a Element=Load.671a Terminal=1 mode=1 ppolar=no
-New Monitor.MonLoad671b Element=Load.671b Terminal=1 mode=1 ppolar=no
-New Monitor.MonLoad671c Element=Load.671c Terminal=1 mode=1 ppolar=no
-New Monitor.MonLoad634a Element=Load.634a Terminal=1 mode=1 ppolar=no
-New Monitor.MonLoad634b Element=Load.634b Terminal=1 mode=1 ppolar=no
-New Monitor.MonLoad634c Element=Load.634c Terminal=1 mode=1 ppolar=no
-New Monitor.MonLoad645 Element=Load.645 Terminal=1 mode=1 ppolar=no
-New Monitor.MonLoad675a Element=Load.675a Terminal=1 mode=1 ppolar=no
-New Monitor.MonLoad675b Element=Load.675b Terminal=1 mode=1 ppolar=no
-New Monitor.MonLoad675c Element=Load.675c Terminal=1 mode=1 ppolar=no
-New Monitor.MonLoad670a Element=Load.670a Terminal=1 mode=1 ppolar=no
-New Monitor.MonLoad670b Element=Load.670b Terminal=1 mode=1 ppolar=no
-New Monitor.MonLoad670c Element=Load.670c Terminal=1 mode=1 ppolar=no
+!New Monitor.MonLoad671a Element=Load.671a Terminal=1 mode=1 ppolar=no
+!New Monitor.MonLoad671b Element=Load.671b Terminal=1 mode=1 ppolar=no
+!New Monitor.MonLoad671c Element=Load.671c Terminal=1 mode=1 ppolar=no
+!New Monitor.MonLoad634a Element=Load.634a Terminal=1 mode=1 ppolar=no
+!New Monitor.MonLoad634b Element=Load.634b Terminal=1 mode=1 ppolar=no
+!New Monitor.MonLoad634c Element=Load.634c Terminal=1 mode=1 ppolar=no
+!New Monitor.MonLoad645 Element=Load.645 Terminal=1 mode=1 ppolar=no
+!New Monitor.MonLoad675a Element=Load.675a Terminal=1 mode=1 ppolar=no
+!New Monitor.MonLoad675b Element=Load.675b Terminal=1 mode=1 ppolar=no
+!New Monitor.MonLoad675c Element=Load.675c Terminal=1 mode=1 ppolar=no
+!New Monitor.MonLoad670a Element=Load.670a Terminal=1 mode=1 ppolar=no
+!New Monitor.MonLoad670b Element=Load.670b Terminal=1 mode=1 ppolar=no
+!New Monitor.MonLoad670c Element=Load.670c Terminal=1 mode=1 ppolar=no
