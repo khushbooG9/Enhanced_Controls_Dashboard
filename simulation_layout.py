@@ -46,7 +46,7 @@ def build_simulation_input_controls():
             #     ]),
             html.Div(id="stop-timer",
                      children=[
-                         html.Button('Stop Time', id='submit-stop-time', n_clicks=0, className="button"),
+                         html.Button('End Time', id='submit-stop-time', n_clicks=0, className="button"),
                          dcc.Input(id='stop-time', type="number", min=0, max=3600 * 24, step=1, value=0)
                      ]),
             html.Div(id="rate",
