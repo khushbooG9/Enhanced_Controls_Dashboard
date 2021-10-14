@@ -26,8 +26,6 @@ class battery_class_new:
         TODO: update inputs for this agent
 
     Attributes: #TODO: update attributes for this agent
-
-
     """
 
     def __init__(self, use_case_dict, gen_dict, data_dict):
