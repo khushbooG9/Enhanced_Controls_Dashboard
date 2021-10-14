@@ -182,7 +182,8 @@ class LiveGraph:
                 active_power_mismatch = new_actual_load - battery_obj.load_up[0]
                 reactive_power_mismatch = battery_obj.load_pf * active_power_mismatch
                 for i in range(len(services_list) - 1):
-                    service_priority = services_list[i + 1]
+                    service_priority = services_list[priority_list.index(i + 1)]
+                    print(f"{service_priority}")
                     if service_priority == "demand_charge":
                         # check demand charge reduction in real-time
                         new_SoC, new_battery_setpoint, new_grid_load = battery_obj.rtc_demand_charge_reduction \
