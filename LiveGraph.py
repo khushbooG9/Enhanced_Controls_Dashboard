@@ -292,7 +292,7 @@ class LiveGraph:
         # print('real time surcharge' + str(battery_obj.metrics['original_surcharge'][-1]))
         revenue1 = round(nonoptimized_surcharge - battery_obj.metrics['peak_surcharge_da'][-1], 2)# estimated savings
         revenue2 = round(battery_obj.metrics['peak_surcharge_da'][-1] - noncorrected_surcharge, 2)# estimated actual savings, but when no correction is done
-        revenue3 = round(battery_obj.metrics['peak_surcharge_da'][-1] - corrected_surcharge, 2)# estimated actual savings, with correction
+        revenue3 = round(nonoptimized_surcharge - corrected_surcharge, 2)# estimated actual savings, with correction
 
         battery_dict = battery_obj.todict()
         print('at the end', gen_config['rated_kW'])
