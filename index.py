@@ -100,8 +100,8 @@ def build_navbar():
                 id="banner-text",
                 className="banner__text",
                 children=[
-                    html.H4("Energy Storage Control"),
-                    html.H5("Enhanced Control Dashboard"),
+                    html.H4("Energy Storage Controls Learning and Evaluation (ESCLE)"),
+                    #html.H5("Enhanced Control Dashboard"),
                 ],
             )
         ],
