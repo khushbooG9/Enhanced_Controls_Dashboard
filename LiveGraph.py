@@ -182,7 +182,8 @@ class LiveGraph:
                 active_power_mismatch = new_actual_load - battery_obj.load_up[0]
                 reactive_power_mismatch = battery_obj.load_pf * active_power_mismatch
                 for i in range(len(services_list) - 1):
-                    service_priority = services_list[i + 1]
+                    service_priority = services_list[priority_list.index(i + 1)]
+                    print(f"{service_priority}")
                     if service_priority == "demand_charge":
                         # check demand charge reduction in real-time
                         new_SoC, new_battery_setpoint, new_grid_load = battery_obj.rtc_demand_charge_reduction \
@@ -291,7 +292,7 @@ class LiveGraph:
         # print('real time surcharge' + str(battery_obj.metrics['original_surcharge'][-1]))
         revenue1 = round(nonoptimized_surcharge - battery_obj.metrics['peak_surcharge_da'][-1], 2)# estimated savings
         revenue2 = round(battery_obj.metrics['peak_surcharge_da'][-1] - noncorrected_surcharge, 2)# estimated actual savings, but when no correction is done
-        revenue3 = round(battery_obj.metrics['peak_surcharge_da'][-1] - corrected_surcharge, 2)# estimated actual savings, with correction
+        revenue3 = round(nonoptimized_surcharge - corrected_surcharge, 2)# estimated actual savings, with correction
 
         battery_dict = battery_obj.todict()
         print('at the end', gen_config['rated_kW'])
