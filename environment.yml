@@ -98,4 +98,5 @@ dependencies:
     - mccabe==0.6.1
     - pycodestyle==2.7.0
     - pyflakes==2.3.1
+    - python-dotenv
 prefix: C:\Users\d3m614\Anaconda3\envs\ecd

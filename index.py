@@ -24,6 +24,7 @@ import LiveGraph
 from app import app
 from setting_layout import *
 from simulation_layout import *
+from network_layout import *
 
 # add ability to access environment variables from .env, like os.environ.get(<VAR>)
 load_dotenv()
@@ -38,6 +39,10 @@ ROUTES = [
     {
         'pathname': '/charts',
         'name': 'Viewer',
+    },
+    {
+        'pathname': '/charts/network',
+        'name': 'Network',
     }
 ]
 
@@ -130,6 +135,7 @@ def serve_layout():
                             dcc.Store(id="liveplot-store", storage_type="session"),
                             build_settings_tab(),
                             build_simulation_tab(),
+                            build_network_tab(),
                             dcc.Interval(id='graph-update', interval=1000, max_intervals=1000, n_intervals=0,
                                          disabled=True),
                         ],

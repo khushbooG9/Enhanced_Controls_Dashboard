@@ -1,7 +1,7 @@
 import opendssdirect as dss
 
 
-dss_file = r"C:\Users\hani049\OneDrive - PNNL\Documents\OpenDSS\scripts\13Bus\IEEE13Nodeckt.dss"
+dss_file = r"C:\Users\kini136\OneDrive - PNNL\Desktop\Enhanced_Controls_Dashboard\ckts\opendss-ckts\IEEE13\MasterIEEE13.dss"
 
 # using redirect command
 dss.run_command(f"Redirect [{dss_file}]")
