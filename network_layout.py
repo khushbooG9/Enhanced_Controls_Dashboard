@@ -21,8 +21,8 @@ def network_left_panel():
     """
 
     return html.Div(
-        id="network-left-container",
-        className="network-left-container",
+        id="network-left-page",
+        className="network-left-page",
         children=[build_network_controls(), build_bottom_left_panel()],
     )
 
@@ -32,7 +32,7 @@ def build_network_controls():
     """
     return html.Div(
         id="network-model-panel",
-        className="network-container__model-panel",
+        className="network-model-panel",
         children=[
             html.Label("Network Model"),
         ],
@@ -45,9 +45,9 @@ def build_bottom_left_panel():
     """
     return html.Div(
         id="network-bottom-left-section-container",
-        className="network-bottom-left-section-container",
+        className="network-graph-container",
         children=[
-            html.Label("plot 2"),
+            html.Label("Plot 2"),
             common_graph(id="network-bottom-left-graph"),
         ],
     )
@@ -61,8 +61,8 @@ def network_right_panel():
     """
 
     return html.Div(
-        id="network-graph-container",
-        className="network-graph-container",
+        id="network-right-page",
+        className="network-right-page",
         children=[build_top_right_panel(), build_bottom_right_panel()],
     )
 
@@ -75,9 +75,9 @@ def build_top_right_panel():
 
     return html.Div(
         id="network-top-right-section-container",
-        className="network-top-section-container",
+        className="network-graph-container",
         children=[
-            html.Label("plot 1"),
+            html.Label("Plot 1"),
             common_graph(id="network-top-right-graph"),
         ],
     )
@@ -89,9 +89,9 @@ def build_bottom_right_panel():
     """
     return html.Div(
         id="network-bottom-right-section-container",
-        className="network-bottom-right-section-container",
+        className="network-graph-container",
         children=[
-            html.Label("plot 3"),
+            html.Label("Plot 3"),
             common_graph(id="network-bottom-right-graph"),
         ],
     )
