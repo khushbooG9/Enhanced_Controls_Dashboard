@@ -24,8 +24,8 @@ class dss_utils:
     "plot_options" --> id of which quantity to be plotted on the grid map, the list of quantites are  ['voltage', 'current', 'power_real', 'power_imag'], default = 2
     """
 
-    def __init__(self, dir_name='ckts\\opendss-ckts\\IEEE13',
-                 ckt_name='MasterIEEE13_daily.dss', data_path_name='ckts\\opendss-ckts\\IEEE13\\data',
+    def __init__(self, dir_name='ckts\opendss-ckts\IEEE13',
+                 ckt_name='MasterIEEE13_daily.dss', data_path_name='ckts\opendss-ckts\IEEE13\data',
                  loc_file='IEEE13Node_BusXY.csv',
                  plot_snapshot=False,
                  plot_option=2,
@@ -40,6 +40,7 @@ class dss_utils:
         self.MasterFileDir = os.path.join(self.FeederDir, ckt_name)
         self.data_path_name = os.path.join(os.getcwd(), data_path_name)
         self.gridLocFile = os.path.join(self.data_path_name, loc_file)
+        self.gridLocFile = r"C:\Users\kini136\OneDrive - PNNL\Desktop\Enhanced_Controls_Dashboard\ckts\opendss-ckts\IEEE13\IEEE13Node_BusXY.csv"
         if os.path.isfile(self.MasterFileDir):
             print(f"Ckt Name Loaded: {self.MasterFileDir}")
             print(f"Directory: {self.FeederDir}")
@@ -51,18 +52,19 @@ class dss_utils:
         self.dss_obj = dss
 
         # self.dss_obj.run_command('Compile ' + self.MasterFileDir)
+
         self.dss_obj.Basic.DataPath(self.data_path_name)
-        self.dss_obj.run_command('Compile ' + self.MasterFileDir)
+        self.dss_obj.run_command(f'Compile [{self.MasterFileDir}]')
 
         # self.dss_obj.run_command('set datapath = ' + self.data_path_name)
 
         if os.path.isfile(self.gridLocFile):
-            self.dss_obj.run_command('BusCoords ' + loc_file)
+            print(f"grid loc file {self.gridLocFile}")
+            self.dss_obj.run_command(f'BusCoords [{loc_file}]')
             # TODO: read_csv is putting first row as the indices, rather than rows - change that.
-            self.grid_xy_data = pd.read_csv(self.gridLocFile)
+            self.grid_xy_data = pd.read_csv(self.gridLocFile, sep=' ')
         else:
             print(f"No grid location points provided")
-
 
         grid_map_plot_option_ids = ['voltage', 'current', 'power_real', 'power_imag']
 
