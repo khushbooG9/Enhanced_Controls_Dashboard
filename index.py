@@ -41,7 +41,7 @@ ROUTES = [
         'name': 'Viewer',
     },
     {
-        'pathname': '/charts/network',
+        'pathname': '/network',
         'name': 'Network',
     }
 ]
@@ -61,8 +61,11 @@ def update_output(n_clicks, value):
 
 
 @app.callback([Output("banner-button-config", "className"),
-               Output("banner-button-dash", "className"), Output('simulation-container', 'style'),
-               Output('settings-container', 'style')],
+               Output("banner-button-dash", "className"),
+               Output("banner-button-network", "className"),
+               Output('simulation-container', 'style'),
+               Output('settings-container', 'style'),
+               Output('network-container', 'style')],
               [dash.dependencies.Input('url', 'pathname')])
 def route(pathname):
     """
@@ -101,6 +104,11 @@ def build_navbar():
             ),
             dcc.Link(href='/charts', className='banner__button',
                      children=html.H4([ROUTES[1]['name'], html.I(className="fas fa-chart-line")]), id="banner-button-dash"),
+
+            # For Network Tab
+            dcc.Link(href='/network', className='banner__button',
+                     children=html.H4([ROUTES[2]['name'], html.I(className="fas fa-project-diagram")]), id="banner-button-network"),
+
             html.Div(
                 id="banner-text",
                 className="banner__text",

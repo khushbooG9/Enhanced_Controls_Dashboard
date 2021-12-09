@@ -1,4 +1,6 @@
 import dash_html_components as html
+import dash_core_components as dcc
+from components.common import common_graph, common_slider, common_switch
 
 
 def build_network_tab():
@@ -8,17 +10,89 @@ def build_network_tab():
     return html.Div(
         className="network-container",
         id="network-container",
-        children=[network_panel(), network_graph_panel()],
+        children=[network_left_panel(), network_right_panel()],
     )
 
-def network_panel():
+
+# --- left panel ---
+def network_left_panel():
+    """
+    Function to generate a panel on left side
+    """
+
     return html.Div(
-        className="network-container__upload__wrapper",
-        id="network-container__upload__wrapper",
+        id="network-left-container",
+        className="network-left-container",
+        children=[build_network_controls(), build_bottom_left_panel()],
     )
 
-def network_graph_panel():
+def build_network_controls():
+    """
+    Function to generate a panel for network on left side
+    """
     return html.Div(
-        className="network_graph-container__upload__wrapper",
-        id="network_graph-wrapper",
+        id="network-model-panel",
+        className="network-container__model-panel",
+        children=[
+            html.Label("Network Model"),
+        ],
     )
+
+
+def build_bottom_left_panel():
+    """
+    Function to build bottom panel for graph placeholder
+    """
+    return html.Div(
+        id="network-bottom-left-section-container",
+        className="network-bottom-left-section-container",
+        children=[
+            html.Label("plot 2"),
+            common_graph(id="network-bottom-left-graph"),
+        ],
+    )
+# --- left panel ---
+
+
+# --- right panel ---
+def network_right_panel():
+    """
+    Function to generate a panel on right side
+    """
+
+    return html.Div(
+        id="network-graph-container",
+        className="network-graph-container",
+        children=[build_top_right_panel(), build_bottom_right_panel()],
+    )
+
+
+
+def build_top_right_panel():
+    """
+    Function to build top panel for graph placeholder
+    """
+
+    return html.Div(
+        id="network-top-right-section-container",
+        className="network-top-section-container",
+        children=[
+            html.Label("plot 1"),
+            common_graph(id="network-top-right-graph"),
+        ],
+    )
+
+
+def build_bottom_right_panel():
+    """
+    Function to build bottom panel for graph placeholder
+    """
+    return html.Div(
+        id="network-bottom-right-section-container",
+        className="network-bottom-right-section-container",
+        children=[
+            html.Label("plot 3"),
+            common_graph(id="network-bottom-right-graph"),
+        ],
+    )
+# --- right panel ---
