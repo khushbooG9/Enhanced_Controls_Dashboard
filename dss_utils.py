@@ -53,7 +53,6 @@ class dss_utils:
         # self.dss_obj.run_command('Compile ' + self.MasterFileDir)
         self.dss_obj.Basic.DataPath(self.data_path_name)
         self.dss_obj.run_command('Compile ' + self.MasterFileDir)
-
         # self.dss_obj.run_command('set datapath = ' + self.data_path_name)
 
         if os.path.isfile(self.gridLocFile):
@@ -867,6 +866,10 @@ if __name__ == "__main__":
 
     #utils.branch_data_for_plot()
 
+    # add charge/discharge to BESS
 
+    # monitor voltage at a node
+
+    # if this then do this
 
     #TODO: Add function for adding battery point, charge/discharge level
