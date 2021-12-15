@@ -61,8 +61,8 @@ def update_output(n_clicks, value):
 @app.callback([Output("banner-button-config", "className"),
                Output("banner-button-dash", "className"),
                Output("banner-button-network", "className"),
-               Output('simulation-container', 'style'),
                Output('settings-container', 'style'),
+               Output('simulation-container', 'style'),
                Output('network-container', 'style')],
               [dash.dependencies.Input('url', 'pathname')])
 def route(pathname):
