@@ -1,6 +1,6 @@
 clear
 Set DefaultBaseFrequency=60
-!Set datapath= C:\devs\repo\ess\enhanced_control_ess\Enhanced_Controls_Dashboard\ckts\opendss-ckts\IEEE13\data
+Set datapath= C:\devs\repo\ess\enhanced_control_ess\Enhanced_Controls_Dashboard\ckts\opendss-ckts\IEEE13\data
 new circuit.MasterIEEE13 ! Name of file MasterIEEE13
 ~ basekv=115 pu=1.0 phases=3 bus1=SourceBus  
 ~ Angle=30  MVAsc3=2000000 MVASC1=2100000 ! to make an infinite source

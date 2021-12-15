@@ -5,3 +5,7 @@ del *elem.Txt
 del *Node.Txt
 del *VLN.Txt
 del *VLL.Txt
+del *_vi_*
+del *_nodev_*
+del *_reg_*
+del *_sub*
