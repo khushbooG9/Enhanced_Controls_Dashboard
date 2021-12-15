@@ -17,5 +17,3 @@ _NOTE: These instructions are based on a Windows 10 machine, using PyCharm Profe
 
 ###Getting Started
  - any files in `assets/` will be used by the dash - add any CSS there
- - DO NOT edit `styles.scss` unless you have an [SCSS file watcher enabled in Pycharm](https://www.jetbrains.com/help/pycharm/transpiling-sass-less-and-scss-to-css.html)
-   - if you don't have Pycharm Pro and therefore cannot use file watchers, just edit `styles.css` which is under the `styles.scss` dropdown
