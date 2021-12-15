@@ -29,11 +29,9 @@ from network_layout import *
 # add ability to access environment variables from .env, like os.environ.get(<VAR>)
 load_dotenv()
 
-HOME_PATH = '/'
-CHARTS_PATH = '/charts',
 ROUTES = [
     {
-        'pathname': HOME_PATH,
+        'pathname': '/',
         'name': 'Configuration',
     },
     {
@@ -76,12 +74,13 @@ def route(pathname):
     classes = []
     styles = []
     for i, r in enumerate(ROUTES):
+        possible_img_class = f' {class_name}--with-image' if i == 0 else ''
         if r['pathname'] == pathname:
-            classes.append(f"{class_name}{f' {class_name}--with-image' if i == 0 else ''}  {class_name}--active")
-            styles.append(dict(display="none"))
-        else:
-            classes.append(class_name + (f" {class_name}--with-image" if i == 0 else ""))
+            classes.append(f"{class_name}{possible_img_class}  {class_name}--active")
             styles.append(None)
+        else:
+            classes.append(class_name + possible_img_class)
+            styles.append(dict(display="none"))
 
     return classes + styles
 
