@@ -1,24 +1,9 @@
 import logging
 import os
-from collections import deque
-from datetime import timedelta
-from datetime import datetime
 
 import dash
-import dash_core_components as dcc
-import dash_html_components as html
-import plotly.graph_objects as go
-from datetime import datetime as dt, timedelta as td
-import dash_daq as daq
-import dash_table
-import pandas as pd
-from battery_class_new import *
-from sim_runner_no_dashboard import *
-from collections import deque
-import json
 from dotenv import load_dotenv
 from dash.dependencies import Input, Output, State
-import numpy as np
 import LiveGraph
 
 from app import app
@@ -64,7 +49,7 @@ def update_output(n_clicks, value):
                Output('settings-container', 'style'),
                Output('simulation-container', 'style'),
                Output('network-container', 'style')],
-              [dash.dependencies.Input('url', 'pathname')])
+              [Input('url', 'pathname')])
 def route(pathname):
     """
     builds the routes
