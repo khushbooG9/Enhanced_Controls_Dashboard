@@ -89,7 +89,7 @@ class dss_utils:
         #self.get_substation_injections()
 
         # node voltage information
-        #self.get_y_ordered_voltage_array()
+        self.get_y_ordered_voltage_array()
 
 
     def snapshot_run(self, plot_snapshot, plot_snapshot_id):
@@ -584,6 +584,10 @@ class dss_utils:
         self.voltages = V_real + np.multiply(1j, V_imag)
         self.v0 = self.voltages[0:3]
         self.vL = self.voltages[3:]
+        Vol_pu = self.dss_obj.Circuit.AllBusMagPu()
+        vmin_pu = max(Vol_pu)
+        vmax_pu = max(Vol_pu)
+        # print(f" {Vol_pu}")
         # logging.info(self.vL)
 
 
