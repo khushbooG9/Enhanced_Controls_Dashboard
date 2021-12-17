@@ -9,6 +9,7 @@ import matplotlib.pyplot as plt
 # import matplotlib.text as text
 # colorConverter = ColorConverter()
 import matplotlib as mpl
+import logging
 
 import re
 import networkx as nx
@@ -33,6 +34,11 @@ class dss_utils:
                  time_series_type='daily',
                  load_shape_file='load_daily.csv'):
 
+        if os.path.isfile('example.log'):
+            os.remove('example.log')
+
+        logging.basicConfig(filename='example.log', level=logging.INFO)
+
         self.print_statements = True
         self.node_names = None
         self.busnames = []
@@ -40,14 +46,15 @@ class dss_utils:
         self.MasterFileDir = os.path.join(self.FeederDir, ckt_name)
         self.data_path_name = os.path.join(os.getcwd(), data_path_name)
         self.gridLocFile = os.path.join(self.data_path_name, loc_file)
-        self.gridLocFile = r"C:\Users\kini136\OneDrive - PNNL\Desktop\Enhanced_Controls_Dashboard\ckts\opendss-ckts\IEEE13\IEEE13Node_BusXY.csv"
+        # self.gridLocFile = r"C:\Users\kini136\OneDrive - PNNL\Desktop\Enhanced_Controls_Dashboard\ckts\opendss-ckts\IEEE13\IEEE13Node_BusXY.csv"
         if os.path.isfile(self.MasterFileDir):
-            print(f"Ckt Name Loaded: {self.MasterFileDir}")
-            print(f"Directory: {self.FeederDir}")
-            print(f"DataPath: {self.data_path_name}")
+            logging.info(f"Ckt Name Loaded: {self.MasterFileDir}")
+            logging.info(f"Ckt Name Loaded: {self.MasterFileDir}")
+            logging.info(f"Directory: {self.FeederDir}")
+            logging.info(f"DataPath: {self.data_path_name}")
         else:
-            print(f"Wrong path provided for the directory")
-#        print("Ckt Loaded" + MasterFileDir + "located at" + FeederDir)
+            logging.info(f"Wrong path provided for the directory")
+#        logging.info("Ckt Loaded" + MasterFileDir + "located at" + FeederDir)
 
         self.dss_obj = dss
 
@@ -59,12 +66,13 @@ class dss_utils:
         # self.dss_obj.run_command('set datapath = ' + self.data_path_name)
 
         if os.path.isfile(self.gridLocFile):
-            print(f"grid loc file {self.gridLocFile}")
+            logging.info(f"grid loc file {self.gridLocFile}")
             self.dss_obj.run_command(f'BusCoords [{loc_file}]')
             # TODO: read_csv is putting first row as the indices, rather than rows - change that.
             self.grid_xy_data = pd.read_csv(self.gridLocFile, sep=' ')
         else:
-            print(f"No grid location points provided")
+
+            logging.info(f"No grid location points provided")
 
         grid_map_plot_option_ids = ['voltage', 'current', 'power_real', 'power_imag']
 
@@ -72,7 +80,7 @@ class dss_utils:
             self.snapshot_run(plot_snapshot, grid_map_plot_option_ids[plot_option])
 
         if run_time_series:
-            print(f"Time Series Run Selected with {time_series_type} mode ")
+            logging.info(f"Time Series Run Selected with {time_series_type} mode ")
             self.run_time_series(time_series_type=time_series_type, load_shape_file=load_shape_file)
 
 
@@ -87,18 +95,18 @@ class dss_utils:
     def snapshot_run(self, plot_snapshot, plot_snapshot_id):
         """ Function used for getting the snapshot run result
         """
-        print(f"Solving OpenDSS PowerFlow in Snapshot Mode")
+        logging.info(f"Solving OpenDSS PowerFlow in Snapshot Mode")
         self.dss_obj.run_command('set mode=snap')
         self.dss_obj.run_command('solve')
-        print(f"solution converged? {self.dss_obj.Solution.Converged()}")
-        print(f"number of iterations took: {self.dss_obj.Solution.Iterations()}")
+        logging.info(f"solution converged? {self.dss_obj.Solution.Converged()}")
+        logging.info(f"number of iterations took: {self.dss_obj.Solution.Iterations()}")
         if plot_snapshot:
             self.get_bus_branch_data_for_plots()
-            print(f"plotting snapshot results")
+            logging.info(f"plotting snapshot results")
             self.grid_plot(plot_snapshot_id)
             self.voltage_plot()
         else:
-            print(f"Snapshot plot option not selected")
+            logging.info(f"Snapshot plot option not selected")
 
         # self.dss_obj.run_command('Show convergence')
         # self.dss_obj.Solution.Solve()
@@ -136,14 +144,14 @@ class dss_utils:
         self.add_volt_mons()
 
         # Run the model
-        print(f"====== Running Time Series Simulation ==========")
+        logging.info(f"====== Running Time Series Simulation ==========")
         #self.dss_obj.run_command('set controlmode=time')
         self.dss_obj.run_command('set mode=daily')
         self.dss_obj.run_command('set stepsize=1h')
         self.dss_obj.run_command('set number=24')
         self.dss_obj.run_command('solve')
-        print(f"time series solution converged? {self.dss_obj.Solution.Converged()}")
-        print(f"number of iterations took: {self.dss_obj.Solution.Iterations()}")
+        logging.info(f"time series solution converged? {self.dss_obj.Solution.Converged()}")
+        logging.info(f"number of iterations took: {self.dss_obj.Solution.Iterations()}")
         self.rem_mons()
         self.exp_mons()
         self.get_mons_out()
@@ -161,7 +169,7 @@ class dss_utils:
                 os.remove(os.path.join(self.data_path_name, item))
 
     def exp_mons(self):
-        print(f"========= Exporting Monitors ===========")
+        logging.info(f"========= Exporting Monitors ===========")
         go = self.dss_obj.Monitors.First()
         while go:
             exp_monitor_str = 'export monitors ' + self.dss_obj.Monitors.Name()
@@ -180,33 +188,44 @@ class dss_utils:
             # current monitored load
             mon_go = self.dss_obj.Monitors.First()
             current_load = 'load.' + load_name
+            # print(f"current_load = {current_load}")
+
             mon_element_found = []
             while mon_go and not(current_load == self.dss_obj.Monitors.Element()):
+                # print(f"current Monitor Element: {self.dss_obj.Monitors.Element()}")
                 mon_element_found.append(self.dss_obj.Monitors.Element())
                 mon_go = self.dss_obj.Monitors.Next()
 
             if mon_go:
-                data = pd.read_csv(self.dss_obj.Monitors.FileName())
-                # determine phase offset
-                phofs = sum(np.array(self.dss_obj.CktElement.NodeOrder())>0)
-                if not(self.dss_obj.Loads.IsDelta()):
-                    phofs = phofs + 1
-                # process each phase load
-                toks = re.sub(r"\..*", "", self.dss_obj.CktElement.BusNames()[0])
-                for idx in range(0,sum(self.dss_obj.CktElement.NodeOrder())>0):
-                    node = toks + '.' + str(self.dss_obj.CktElement.NodeOrder()[idx])
-                    sens_load_names.append(node)
-                    vmag = data.iloc[:, 2*idx + 2].values
-                    vdeg = data.iloc[:, 2*idx + 3].values
-                    imag = data.iloc[:, 2*(phofs+idx)+2].values
-                    ideg = data.iloc[:, 2*(phofs+idx)+3].values
-                    sens_load_p.append(vmag*imag*np.cos((vdeg-ideg)*np.pi/180))
-                    sens_load_q.append(vmag*imag*np.sin((vdeg-ideg)*np.pi/180))
-            else:
-                print(f"Monitor not found for load:  {current_load}")
+                if os.path.isfile(self.dss_obj.Monitors.FileName()):
+                    data = pd.read_csv(self.dss_obj.Monitors.FileName())
+                    # determine phase offset
+                    phofs = sum(np.array(self.dss_obj.CktElement.NodeOrder())>0)
+                    if not(self.dss_obj.Loads.IsDelta()):
+                        phofs = phofs + 1
+                    # process each phase load
+                    toks = re.sub(r"\..*", "", self.dss_obj.CktElement.BusNames()[0])
+                    for idx in range(0,sum(self.dss_obj.CktElement.NodeOrder())>0):
+                        node = toks + '.' + str(self.dss_obj.CktElement.NodeOrder()[idx])
+                        sens_load_names.append(node)
+                        vmag = data.iloc[:, 2*idx + 2].values
+                        vdeg = data.iloc[:, 2*idx + 3].values
+                        imag = data.iloc[:, 2*(phofs+idx)+2].values
+                        ideg = data.iloc[:, 2*(phofs+idx)+3].values
+                        sens_load_p.append(vmag*imag*np.cos((vdeg-ideg)*np.pi/180))
+                        sens_load_q.append(vmag*imag*np.sin((vdeg-ideg)*np.pi/180))
+
+                    logging.info(f"Monitor exported for: {current_load}")
+                else:
+                    logging.info(f"OPENDSS didn't generate monitor results for {current_load}")
+            # else:
+            #     logging.info(f"Monitor not found for load:  {current_load}")
 
         if self.print_statements:
-            print(f"Number of Load monitors exported {len(sens_load_p)}")
+            logging.info(f"Number of Load monitors exported {len(sens_load_p)}")
+            #TODO: compare exported monitors with specified monitors to be read in settings
+            # logging.info(f"Number of Load monitors exported {len(sens_load_p)}")
+
 
     # def retrieve_line_monitor_outputs(self):
 
@@ -225,27 +244,31 @@ class dss_utils:
                 mon_go = self.dss_obj.Monitors.Next()
 
             if mon_go:
-                data = pd.read_csv(self.dss_obj.Monitors.FileName())
-                # determine phase offset
-                # phofs = sum(np.array(self.dss_obj.CktElement.NodeOrder())>0)
-                # if not(self.dss_obj.Loads.IsDelta()):
-                #     phofs = phofs + 1
-                # process each phase load
-                toks = re.sub(r"\..*", "", self.dss_obj.CktElement.BusNames()[self.dss_obj.Monitors.Terminal()-1])
-                phofs = sum(np.array(self.dss_obj.CktElement.NodeOrder()) > 0)
-                for idx in range(0, phofs):
-                    node = toks + '.' + str(self.dss_obj.CktElement.NodeOrder()[idx])
-                    sens_line_names.append(line+ '.' + str(self.dss_obj.CktElement.NodeOrder()[idx]))
-                    vre = data.iloc[:, 2*idx + 2].values
-                    vim = data.iloc[:, 2*idx + 3].values
-                    sens_line_Vmag.append(np.abs(vre + 1j*vim))
-                    sens_line_Ire.append(data.iloc[:, 2*(phofs+idx)+2].values)
-                    sens_line_Iim.append(data.iloc[:, 2*(phofs+idx)+3].values)
-            else:
-                print(f"Monitor not found for line:  {current_line}")
+                if os.path.isfile(self.dss_obj.Monitors.FileName()):
+
+                    data = pd.read_csv(self.dss_obj.Monitors.FileName())
+                    # determine phase offset
+                    # phofs = sum(np.array(self.dss_obj.CktElement.NodeOrder())>0)
+                    # if not(self.dss_obj.Loads.IsDelta()):
+                    #     phofs = phofs + 1
+                    # process each phase load
+                    toks = re.sub(r"\..*", "", self.dss_obj.CktElement.BusNames()[self.dss_obj.Monitors.Terminal()-1])
+                    phofs = sum(np.array(self.dss_obj.CktElement.NodeOrder()) > 0)
+                    for idx in range(0, phofs):
+                        node = toks + '.' + str(self.dss_obj.CktElement.NodeOrder()[idx])
+                        sens_line_names.append(line+ '.' + str(self.dss_obj.CktElement.NodeOrder()[idx]))
+                        vre = data.iloc[:, 2*idx + 2].values
+                        vim = data.iloc[:, 2*idx + 3].values
+                        sens_line_Vmag.append(np.abs(vre + 1j*vim))
+                        sens_line_Ire.append(data.iloc[:, 2*(phofs+idx)+2].values)
+                        sens_line_Iim.append(data.iloc[:, 2*(phofs+idx)+3].values)
+
+                    logging.info(f"Monitor found for line:  {current_line}")
+                else:
+                    logging.info(f"Monitor not found for line:  {current_line}")
 
         if self.print_statements:
-            print(f"Number of Line monitors exported {len(sens_line_names)}")
+            logging.info(f"Number of Line monitors exported {len(mon_element_found)}")
 
         sens_reg_names = []
         sens_reg_taps = []
@@ -261,27 +284,33 @@ class dss_utils:
             mon_go = self.dss_obj.Monitors.First()
             while mon_go:
                 if xfname == self.dss_obj.Monitors.Element():
-                    data = pd.read_csv(self.dss_obj.Monitors.FileName())
-                    sens_xfmr_names_all.append(sens_reg_names)
+                    if os.path.isfile(self.dss_obj.Monitors.FileName()):
+                        data = pd.read_csv(self.dss_obj.Monitors.FileName())
+                        sens_xfmr_names_all.append(sens_reg_names)
 
-                    # check for tap ratio monitor
-                    if self.dss_obj.Monitors.Mode() == 2:
-                        sens_reg_taps.append(data.values)
-                    elif self.dss_obj.Monitors.Mode() == 0:
-                        tmpVmag = data.iloc[:, 2].values
-                        tmpVarg = data.iloc[:, 2].values*np.pi/180
-                        vtmp = tmpVmag * (np.cos(tmpVarg) + 1j*np.sin(tmpVarg))
-                        if self.dss_obj.Monitors.Terminal() == 1:
-                            sens_reg_primv.append(tmpVmag)
-                        if self.dss_obj.Monitors.Terminal() == 1:
-                            sens_reg_regv.append(tmpVmag)
+                        # check for tap ratio monitor
+                        if self.dss_obj.Monitors.Mode() == 2:
+                            sens_reg_taps.append(data.values)
+                        elif self.dss_obj.Monitors.Mode() == 0:
+                            tmpVmag = data.iloc[:, 2].values
+                            tmpVarg = data.iloc[:, 2].values*np.pi/180
+                            vtmp = tmpVmag * (np.cos(tmpVarg) + 1j*np.sin(tmpVarg))
+                            if self.dss_obj.Monitors.Terminal() == 1:
+                                sens_reg_primv.append(tmpVmag)
+                            if self.dss_obj.Monitors.Terminal() == 1:
+                                sens_reg_regv.append(tmpVmag)
+                        else:
+                            logging.info(f"ERROR: unexpected monitor mode for xfrm: {xfname}")
+
+                        logging.info(f"Monitor found for Regulator:  {sens_reg_names[0]}")
                     else:
-                        print(f"ERROR: unexpected monitor mode for xfrm: {xfname}")
+                        logging.info(f"Monitor not found for Regulator:  {sens_reg_names[0]}")
+
                 mon_go = self.dss_obj.Monitors.Next()
             go = self.dss_obj.RegControls.Next()
 
         if self.print_statements:
-            print(f"Number of Regulator monitors exported {len(sens_xfmr_names_all)}")
+            logging.info(f"Number of Regulator monitors exported {len(sens_xfmr_names_all)}")
 
         sens_sub_names = []
         sens_sub_p = []
@@ -298,7 +327,7 @@ class dss_utils:
                 mon_go = self.dss_obj.Monitors.Next()
 
             if not(mon_go):
-                print(f"ERROR: Could not find monitor for: {sourcename}")
+                logging.info(f"ERROR: Could not find monitor for: {sourcename}")
 
             source_name_list.append(sourcename)
             data = pd.read_csv(self.dss_obj.Monitors.FileName())
@@ -315,7 +344,7 @@ class dss_utils:
             go = self.dss_obj.Vsources.Next()
 
         if self.print_statements:
-            print(f"Number of Substation monitors exported: {len(source_name_list)}")
+            logging.info(f"Number of Substation monitors exported: {len(source_name_list)}")
 
         # exporting node voltages
         node_names = []
@@ -327,24 +356,31 @@ class dss_utils:
         while go:
             faultname = self.dss_obj.CktElement.Name()
             mon_go = self.dss_obj.Monitors.First()
-            while mon_go and not(faultname == self.dss_obj.Monitors.Element):
+            #print(f"current fault element: {faultname} ")
+            while mon_go and not(faultname.lower() == self.dss_obj.Monitors.Element().lower()):
+                #print(f"current monitor element: {self.dss_obj.Monitors.Element()} ")
                 mon_go = self.dss_obj.Monitors.Next()
 
-            if not(mon_go):
-                print(f" ERROR: could not find monitor for: {faultname}")
-
-            node_mons_list.append(faultname)
-            data = pd.read_csv(self.dss_obj.Monitors.FileName())
-            node_names.append(self.dss_obj.CktElement.BusNames()[0])
-            node_voltages.append(data.iloc[:, 2].values + 1j*data.iloc[:, 3].values)
-            node_voltages_mag.append(np.sqrt(data.iloc[:, 2].values**2 + data.iloc[:, 3].values**2))
+            # if not(mon_go):
+            #     logging.info(f" ERROR: could not find monitor for: {faultname}")
+            while mon_go:
+                if os.path.isfile(self.dss_obj.Monitors.FileName()):
+                    data = pd.read_csv(self.dss_obj.Monitors.FileName())
+                    node_mons_list.append(faultname)
+                    node_names.append(self.dss_obj.CktElement.BusNames()[0])
+                    node_voltages.append(data.iloc[:, 2].values + 1j*data.iloc[:, 3].values)
+                    node_voltages_mag.append(np.sqrt(data.iloc[:, 2].values**2 + data.iloc[:, 3].values**2))
+                    logging.info(f"Monitor found for Node:  {faultname}")
+                else:
+                    logging.info(f"Monitor not found for Node:  {faultname}")
+                mon_go = False
 
             self.dss_obj.Circuit.SetActiveElement(faultname)
             go = self.dss_obj.ActiveClass.Next()
+            #logging.info(f"go element: {self.dss_obj.ActiveClass.Next()}")
         if self.print_statements:
-            print(f"Number of node monitors exported: {len(node_mons_list)}")
+            logging.info(f"Number of node monitors exported: {len(node_mons_list)}")
 
-        check_point = 1
     def add_load_shape(self, mode, shape_file):
         """
         function to add load shape
@@ -360,25 +396,25 @@ class dss_utils:
                                 + ' npts=' + str(24) \
                                 + ' mult=(file=' + self.shape_file_path + ')'
                                # + ' mult=(file=' + shape_file + ')'
-            print(f"{load_shape_string}")
+            logging.info(f"{load_shape_string}")
             self.dss_obj.run_command(load_shape_string)
         elif mode == 'yearly':
-            print(f"Yearly Mode has not yet been setup")
+            logging.info(f"Yearly Mode has not yet been setup")
 #            self.load_vals = pd.read_csv(self.shape_path)
 
     def add_load_mons(self):
         mons_nodes = ['634.1', '634.2', '634.3', '675.1', '675.2', '675.3', '611.3', '652.1']
-        print(f"====Editing Loads and Adding Monitors to its Selected Nodes====")
+        logging.info(f"====Editing Loads and Adding Monitors to its Selected Nodes====")
         # numloads = len(self.dss_obj.Loads.AllNames())
         mon_to_load_str_all = []
         load_edit_str_all = []
-        print(f"total loads: {len(self.dss_obj.Loads.AllNames())}")
-        #print(*self.dss_obj.Loads.AllNames(),sep="\n")
+        logging.info(f"total loads: {len(self.dss_obj.Loads.AllNames())}")
+        #logging.info(*self.dss_obj.Loads.AllNames(),sep="\n")
         for load_name in self.dss_obj.Loads.AllNames():
             #shape_name = 'shape_' + load
             load_edit_string = 'edit load.' + load_name + ' daily=dailyshape'
             load_edit_str_all.append(load_edit_string)
-            # print(f"{load_edit_string}")
+            # logging.info(f"{load_edit_string}")
             self.dss_obj.run_command(load_edit_string)
 
             self.dss_obj.Circuit.SetActiveElement('Load.' + load_name)
@@ -390,19 +426,24 @@ class dss_utils:
                                   + ' terminal=' + str(1) \
                                   + ' mode=' + str(0) \
                                   + ' VIPolar=true'
-                #print(f"{mon_to_load_str}")
+                #logging.info(f"{mon_to_load_str}")
                 self.dss_obj.run_command(mon_to_load_str)
                 mon_to_load_str_all.append(mon_to_load_str)
+                if self.print_statements:
+                    logging.info(load_edit_string)
+                    logging.info(mon_to_load_str)
         mons_nodes_asked = len(mons_nodes)
         mons_nodes_placed = len(mon_to_load_str_all)
 
         if self.print_statements:
-            print(*load_edit_str_all, sep="\n")
-            print(*mon_to_load_str_all, sep="\n")
-            print(f"Monitor Nodes Specified {mons_nodes_asked}")
-            print(f"Monitor Nodes Placed {mons_nodes_placed}")
-            # print(f"{load_edit_str_all}")
-            # print(f"{mon_to_load_str_all}")
+            # print(*load_edit_str_all, sep="\n")
+            # print(*mon_to_load_str_all, sep="\n")
+            # logging.info(load_edit_str_all)
+            # logging.info(mon_to_load_str_all)
+            logging.info(f"Monitor Nodes Specified {mons_nodes_asked}")
+            logging.info(f"Monitor Nodes Placed {mons_nodes_placed}")
+            # logging.info(f"{load_edit_str_all}")
+            # logging.info(f"{mon_to_load_str_all}")
 
     def add_vreg_mons(self):
         """
@@ -431,9 +472,9 @@ class dss_utils:
                           ' terminal=' + str(2) + \
                           ' mode=' + str(0)
             if self.print_statements:
-                print(f"{mon_tap_str}")
-                print(f"{mon_prim_str}")
-                print(f"{mon_reg_str}")
+                logging.info(f"{mon_tap_str}")
+                logging.info(f"{mon_prim_str}")
+                logging.info(f"{mon_reg_str}")
 
             self.dss_obj.run_command(mon_tap_str)
             self.dss_obj.run_command(mon_prim_str)
@@ -454,10 +495,12 @@ class dss_utils:
                                   + ' VIPolar=false'
                 self.dss_obj.run_command(mon_to_line_str)
                 mon_lines_str_all.append(mon_to_line_str)
+                if self.print_statements:
+                    logging.info(mon_to_line_str)
         if self.print_statements:
-            print(*mon_lines_str_all, sep="\n")
-            print(f"Monitor Lines Specified {len(mon_lines)}")
-            print(f"Monitor Nodes Placed {len(mon_lines_str_all)}")
+            # logging.info(*mon_lines_str_all, sep="\n")
+            logging.info(f"Monitor Lines Specified {len(mon_lines)}")
+            logging.info(f"Monitor Lines Placed {len(mon_lines_str_all)}")
 
     def add_sub_mon(self):
 
@@ -468,8 +511,8 @@ class dss_utils:
                           + ' ppolar=false'
         self.dss_obj.run_command(mon_to_sub_str)
 
-        print(f"==== Adding Substation Monitor =======")
-        print(f"{mon_to_sub_str}")
+        logging.info(f"==== Adding Substation Monitor =======")
+        logging.info(f"{mon_to_sub_str}")
 
     def add_volt_mons(self):
         """
@@ -500,11 +543,14 @@ class dss_utils:
                                + ' VIPolar=false'
                 volt_mon_str_all.append(volt_mon_str)
                 self.dss_obj.run_command(volt_mon_str)
+                if self.print_statements:
+                    logging.info(fault_str)
+                    logging.info(volt_mon_str)
         if self.print_statements:
-            print(f"Total nodes in the network: {self.dss_obj.Circuit.NumNodes()}")
-            print(f"Total voltage monitors placed: {len(volt_mon_str_all)}")
-            print(*fault_str_all, sep="\n")
-            print(*volt_mon_str_all, sep="\n")
+            logging.info(f"Total nodes in the network: {self.dss_obj.Circuit.NumNodes()}")
+            logging.info(f"Total voltage monitors placed: {len(volt_mon_str_all)}")
+            # logging.info(*fault_str_all, sep="\n")
+            # logging.info(*volt_mon_str_all, sep="\n")
 
             i += 1
 
@@ -525,7 +571,7 @@ class dss_utils:
                     self.dss_obj.CktElement.Powers()[2] + np.multiply(1j, self.dss_obj.CktElement.Powers()[3]))
             self.s0.s0['SOURCEBUS' + '.3'] = -(
                     self.dss_obj.CktElement.Powers()[4] + np.multiply(1j, self.dss_obj.CktElement.Powers()[5]))
-        # print(self.s0)
+        # logging.info(self.s0)
     def get_y_ordered_voltage_array(self):
         """
         Function used for extracting Voltage phasor information at all nodes from OpenDSS model
@@ -538,7 +584,7 @@ class dss_utils:
         self.voltages = V_real + np.multiply(1j, V_imag)
         self.v0 = self.voltages[0:3]
         self.vL = self.voltages[3:]
-        # print(self.vL)
+        # logging.info(self.vL)
 
 
 
@@ -593,7 +639,7 @@ class dss_utils:
         self.bus_data = {'Name': name, 'Voltages': V, 'X': x, 'Y': y, 'Distance': distance, 'Nodes': bus_nodes, "kVBase": kVBase}
 
         # self.bus_data = pd.DataFrame(bdata)
-        # print(self.bus_data)
+        # logging.info(self.bus_data)
 
         check = 1
         # df = pd.DataFrame(data=data, index=rows, columns=columns)
@@ -697,7 +743,7 @@ class dss_utils:
                             "Current": I[0:i],
                             "power_real": P[0:i],
                             "power_imag": Q[0:i]}
-        #print(self.branch_data)
+        #logging.info(self.branch_data)
 
 
     def voltage_plot(self):
@@ -833,8 +879,8 @@ class dss_utils:
 if __name__ == "__main__":
     # FeederDir = os.path.join(os.getcwd(), '..\ckts\opendss-ckts\IEEE13')
     # MasterFileDir = os.path.join(FeederDir, 'IEEE13Nodeckt.dss')
-    # print(MasterFileDir)
-    # print(FeederDir)
+    # logging.info(MasterFileDir)
+    # logging.info(FeederDir)
 
     # dir_name = 'ckts\\opendss-ckts\\IEEE13',
     # ckt_name = 'MasterIEEE13_daily.dss', data_path_name = 'ckts\\opendss-ckts\\IEEE13\\data',
