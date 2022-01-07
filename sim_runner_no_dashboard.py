@@ -4,7 +4,7 @@ import json
 import numpy as np
 from datetime import datetime, timedelta
 
-from battery_class_new import battery_class_new
+from battery_class_no_dashboard import battery_class_new
 import matplotlib.animation as ani
 import matplotlib.pyplot as plt
 import logging
